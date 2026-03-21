@@ -11,9 +11,12 @@ COPY main.py .
 COPY app/ app/
 
 # Install dependencies (no dev extras)
-RUN uv pip install --system "pydantic[email]" fastapi "uvicorn[standard]" \
-    supabase pydantic-settings "python-jose[cryptography]" \
-    python-multipart pypdf python-dotenv structlog
+RUN uv pip install --system \
+    "fastapi>=0.115" "uvicorn[standard]>=0.30" \
+    "supabase>=2.9" "pydantic>=2.9" "pydantic-settings>=2.5" \
+    "python-multipart>=0.0.12" "pypdf>=4.3" \
+    "python-dotenv" "structlog>=24.4" "httpx>=0.27" \
+    "python-jose[cryptography]"
 
 EXPOSE 8000
 
