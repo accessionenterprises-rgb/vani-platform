@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vaani — Voice Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client@2/dist/livekit-client.umd.js"></script>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-md p-8 rounded-2xl bg-gray-900 border border-gray-800 text-center">
+    <div class="text-4xl mb-2">🎙️</div>
+    <h1 class="text-2xl font-bold mb-1">Vaani</h1>
+    <p class="text-gray-400 text-sm mb-8">Voice AI Engine — Test</p>
+
+    <div id="status" class="text-sm text-gray-500 mb-6">Not connected</div>
+
+    <button id="btn"
+      onclick="toggleCall()"
+      class="w-full py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-lg transition-all">
+      Connect
+    </button>
+
+    <div id="transcript" class="mt-8 text-left text-sm text-gray-400 space-y-2 max-h-48 overflow-y-auto hidden"></div>
+  </div>
+
+  <script>
+    let room = null;
+
+    function setStatus(msg, color = "text-gray-400") {
+      const el = document.getElementById("status");
+      el.textContent = msg;
+      el.className = `text-sm mb-6 ${color}`;
+    }
+
+    function log(msg) {
+      const el = document.getElementById("transcript");
+      el.classList.remove("hidden");
+      const p = document.createElement("p");
+      p.textContent = msg;
+      el.appendChild(p);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    async function toggleCall() {
+      if (room) {
+        await room.disconnect();
+        room = null;
+        document.getElementById("btn").textContent = "Connect";
+        setStatus("Disconnected");
+        return;
+      }
+
+      setStatus("Getting session...", "text-yellow-400");
+      document.getElementById("btn").textContent = "Connecting...";
+      document.getElementById("btn").disabled = true;
+
+      try {
+        // Fetch fresh token + unique room from local server (which also dispatches the agent)
+        const res = await fetch("http://localhost:3456/join");
+        const { token, room: roomName, url: lkUrl } = await res.json();
+        log(`Room: ${roomName}`);
+
+        room = new LivekitClient.Room();
+
+        function vaaniReady() {
+          setStatus("Vaani is listening...", "text-green-400");
+          log("Vaani is here. Start speaking!");
+          document.getElementById("btn").textContent = "Hang Up";
+          document.getElementById("btn").disabled = false;
+        }
+
+        room.on(LivekitClient.RoomEvent.Connected, () => {
+          setStatus("Connected — Vaani is joining...", "text-blue-400");
+          log("Room connected. Waiting for Vaani...");
+          // Agent might already be in the room (joined before us)
+          room.remoteParticipants.forEach((p) => {
+            if (p.identity.startsWith("agent-")) vaaniReady();
+          });
+        });
+
+        room.on(LivekitClient.RoomEvent.ParticipantConnected, (p) => {
+          if (p.identity.startsWith("agent-")) vaaniReady();
+        });
+
+        room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
+          if (track.kind === "audio") track.attach();
+        });
+
+        room.on(LivekitClient.RoomEvent.Disconnected, () => {
+          setStatus("Disconnected");
+          room = null;
+          document.getElementById("btn").textContent = "Connect";
+          document.getElementById("btn").disabled = false;
+        });
+
+        await room.connect(lkUrl, token);
+        await room.localParticipant.setMicrophoneEnabled(true);
+        // Unlock browser audio context (required for autoplay policy)
+        await room.startAudio();
+
+      } catch (err) {
+        setStatus(`Error: ${err.message}`, "text-red-400");
+        document.getElementById("btn").textContent = "Connect";
+        document.getElementById("btn").disabled = false;
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
