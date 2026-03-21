@@ -2434,7 +2434,7 @@ wheels = [
 ]
 
 [[package]]
-name = "vaani-engine"
+name = "vani-engine"
 version = "1.0.0"
 source = { editable = "." }
 dependencies = [
