@@ -1,11 +1,18 @@
 """Admin API — platform operator endpoints.
 
-Auth: POST /admin/auth with { "secret": ADMIN_SECRET } → { "token": <jwt> }
+Auth: POST /admin/auth with { "email": ..., "password": ... } → { "token": <jwt> }
 All other /admin/* routes require: Authorization: Bearer <admin_token>
+
+Admin users are stored in the admin_users table (bcrypt password hashes).
+Superadmins can manage other admins. Admins can use all platform features.
+
+Bootstrap: use ADMIN_BOOTSTRAP_EMAIL + ADMIN_BOOTSTRAP_PASSWORD env vars to
+auto-create the first superadmin on startup (runs once, idempotent).
 """
 import time
 from typing import Optional
 
+import bcrypt
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -24,31 +31,139 @@ _TOKEN_TTL = 60 * 60 * 12  # 12 hours
 
 # ─── Admin Auth ───────────────────────────────────────────────────────────────
 
-def _make_token() -> str:
-    payload = {"role": "admin", "iat": int(time.time()), "exp": int(time.time()) + _TOKEN_TTL}
+def _make_token(admin_id: str, role: str, name: str) -> str:
+    payload = {
+        "sub": admin_id,
+        "role": role,
+        "name": name,
+        "iat": int(time.time()),
+        "exp": int(time.time()) + _TOKEN_TTL,
+    }
     return jwt.encode(payload, settings.admin_secret, algorithm=_ALGORITHM)
 
 
-def _verify_token(creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer)) -> None:
+def _verify_token(creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer)) -> dict:
     if creds is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing admin token")
     try:
         payload = jwt.decode(creds.credentials, settings.admin_secret, algorithms=[_ALGORITHM])
-        if payload.get("role") != "admin":
+        if payload.get("role") not in ("admin", "superadmin"):
             raise ValueError
+        return payload
     except (JWTError, ValueError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin token")
 
 
+def _require_superadmin(payload: dict = Depends(_verify_token)) -> dict:
+    if payload.get("role") != "superadmin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Superadmin required")
+    return payload
+
+
 class AuthRequest(BaseModel):
-    secret: str
+    email: str
+    password: str
+
+
+class CreateAdminRequest(BaseModel):
+    email: str
+    password: str
+    name: str = ""
+    role: str = "admin"  # 'admin' | 'superadmin'
 
 
 @router.post("/auth")
 def admin_login(body: AuthRequest):
-    if not settings.admin_secret or body.secret != settings.admin_secret:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
-    return {"token": _make_token()}
+    db = get_db()
+    row = db.table("admin_users").select("*").eq("email", body.email.lower().strip()).eq("active", True).maybe_single().execute()
+    if row.data is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+
+    user = row.data
+    if not bcrypt.checkpw(body.password.encode(), user["password_hash"].encode()):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+
+    # Update last_login
+    db.table("admin_users").update({"last_login": time.strftime("%Y-%m-%dT%H:%M:%SZ")}).eq("id", user["id"]).execute()
+
+    token = _make_token(user["id"], user["role"], user.get("name") or user["email"])
+    return {"token": token, "name": user.get("name") or user["email"], "role": user["role"]}
+
+
+@router.get("/auth/me", dependencies=[Depends(_verify_token)])
+def admin_me(payload: dict = Depends(_verify_token)):
+    return {"id": payload["sub"], "name": payload["name"], "role": payload["role"]}
+
+
+# ─── Admin User Management (superadmin only) ──────────────────────────────────
+
+@router.get("/admins", dependencies=[Depends(_require_superadmin)])
+def list_admins():
+    db = get_db()
+    rows = db.table("admin_users").select("id, email, name, role, active, last_login, created_at").order("created_at", desc=True).execute()
+    return rows.data or []
+
+
+@router.post("/admins", dependencies=[Depends(_require_superadmin)], status_code=201)
+def create_admin(body: CreateAdminRequest):
+    db = get_db()
+    existing = db.table("admin_users").select("id").eq("email", body.email.lower().strip()).maybe_single().execute()
+    if existing.data:
+        raise HTTPException(status_code=400, detail="Email already exists")
+    hashed = bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode()
+    result = db.table("admin_users").insert({
+        "email": body.email.lower().strip(),
+        "password_hash": hashed,
+        "name": body.name,
+        "role": body.role if body.role in ("admin", "superadmin") else "admin",
+        "active": True,
+    }).execute()
+    row = result.data[0]
+    return {"id": row["id"], "email": row["email"], "name": row["name"], "role": row["role"]}
+
+
+@router.patch("/admins/{admin_id}", dependencies=[Depends(_require_superadmin)])
+def update_admin(admin_id: str, body: dict):
+    db = get_db()
+    allowed = {k: v for k, v in body.items() if k in ("name", "role", "active")}
+    if "password" in body:
+        allowed["password_hash"] = bcrypt.hashpw(body["password"].encode(), bcrypt.gensalt()).decode()
+    if not allowed:
+        raise HTTPException(status_code=400, detail="Nothing to update")
+    db.table("admin_users").update(allowed).eq("id", admin_id).execute()
+    return {"ok": True}
+
+
+@router.delete("/admins/{admin_id}", dependencies=[Depends(_require_superadmin)])
+def delete_admin(admin_id: str, payload: dict = Depends(_require_superadmin)):
+    if admin_id == payload["sub"]:
+        raise HTTPException(status_code=400, detail="Cannot delete yourself")
+    db = get_db()
+    db.table("admin_users").delete().eq("id", admin_id).execute()
+    return {"ok": True}
+
+
+@router.post("/bootstrap", status_code=201)
+def bootstrap_admin(body: CreateAdminRequest):
+    """
+    Create the first superadmin. Only works when no admin users exist.
+    Call this once after running the 009_admin_users.sql migration.
+    """
+    db = get_db()
+    existing = db.table("admin_users").select("id").limit(1).execute()
+    if existing.data:
+        raise HTTPException(status_code=403, detail="Admin users already exist. Use /admin/admins to add more.")
+    hashed = bcrypt.hashpw(body.password.encode(), bcrypt.gensalt()).decode()
+    result = db.table("admin_users").insert({
+        "email": body.email.lower().strip(),
+        "password_hash": hashed,
+        "name": body.name or "Superadmin",
+        "role": "superadmin",
+        "active": True,
+    }).execute()
+    row = result.data[0]
+    token = _make_token(row["id"], "superadmin", row.get("name") or row["email"])
+    return {"token": token, "name": row.get("name"), "role": "superadmin", "message": "Superadmin created"}
 
 
 # ─── Platform Stats ───────────────────────────────────────────────────────────
