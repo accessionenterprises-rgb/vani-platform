@@ -1,12 +1,15 @@
-"""Calls log endpoints — list + get transcript + supervisor monitor token."""
+"""Calls log endpoints — list + get transcript + supervisor monitor token + AI QA."""
+import json
 import os
 import time
 from uuid import UUID
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional
 
+from app.config import settings
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
@@ -147,3 +150,105 @@ async def get_monitor_token(call_id: UUID, tenant_id: str = Depends(get_tenant_i
         return {"token": token, "room": room_name, "livekit_url": livekit_url}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Token generation failed: {exc}")
+
+
+class QAResponse(BaseModel):
+    professionalism: int
+    empathy: int
+    resolution: int
+    adherence: int
+    summary: str
+    flags: list[str]
+
+
+_QA_PROMPT = """You are a call quality analyst reviewing a voice AI call transcript.
+
+Score the AI agent (not the human caller) on each dimension from 1–10:
+- professionalism: tone, language quality, politeness
+- empathy: understanding and acknowledging the caller's needs
+- resolution: whether the caller's issue was addressed or resolved
+- adherence: staying on topic and following its role/guidelines
+
+Also write a brief 1–2 sentence summary of the call quality, and list up to 3 specific flags (issues or improvements).
+
+Respond ONLY with valid JSON in this exact format:
+{
+  "professionalism": <1-10>,
+  "empathy": <1-10>,
+  "resolution": <1-10>,
+  "adherence": <1-10>,
+  "summary": "<string>",
+  "flags": ["<flag1>", "<flag2>"]
+}
+
+TRANSCRIPT:
+{transcript}"""
+
+
+@router.post("/{call_id}/qa", response_model=QAResponse)
+async def run_call_qa(call_id: UUID, tenant_id: str = Depends(get_tenant_id)):
+    """Run AI quality analysis on a completed call's transcript."""
+    db = get_db()
+    result = (
+        db.table("calls")
+        .select("id, tenant_id, transcript, status")
+        .eq("id", str(call_id))
+        .eq("tenant_id", tenant_id)
+        .maybe_single()
+        .execute()
+    )
+    if result.data is None:
+        raise HTTPException(status_code=404, detail="Call not found")
+
+    call = result.data
+    transcript = call.get("transcript", "")
+    if not transcript or len(transcript.strip()) < 20:
+        raise HTTPException(status_code=400, detail="Call has no transcript to analyse")
+
+    # Use configured LLM — fall back to a simple Gemini call via Google's API
+    llm_key = os.getenv("GEMINI_API_KEY", "") or os.getenv("GOOGLE_API_KEY", "")
+    openai_key = os.getenv("OPENAI_API_KEY", "")
+
+    prompt = _QA_PROMPT.replace("{transcript}", transcript[:8000])
+
+    if openai_key:
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {openai_key}"},
+                json={"model": "gpt-4o-mini", "messages": [{"role": "user", "content": prompt}], "max_tokens": 400},
+            )
+        r.raise_for_status()
+        text = r.json()["choices"][0]["message"]["content"]
+    elif llm_key:
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={llm_key}",
+                json={"contents": [{"parts": [{"text": prompt}]}]},
+            )
+        r.raise_for_status()
+        text = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+    else:
+        # Fallback: return a dummy neutral score
+        return QAResponse(
+            professionalism=7, empathy=7, resolution=7, adherence=7,
+            summary="LLM not configured — unable to run AI QA. Set OPENAI_API_KEY or GEMINI_API_KEY.",
+            flags=["Configure an LLM key to enable real QA analysis"],
+        )
+
+    # Parse JSON from LLM response
+    try:
+        json_match = text.strip()
+        start = json_match.find("{")
+        end   = json_match.rfind("}") + 1
+        data  = json.loads(json_match[start:end])
+        return QAResponse(
+            professionalism=int(data.get("professionalism", 7)),
+            empathy=int(data.get("empathy", 7)),
+            resolution=int(data.get("resolution", 7)),
+            adherence=int(data.get("adherence", 7)),
+            summary=str(data.get("summary", "")),
+            flags=[str(f) for f in data.get("flags", [])],
+        )
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to parse QA response from LLM")

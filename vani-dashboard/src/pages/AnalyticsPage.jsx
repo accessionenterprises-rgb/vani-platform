@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { api } from '../api/client'
 
 const PERIODS = [
@@ -6,36 +6,50 @@ const PERIODS = [
   { label: '14 days', value: 14 },
   { label: '30 days', value: 30 },
 ]
+const REFRESH_INTERVAL = 30_000
 
 export default function AnalyticsPage() {
-  const [period, setPeriod] = useState(7)
-  const [overview, setOverview] = useState(null)
-  const [callsChart, setCallsChart] = useState([])
-  const [agents, setAgents] = useState([])
-  const [intents, setIntents] = useState(null)
-  const [providers, setProviders] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [period, setPeriod]           = useState(7)
+  const [overview, setOverview]       = useState(null)
+  const [callsChart, setCallsChart]   = useState([])
+  const [agents, setAgents]           = useState([])
+  const [intents, setIntents]         = useState(null)
+  const [providers, setProviders]     = useState(null)
+  const [loading, setLoading]         = useState(true)
+  const [lastUpdated, setLastUpdated] = useState(null)
+  const [refreshing, setRefreshing]   = useState(false)
 
-  useEffect(() => {
-    setLoading(true)
-    Promise.all([
-      api.analyticsOverview(period),
-      api.analyticsCalls(period),
-      api.analyticsAgents(period),
-      api.analyticsIntents(period),
-      api.analyticsProviders(period),
-    ]).then(([ov, ch, ag, int, prov]) => {
+  const fetchData = useCallback(async (isAuto = false) => {
+    if (!isAuto) setLoading(true); else setRefreshing(true)
+    try {
+      const [ov, ch, ag, int, prov] = await Promise.all([
+        api.analyticsOverview(period),
+        api.analyticsCalls(period),
+        api.analyticsAgents(period),
+        api.analyticsIntents(period),
+        api.analyticsProviders(period),
+      ])
       setOverview(ov)
       setCallsChart(ch.chart || [])
       setAgents(ag.agents || [])
       setIntents(int)
       setProviders(prov)
-    }).catch(console.error).finally(() => setLoading(false))
+      setLastUpdated(new Date())
+    } catch (e) { console.error(e) }
+    finally { setLoading(false); setRefreshing(false) }
   }, [period])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  useEffect(() => {
+    const id = setInterval(() => fetchData(true), REFRESH_INTERVAL)
+    return () => clearInterval(id)
+  }, [fetchData])
 
   if (loading && !overview) return (
     <div className="flex-1 flex items-center justify-center text-slate-600 text-sm">Loading analytics…</div>
   )
+
 
   const maxCalls = Math.max(...callsChart.map(d => d.total), 1)
 
@@ -46,8 +60,20 @@ export default function AnalyticsPage() {
         <div className="flex items-center justify-between mb-7">
           <div>
             <h1 className="text-xl font-semibold text-white">Analytics</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Call performance and agent insights</p>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Call performance and agent insights
+              {lastUpdated && <span className="ml-2 text-slate-600">· {lastUpdated.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>}
+            </p>
           </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => fetchData()} disabled={refreshing}
+              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 bg-[#12141f] border border-[#1f2235] px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+              <svg className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              {refreshing ? 'Refreshing…' : 'Refresh'}
+            </button>
           <div className="flex gap-1 bg-[#12141f] rounded-lg border border-[#1f2235] p-1">
             {PERIODS.map(p => (
               <button key={p.value} onClick={() => setPeriod(p.value)}
@@ -59,6 +85,7 @@ export default function AnalyticsPage() {
                 {p.label}
               </button>
             ))}
+          </div>
           </div>
         </div>
 

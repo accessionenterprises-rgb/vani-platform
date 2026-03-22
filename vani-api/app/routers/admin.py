@@ -556,6 +556,114 @@ async def admin_hunter_scan_all():
     return {"started": True, "message": "Full NANP scan queued (all 15 countries)"}
 
 
+# ── Scan Schedules ────────────────────────────────────────────────────────────
+
+class ScheduleBody(BaseModel):
+    name: str = "My Schedule"
+    is_active: bool = True
+    frequency: str          # hourly | daily | weekly | monthly
+    hour_of_day: Optional[int] = 2
+    day_of_week: Optional[int] = None   # 0=Mon…6=Sun (weekly only)
+    day_of_month: Optional[int] = None  # 1-31 (monthly only)
+    countries: Optional[list] = None    # None = all
+    service: str = "twilio"
+    tiers: Optional[list] = None        # None = all
+
+
+def _compute_next_run(frequency: str, hour_of_day, day_of_week, day_of_month) -> str:
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
+    h = int(hour_of_day or 2)
+
+    if frequency == "hourly":
+        nxt = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    elif frequency == "daily":
+        nxt = now.replace(hour=h, minute=0, second=0, microsecond=0)
+        if nxt <= now:
+            nxt += timedelta(days=1)
+    elif frequency == "weekly":
+        dow = int(day_of_week or 0)
+        days_ahead = (dow - now.weekday()) % 7
+        if days_ahead == 0 and now.hour >= h:
+            days_ahead = 7
+        nxt = (now + timedelta(days=days_ahead)).replace(hour=h, minute=0, second=0, microsecond=0)
+    elif frequency == "monthly":
+        dom = int(day_of_month or 1)
+        try:
+            nxt = now.replace(day=dom, hour=h, minute=0, second=0, microsecond=0)
+        except ValueError:
+            nxt = now.replace(day=28, hour=h, minute=0, second=0, microsecond=0)
+        if nxt <= now:
+            month = now.month + 1 if now.month < 12 else 1
+            year = now.year if now.month < 12 else now.year + 1
+            try:
+                nxt = nxt.replace(year=year, month=month)
+            except ValueError:
+                nxt = nxt.replace(year=year, month=month, day=28)
+    else:
+        nxt = now + timedelta(hours=1)
+
+    return nxt.isoformat()
+
+
+@router.get("/hunter/schedules", dependencies=[Depends(_verify_token)])
+def list_schedules():
+    db = get_db()
+    return db.table("number_scan_schedules").select("*").order("created_at", desc=True).execute().data or []
+
+
+@router.post("/hunter/schedules", dependencies=[Depends(_verify_token)], status_code=201)
+def create_schedule(body: ScheduleBody):
+    db = get_db()
+    if body.frequency not in ("hourly", "daily", "weekly", "monthly"):
+        raise HTTPException(status_code=400, detail="Invalid frequency")
+    next_run = _compute_next_run(body.frequency, body.hour_of_day, body.day_of_week, body.day_of_month)
+    result = db.table("number_scan_schedules").insert({
+        "name": body.name,
+        "is_active": body.is_active,
+        "frequency": body.frequency,
+        "hour_of_day": body.hour_of_day,
+        "day_of_week": body.day_of_week,
+        "day_of_month": body.day_of_month,
+        "countries": body.countries,
+        "service": body.service,
+        "tiers": body.tiers,
+        "next_run_at": next_run,
+    }).execute()
+    return result.data[0]
+
+
+@router.put("/hunter/schedules/{schedule_id}", dependencies=[Depends(_verify_token)])
+def update_schedule(schedule_id: str, body: ScheduleBody):
+    db = get_db()
+    if body.frequency not in ("hourly", "daily", "weekly", "monthly"):
+        raise HTTPException(status_code=400, detail="Invalid frequency")
+    next_run = _compute_next_run(body.frequency, body.hour_of_day, body.day_of_week, body.day_of_month)
+    result = db.table("number_scan_schedules").update({
+        "name": body.name,
+        "is_active": body.is_active,
+        "frequency": body.frequency,
+        "hour_of_day": body.hour_of_day,
+        "day_of_week": body.day_of_week,
+        "day_of_month": body.day_of_month,
+        "countries": body.countries,
+        "service": body.service,
+        "tiers": body.tiers,
+        "next_run_at": next_run,
+        "updated_at": "now()",
+    }).eq("id", schedule_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Schedule not found")
+    return result.data[0]
+
+
+@router.delete("/hunter/schedules/{schedule_id}", dependencies=[Depends(_verify_token)])
+def delete_schedule(schedule_id: str):
+    db = get_db()
+    db.table("number_scan_schedules").delete().eq("id", schedule_id).execute()
+    return {"deleted": True}
+
+
 class AdminPurchaseRequest(BaseModel):
     number: str
 

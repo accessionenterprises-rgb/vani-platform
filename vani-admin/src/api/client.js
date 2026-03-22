@@ -81,4 +81,28 @@ export const adminApi = {
     const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([,v]) => v != null))).toString()
     return request('GET', `/admin/calls${qs ? '?' + qs : ''}`)
   },
+
+  // Number Hunter
+  hunterResults:  (status, country, tier) => {
+    const p = new URLSearchParams()
+    if (status)  p.set('status', status)
+    if (country) p.set('country', country)
+    if (tier)    p.set('tier', tier)
+    const qs = p.toString()
+    return request('GET', `/admin/hunter/results${qs ? '?' + qs : ''}`)
+  },
+  hunterScans:    (country) => {
+    const qs = country ? `?country=${country}` : ''
+    return request('GET', `/admin/hunter/scans${qs}`)
+  },
+  hunterStatus:   ()        => request('GET',  '/admin/hunter/status'),
+  hunterScan:     (country) => request('POST', '/admin/hunter/scan',     { country }),
+  hunterScanAll:  ()        => request('POST', '/admin/hunter/scan-all'),
+  hunterPurchase: (number)  => request('POST', '/admin/hunter/purchase', { number }),
+
+  // Schedules
+  listSchedules:   ()         => request('GET',    '/admin/hunter/schedules'),
+  createSchedule:  (data)     => request('POST',   '/admin/hunter/schedules', data),
+  updateSchedule:  (id, data) => request('PUT',    `/admin/hunter/schedules/${id}`, data),
+  deleteSchedule:  (id)       => request('DELETE', `/admin/hunter/schedules/${id}`),
 }

@@ -178,6 +178,21 @@ export const api = {
   // Dialer
   getDialerToken: () => request('GET', '/dialer/token'),
 
+  // KB URL scraping
+  addKbUrl: (agentId, url, title = '') => request('POST', `/agents/${agentId}/kb/url`, { url, title }),
+
+  // Call QA
+  runCallQA: (callId) => request('POST', `/calls/${callId}/qa`),
+
+  // Team management
+  listTeam:       ()             => request('GET',    '/team'),
+  inviteMember:   (data)         => request('POST',   '/team', data),
+  updateMember:   (id, role)     => request('PATCH',  `/team/${id}`, { role }),
+  removeMember:   (id)           => request('DELETE', `/team/${id}`),
+
+  // Agent settings extras (pii redaction stored in agent config)
+  // handled via updateAgent patch
+
   // Number Hunter
   hunterResults: (status = 'available', country = null, tier = null) => {
     const qs = new URLSearchParams({ status })

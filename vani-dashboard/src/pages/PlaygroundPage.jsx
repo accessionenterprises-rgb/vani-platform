@@ -52,7 +52,7 @@ export default function PlaygroundPage() {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-5 bg-[#0d0f18] rounded-lg p-1 w-fit border border-[#1f2235]">
-          {[['chat', 'Text Chat'], ['phone', 'Phone Test']].map(([key, label]) => (
+          {[['chat', 'Text Chat'], ['phone', 'Phone Test'], ['sim', 'Simulation']].map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -66,6 +66,7 @@ export default function PlaygroundPage() {
 
         {tab === 'chat' && <TextChatTab selectedAgent={selectedAgent} agent={agent} />}
         {tab === 'phone' && <PhoneTestTab selectedAgent={selectedAgent} />}
+        {tab === 'sim' && <SimulationTab selectedAgent={selectedAgent} agent={agent} />}
       </div>
     </div>
   )
@@ -340,4 +341,164 @@ function PhoneTestTab({ selectedAgent }) {
 function StatusDot({ status }) {
   const map = { queued: 'bg-slate-500', routing: 'bg-blue-500 animate-pulse', connecting: 'bg-amber-500 animate-pulse', active: 'bg-emerald-500 animate-pulse', ending: 'bg-orange-500', completed: 'bg-emerald-500', failed: 'bg-red-500', cancelled: 'bg-slate-600' }
   return <div className={`w-2.5 h-2.5 rounded-full ${map[status] || 'bg-slate-500'}`} />
+}
+
+
+// ── Simulation Testing Tab ─────────────────────────────────────────────────────
+
+const DEFAULT_SCENARIOS = [
+  { id: 'greeting',    label: 'Greeting Flow',         messages: ['Hi there', 'What can you help me with?'] },
+  { id: 'booking',     label: 'Booking Intent',         messages: ['I want to book an appointment', 'How about tomorrow at 3pm?'] },
+  { id: 'complaint',   label: 'Complaint Handling',     messages: ['I have a serious issue', 'This has been going on for a week and nobody helped me'] },
+  { id: 'escalation',  label: 'Escalation Trigger',     messages: ['I need to speak to a human', 'Please transfer me to someone real'] },
+  { id: 'off_topic',   label: 'Off-topic Deflection',   messages: ['What is the weather today?', 'Tell me a joke'] },
+  { id: 'goodbye',     label: 'Call Goodbye',           messages: ['Thanks, that\'s all I needed', 'Goodbye'] },
+]
+
+function SimulationTab({ selectedAgent, agent }) {
+  const [results, setResults]   = useState({})
+  const [running, setRunning]   = useState(false)
+  const [runAll, setRunAll]     = useState(false)
+  const [custom, setCustom]     = useState('')
+  const [customScenarios, setCustomScenarios] = useState([])
+
+  async function runScenario(scenario) {
+    setResults(r => ({ ...r, [scenario.id]: { status: 'running', responses: [] } }))
+    const responses = []
+    let sessionId = null
+    try {
+      for (const msg of scenario.messages) {
+        const res = await api.playgroundChat({ agent_id: selectedAgent, message: msg, session_id: sessionId })
+        sessionId = res.session_id
+        const last = res.messages[res.messages.length - 1]
+        responses.push({ user: msg, agent: last?.content || '—' })
+      }
+      // Clear session
+      if (sessionId) api.playgroundClearSession(sessionId).catch(() => {})
+      setResults(r => ({ ...r, [scenario.id]: { status: 'done', responses } }))
+    } catch (err) {
+      setResults(r => ({ ...r, [scenario.id]: { status: 'error', error: err.message, responses } }))
+    }
+  }
+
+  async function runAllScenarios() {
+    if (!selectedAgent) return
+    setRunAll(true)
+    setResults({})
+    const all = [...DEFAULT_SCENARIOS, ...customScenarios]
+    for (const s of all) {
+      await runScenario(s)
+    }
+    setRunAll(false)
+  }
+
+  function addCustomScenario() {
+    if (!custom.trim()) return
+    const msgs = custom.split('|').map(m => m.trim()).filter(Boolean)
+    if (msgs.length === 0) return
+    const id = `custom_${Date.now()}`
+    setCustomScenarios(cs => [...cs, { id, label: msgs[0].slice(0, 30), messages: msgs }])
+    setCustom('')
+  }
+
+  const allScenarios = [...DEFAULT_SCENARIOS, ...customScenarios]
+
+  return (
+    <div className="space-y-5">
+      {/* Controls */}
+      <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-sm font-semibold text-white">Automated Simulation</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Run pre-built conversation scenarios through your agent and inspect responses.</p>
+          </div>
+          <button onClick={runAllScenarios} disabled={!selectedAgent || runAll}
+            className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors">
+            {runAll ? (
+              <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Running…</>
+            ) : (
+              <><span>▶</span> Run All Scenarios</>
+            )}
+          </button>
+        </div>
+
+        {/* Custom scenario input */}
+        <div className="flex gap-2">
+          <input
+            value={custom}
+            onChange={e => setCustom(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addCustomScenario()}
+            placeholder="Add custom scenario: message1 | message2 | message3"
+            className="flex-1 bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+          />
+          <button onClick={addCustomScenario}
+            className="text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-2 rounded-lg transition-colors">
+            Add
+          </button>
+        </div>
+      </div>
+
+      {/* Scenario cards */}
+      <div className="grid grid-cols-2 gap-3">
+        {allScenarios.map(scenario => {
+          const result = results[scenario.id]
+          return (
+            <div key={scenario.id} className={`bg-[#12141f] rounded-xl border p-4 transition-colors ${
+              result?.status === 'done' ? 'border-emerald-500/30' :
+              result?.status === 'error' ? 'border-red-500/30' :
+              result?.status === 'running' ? 'border-indigo-500/40' :
+              'border-[#1f2235]'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${
+                    result?.status === 'done' ? 'bg-emerald-500' :
+                    result?.status === 'error' ? 'bg-red-500' :
+                    result?.status === 'running' ? 'bg-indigo-500 animate-pulse' :
+                    'bg-slate-600'
+                  }`} />
+                  <p className="text-xs font-medium text-slate-200">{scenario.label}</p>
+                </div>
+                <button
+                  onClick={() => runScenario(scenario)}
+                  disabled={!selectedAgent || result?.status === 'running'}
+                  className="text-xs text-slate-500 hover:text-slate-300 disabled:opacity-40 transition-colors">
+                  {result?.status === 'running' ? '…' : '▶'}
+                </button>
+              </div>
+
+              {!result && (
+                <div className="flex flex-wrap gap-1">
+                  {scenario.messages.map((m, i) => (
+                    <span key={i} className="text-[10px] text-slate-600 bg-white/[0.03] px-1.5 py-0.5 rounded">
+                      "{m.slice(0, 25)}{m.length > 25 ? '…' : ''}"
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {result?.status === 'error' && (
+                <p className="text-xs text-red-400">{result.error}</p>
+              )}
+
+              {result?.responses?.length > 0 && (
+                <div className="space-y-2 mt-1">
+                  {result.responses.map((r, i) => (
+                    <div key={i} className="text-[11px] space-y-0.5">
+                      <p className="text-slate-500">U: <span className="text-slate-400">{r.user}</span></p>
+                      <p className="text-indigo-400/80">A: <span className="text-indigo-300">{r.agent?.slice(0, 80)}{r.agent?.length > 80 ? '…' : ''}</span></p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {!selectedAgent && (
+        <p className="text-center text-sm text-slate-500 py-4">Select an agent above to run simulations.</p>
+      )}
+    </div>
+  )
 }

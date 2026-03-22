@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import admin, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, number_hunter, numbers, outbound, playground_chat, products, tools, webhooks
+from app.routers import admin, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, number_hunter, numbers, outbound, playground_chat, products, team, tools, webhooks
 
 logger = structlog.get_logger()
 
@@ -47,12 +47,14 @@ app.include_router(webhooks.router)
 app.include_router(dnc.router)
 app.include_router(playground_chat.router)
 app.include_router(dialer.router)
+app.include_router(team.router)
 
 
 @app.on_event("startup")
 async def start_number_hunter_scheduler() -> None:
-    """Launch the daily number hunter scan as a background asyncio task."""
+    """Launch the daily number hunter scan and schedule checker as background tasks."""
     asyncio.create_task(_hunter_scheduler())
+    asyncio.create_task(_schedule_checker())
 
 
 async def _hunter_scheduler() -> None:
@@ -93,6 +95,63 @@ async def _hunter_scheduler() -> None:
         except Exception as exc:
             logger.error("number_hunter daily_scan error", error=str(exc))
         await asyncio.sleep(86400)  # 24 hours
+
+
+async def _schedule_checker() -> None:
+    """Check every 30 min for due scan schedules and fire them."""
+    from app.routers.number_hunter import scan_country, _scan_running, NANP_COUNTRIES
+    from app.routers.admin import _compute_next_run
+    from app.db import get_db
+    from datetime import datetime, timezone
+
+    await asyncio.sleep(60)   # 1-min warm-up after startup
+
+    while True:
+        try:
+            db = get_db()
+            now_iso = datetime.now(timezone.utc).isoformat()
+            due = (
+                db.table("number_scan_schedules")
+                .select("*")
+                .eq("is_active", True)
+                .lte("next_run_at", now_iso)
+                .execute()
+                .data or []
+            )
+            for sched in due:
+                if any(_scan_running.values()):
+                    continue  # don't pile up scans
+
+                countries = sched.get("countries") or list(NANP_COUNTRIES.keys())
+                tiers = sched.get("tiers") or None
+                sched_id = sched["id"]
+                next_run = _compute_next_run(
+                    sched["frequency"], sched.get("hour_of_day"),
+                    sched.get("day_of_week"), sched.get("day_of_month"),
+                )
+
+                async def _run(countries=countries, tiers=tiers, sched_id=sched_id, next_run=next_run):
+                    for c in countries:
+                        if c not in NANP_COUNTRIES:
+                            continue
+                        _scan_running[c] = True
+                        try:
+                            await scan_country(c, NANP_COUNTRIES[c], tiers_filter=tiers)
+                        finally:
+                            _scan_running[c] = False
+                    try:
+                        db2 = get_db()
+                        db2.table("number_scan_schedules").update({
+                            "last_run_at": datetime.now(timezone.utc).isoformat(),
+                            "next_run_at": next_run,
+                        }).eq("id", sched_id).execute()
+                    except Exception:
+                        pass
+
+                asyncio.create_task(_run())
+        except Exception as exc:
+            logger.error("schedule_checker error", error=str(exc))
+        await asyncio.sleep(1800)  # check every 30 min
 
 
 @app.get("/health")

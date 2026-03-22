@@ -138,8 +138,8 @@ _scan_progress: dict[str, dict] = {}
 
 # ── Pattern generators ────────────────────────────────────────────────────────
 
-def build_patterns(npas: list[int]) -> list[dict]:
-    """Return all search dicts for the given NPA list."""
+def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) -> list[dict]:
+    """Return all search dicts for the given NPA list, optionally limited to tiers_filter."""
     s: list[dict] = []
 
     # 0. Long sequential runs (5, 6, 7 digits)
@@ -242,6 +242,8 @@ def build_patterns(npas: list[int]) -> list[dict]:
                     continue
                 s.append({"label": f"{a}{b}{c}-triple", "pattern": f"{a}{b}{c}" * 3, "tier": "B-abc-triple"})
 
+    if tiers_filter:
+        s = [p for p in s if p["tier"] in tiers_filter]
     return s
 
 
@@ -349,14 +351,17 @@ def _twilio_search(country: str, pattern: str) -> list[str]:
 
 # ── Core scan logic ───────────────────────────────────────────────────────────
 
-async def scan_country(country: str, npas: list[int]) -> dict:
+async def scan_country(country: str, npas: list[int], tiers_filter: Optional[list[str]] = None) -> dict:
     db = get_db()
     scan_id: Optional[str] = None
 
     try:
-        patterns = build_patterns(npas)
+        patterns = build_patterns(npas, tiers_filter=tiers_filter)
         if country == "US":
-            patterns += build_tollfree_patterns()
+            tf_patterns = build_tollfree_patterns()
+            if tiers_filter:
+                tf_patterns = [p for p in tf_patterns if p["tier"] in tiers_filter]
+            patterns += tf_patterns
 
         run = db.table("number_scan_runs").insert({
             "country": country,

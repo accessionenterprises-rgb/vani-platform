@@ -3,6 +3,81 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 import StatusBadge from '../components/StatusBadge'
 
+function QAPanel({ callId, transcript }) {
+  const [qa, setQa]           = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState('')
+
+  async function runQA() {
+    setError('')
+    setLoading(true)
+    try { setQa(await api.runCallQA(callId)) }
+    catch (err) { setError(err.message) }
+    finally { setLoading(false) }
+  }
+
+  const scores = qa ? [
+    { label: 'Professionalism', value: qa.professionalism },
+    { label: 'Empathy',         value: qa.empathy },
+    { label: 'Resolution',      value: qa.resolution },
+    { label: 'Adherence',       value: qa.adherence },
+  ] : []
+  const overall = qa ? Math.round(scores.reduce((s, x) => s + x.value, 0) / scores.length) : 0
+
+  return (
+    <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-sm font-medium text-white">AI QA Review</h2>
+        {qa && (
+          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+            overall >= 8 ? 'bg-emerald-500/15 text-emerald-400' :
+            overall >= 6 ? 'bg-amber-500/15 text-amber-400' : 'bg-red-500/15 text-red-400'
+          }`}>{overall}/10</span>
+        )}
+      </div>
+      {!qa && !loading && (
+        <div className="text-center py-3">
+          <p className="text-xs text-slate-500 mb-3">
+            {transcript ? 'Run an AI-powered quality review.' : 'No transcript available.'}
+          </p>
+          <button onClick={runQA} disabled={!transcript}
+            className="text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40">
+            Run QA Review
+          </button>
+        </div>
+      )}
+      {loading && (
+        <div className="flex items-center justify-center gap-2 py-4 text-xs text-slate-500">
+          <div className="w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          Analysing transcript…
+        </div>
+      )}
+      {error && <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
+      {qa && (
+        <div className="space-y-2.5">
+          {scores.map(({ label, value }) => (
+            <div key={label}>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-slate-400">{label}</span>
+                <span className={value >= 8 ? 'text-emerald-400' : value >= 6 ? 'text-amber-400' : 'text-red-400'}>{value}/10</span>
+              </div>
+              <div className="h-1.5 bg-[#1f2235] rounded-full overflow-hidden">
+                <div style={{ width: `${value * 10}%` }}
+                  className={`h-full rounded-full ${value >= 8 ? 'bg-emerald-500' : value >= 6 ? 'bg-amber-500' : 'bg-red-500'}`} />
+              </div>
+            </div>
+          ))}
+          {qa.summary && <p className="text-xs text-slate-400 leading-relaxed mt-3 pt-3 border-t border-[#1f2235]">{qa.summary}</p>}
+          {qa.flags?.map((f, i) => (
+            <p key={i} className="text-xs text-amber-400 flex gap-1"><span>⚠</span>{f}</p>
+          ))}
+          <button onClick={runQA} className="text-xs text-slate-600 hover:text-slate-400 transition-colors">Re-run</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function CallDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -239,6 +314,10 @@ export default function CallDetailPage() {
 
           {/* Side info */}
           <div className="col-span-2 space-y-4">
+            {/* AI QA Analyst */}
+            {call.status === 'completed' && (
+              <QAPanel callId={call.id} transcript={call.transcript} />
+            )}
             {/* Call info */}
             <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
               <h2 className="text-sm font-medium text-white mb-4">Details</h2>

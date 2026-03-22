@@ -34,6 +34,20 @@ function TierBadge({ tier }) {
   )
 }
 
+function ScoreBadge({ score, reason }) {
+  if (score == null) return <span className="text-xs text-slate-700">—</span>
+  const color = score >= 8
+    ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+    : score >= 6
+    ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+    : 'text-slate-400 bg-slate-500/10 border-slate-500/20'
+  return (
+    <span title={reason || ''} className={`text-xs font-semibold px-2 py-0.5 rounded border cursor-default ${color}`}>
+      {score}/10
+    </span>
+  )
+}
+
 export default function NumberHunterPage() {
   const [results, setResults]       = useState([])
   const [scans, setScans]           = useState([])
@@ -199,11 +213,12 @@ export default function NumberHunterPage() {
         )}
 
         {/* Stats row */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-5 gap-4 mb-6">
           <StatCard label="Available" value={results.filter(r => r.status === 'available').length} color="text-emerald-400" />
           <StatCard label="Purchased" value={results.filter(r => r.status === 'purchased').length} color="text-indigo-400" />
+          <StatCard label="Top Scored (≥8)" value={results.filter(r => r.ai_score >= 8).length} color="text-amber-400" />
           <StatCard label="Last Scan" value={lastScan ? new Date(lastScan.started_at).toLocaleDateString() : '—'} />
-          <StatCard label="Countries Covered" value={status.countries?.length || 15} />
+          <StatCard label="Countries" value={status.countries?.length || 15} />
         </div>
 
         {/* Tier breakdown pills */}
@@ -284,6 +299,7 @@ export default function NumberHunterPage() {
                   <th className="text-left px-5 py-3 text-xs font-medium text-slate-500">Number</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Country</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Tier</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Score</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Pattern</th>
                   <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">First Seen</th>
                   <th className="text-right px-5 py-3 text-xs font-medium text-slate-500">Action</th>
@@ -301,6 +317,9 @@ export default function NumberHunterPage() {
                     </td>
                     <td className="px-4 py-3.5">
                       <TierBadge tier={r.tier} />
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <ScoreBadge score={r.ai_score} reason={r.ai_reason} />
                     </td>
                     <td className="px-4 py-3.5 font-mono text-xs text-slate-500">{r.label}</td>
                     <td className="px-4 py-3.5 text-xs text-slate-600">

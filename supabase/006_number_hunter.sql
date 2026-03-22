@@ -42,3 +42,8 @@ CREATE TABLE IF NOT EXISTS number_scan_runs (
 
 CREATE INDEX IF NOT EXISTS nsr_country_idx    ON number_scan_runs(country);
 CREATE INDEX IF NOT EXISTS nsr_started_at_idx ON number_scan_runs(started_at DESC);
+
+-- ── AI memorability scoring (add to existing table, safe to re-run) ───────────
+ALTER TABLE number_hunt_results ADD COLUMN IF NOT EXISTS ai_score smallint;
+ALTER TABLE number_hunt_results ADD COLUMN IF NOT EXISTS ai_reason text;
+CREATE INDEX IF NOT EXISTS nhr_ai_score_idx ON number_hunt_results(ai_score DESC NULLS LAST);

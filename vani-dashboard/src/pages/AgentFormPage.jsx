@@ -19,7 +19,15 @@ const EMPTY = {
   success_criteria: '',
   custom_llm_url: '',
   custom_llm_model: '',
-  escalation_config: { enabled: false, transfer_number: '', trigger: 'user asks for human', whisper: '' },
+  pii_redaction: false,
+  escalation_config: {
+    enabled: false,
+    transfer_number: '',
+    trigger: 'user asks for human',
+    whisper: '',
+    cool_off_sec: 0,
+    announce_transfer: true,
+  },
 }
 
 export default function AgentFormPage() {
@@ -46,6 +54,7 @@ export default function AgentFormPage() {
         success_criteria: a.success_criteria || '',
         custom_llm_url: a.custom_llm_url || '',
         custom_llm_model: a.custom_llm_model || '',
+        pii_redaction: a.pii_redaction ?? false,
       }))
       .catch(() => navigate('/agents'))
       .finally(() => setLoading(false))
@@ -86,6 +95,7 @@ export default function AgentFormPage() {
         success_criteria: form.success_criteria || null,
         custom_llm_url: form.custom_llm_url || null,
         custom_llm_model: form.custom_llm_model || null,
+        pii_redaction: form.pii_redaction,
         escalation_config: form.escalation_config,
       }
       if (isNew) await api.createAgent(payload)
@@ -260,7 +270,7 @@ export default function AgentFormPage() {
           </Section>
 
           {/* Escalation */}
-          <Section title="Escalation & Transfer">
+          <Section title="Warm Transfer">
             <div className="flex items-center gap-3 mb-4">
               <button
                 type="button"
@@ -272,28 +282,82 @@ export default function AgentFormPage() {
             </div>
             {form.escalation_config.enabled && (
               <div className="space-y-4">
-                <Field label="Transfer Number" hint="Number to dial when user escalates">
+                <Field label="Transfer Number" hint="E.164 number to dial on escalation">
                   <Input
                     value={form.escalation_config.transfer_number}
                     onChange={e => setEsc('transfer_number', e.target.value)}
                     placeholder="+91XXXXXXXXXX"
                   />
                 </Field>
-                <Field label="Trigger Phrase" hint="When to escalate">
+                <Field label="Trigger Condition" hint="Describe when the agent should escalate">
                   <Input
                     value={form.escalation_config.trigger}
                     onChange={e => setEsc('trigger', e.target.value)}
-                    placeholder="user asks for human or manager"
+                    placeholder="user asks for human, manager, or support agent"
                   />
                 </Field>
-                <Field label="Whisper Message" hint="Played to human agent before connecting">
+                <Field label="Whisper Message" hint="Spoken to human agent before connecting — caller cannot hear this">
                   <Input
                     value={form.escalation_config.whisper}
                     onChange={e => setEsc('whisper', e.target.value)}
-                    placeholder="Caller is being transferred from AI. Please assist."
+                    placeholder="Incoming transfer from AI assistant. Caller needs human support."
                   />
                 </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field label="Cool-off (seconds)" hint="Wait before connecting to human">
+                    <Input
+                      type="number"
+                      min="0" max="30"
+                      value={form.escalation_config.cool_off_sec || 0}
+                      onChange={e => setEsc('cool_off_sec', parseInt(e.target.value) || 0)}
+                    />
+                  </Field>
+                  <Field label="Announce Transfer">
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEsc('announce_transfer', !form.escalation_config.announce_transfer)}
+                        className={`relative w-10 h-5 rounded-full transition-colors ${form.escalation_config.announce_transfer ? 'bg-indigo-500' : 'bg-[#2a2d3a]'}`}>
+                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${form.escalation_config.announce_transfer ? 'translate-x-5' : ''}`} />
+                      </button>
+                      <span className="text-xs text-slate-500">Tell caller they're being transferred</span>
+                    </div>
+                  </Field>
+                </div>
+                <div className="p-3 bg-[#0d0f18] rounded-lg border border-[#1f2235]">
+                  <p className="text-xs text-slate-500">
+                    <span className="text-slate-400">Flow:</span>{' '}
+                    Trigger detected → {form.escalation_config.announce_transfer ? 'AI says "I\'m connecting you now…" → ' : ''}
+                    {form.escalation_config.cool_off_sec > 0 ? `${form.escalation_config.cool_off_sec}s pause → ` : ''}
+                    Dial {form.escalation_config.transfer_number || '<number>'}
+                    {form.escalation_config.whisper ? ' → Whisper to agent' : ''}
+                    {' → Connect'}
+                  </p>
+                </div>
               </div>
+            )}
+          </Section>
+
+          {/* PII Redaction */}
+          <Section title="Privacy & Compliance">
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <p className="text-xs text-slate-400 font-medium mb-1">PII Redaction</p>
+                <p className="text-xs text-slate-500">
+                  Automatically redact phone numbers, emails, card numbers, and other PII from transcripts before storage.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => set('pii_redaction', !form.pii_redaction)}
+                className={`relative w-10 h-5 rounded-full transition-colors shrink-0 mt-0.5 ${form.pii_redaction ? 'bg-indigo-500' : 'bg-[#2a2d3a]'}`}>
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${form.pii_redaction ? 'translate-x-5' : ''}`} />
+              </button>
+            </div>
+            {form.pii_redaction && (
+              <p className="text-xs text-amber-400 mt-3 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                PII redaction is active. Sensitive data will be replaced with [REDACTED] in transcripts.
+              </p>
             )}
           </Section>
 
@@ -368,12 +432,16 @@ export default function AgentFormPage() {
 }
 
 function KBSection({ agentId }) {
-  const [docs, setDocs] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [docs, setDocs]         = useState([])
+  const [loading, setLoading]   = useState(true)
   const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError]       = useState('')
   const [dragOver, setDragOver] = useState(false)
-  const inputRef = useRef(null)
+  const inputRef                = useRef(null)
+  const [urlInput, setUrlInput] = useState('')
+  const [urlTitle, setUrlTitle] = useState('')
+  const [scrapingUrl, setScrapingUrl] = useState(false)
+  const [showUrlForm, setShowUrlForm] = useState(false)
 
   useEffect(() => {
     api.listKb(agentId).then(setDocs).catch(console.error).finally(() => setLoading(false))

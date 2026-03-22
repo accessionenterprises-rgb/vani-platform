@@ -23,5 +23,8 @@ class Settings(BaseSettings):
     # Admin panel — set ADMIN_SECRET on Railway
     admin_secret: str = "vani-admin-change-me"
 
+    # Anthropic — set ANTHROPIC_API_KEY on Railway for AI memorability scoring
+    anthropic_api_key: str = ""
+
 
 settings = Settings()
