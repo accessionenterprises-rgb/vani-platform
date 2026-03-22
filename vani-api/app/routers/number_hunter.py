@@ -25,6 +25,7 @@ Countries: all NANP (+1) nations — US, CA, PR, VI, GU, AS, MP, BM, KY, JM, TT,
 import asyncio
 import json
 import logging
+import traceback
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -390,15 +391,15 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
                     seen.add(num)
                     found += 1
 
-                    existing = (
+                    _resp = (
                         db.table("number_hunt_results")
                         .select("id,status")
                         .eq("number", num)
                         .eq("country", country)
                         .maybe_single()
                         .execute()
-                        .data
                     )
+                    existing = _resp.data if _resp is not None else None
                     now = datetime.now(timezone.utc).isoformat()
                     if existing:
                         update: dict = {"last_seen": now}
