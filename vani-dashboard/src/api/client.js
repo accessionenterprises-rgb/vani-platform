@@ -23,8 +23,12 @@ async function request(method, path, body) {
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: res.statusText }))
-    throw new Error(err.detail || `HTTP ${res.status}`)
+    const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }))
+    const detail = err.detail
+    const msg = Array.isArray(detail)
+      ? detail.map(d => d.msg || JSON.stringify(d)).join(', ')
+      : (typeof detail === 'string' ? detail : null)
+    throw new Error(msg || err.message || `HTTP ${res.status}`)
   }
 
   if (res.status === 204) return null
