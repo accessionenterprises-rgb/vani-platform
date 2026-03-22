@@ -10,7 +10,6 @@ const NAV = [
   { to: '/analytics',  label: 'Analytics',  icon: ChartIcon },
   { to: '/playground', label: 'Playground', icon: BeakerIcon },
   { to: '/numbers',        label: 'Numbers',    icon: HashIcon },
-  { to: '/number-hunter',  label: 'Num Hunter', icon: RadarIcon },
   { to: '/webhooks',       label: 'Webhooks',   icon: WebhookIcon },
   { to: '/templates',  label: 'Templates',  icon: TemplateIcon },
   { to: '/settings',   label: 'Settings',   icon: SettingsIcon },

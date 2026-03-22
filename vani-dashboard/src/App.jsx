@@ -8,7 +8,6 @@ import AgentFormPage   from './pages/AgentFormPage'
 import CallsPage       from './pages/CallsPage'
 import CallDetailPage  from './pages/CallDetailPage'
 import NumbersPage       from './pages/NumbersPage'
-import NumberHunterPage  from './pages/NumberHunterPage'
 import WebhooksPage      from './pages/WebhooksPage'
 import SettingsPage    from './pages/SettingsPage'
 import CampaignsPage       from './pages/CampaignsPage'
@@ -35,7 +34,6 @@ function AppShell() {
           <Route path="/analytics"     element={<AnalyticsPage />} />
           <Route path="/playground"    element={<PlaygroundPage />} />
           <Route path="/numbers"        element={<NumbersPage />} />
-          <Route path="/number-hunter" element={<NumberHunterPage />} />
           <Route path="/webhooks"      element={<WebhooksPage />} />
           <Route path="/templates"     element={<TemplatesPage />} />
           <Route path="/settings"      element={<SettingsPage />} />
