@@ -147,105 +147,111 @@ export default function AnalyticsPage() {
         )}
 
         {/* KPI Cards */}
-        {overview && (
-          <div className="grid grid-cols-6 gap-4 mb-6">
-            <StatCard label="Total Calls"    value={overview.total_calls}      color="indigo" />
-            <StatCard label="Completed"      value={overview.completed}         color="emerald" />
-            <StatCard label="Failed"         value={overview.failed}            color="red" />
-            <StatCard label="Success Rate"   value={`${overview.success_rate}%`} color="indigo" />
-            <StatCard label="Avg Duration"   value={fmtDuration(overview.avg_duration_sec)} color="slate" />
-            <StatCard label="Active Now"     value={overview.active_now}        color="amber" pulse={overview.active_now > 0} />
+        {overview && (show('total_calls') || show('success_rate') || show('avg_duration') || show('active_now')) && (
+          <div className="flex flex-wrap gap-4 mb-6">
+            {show('total_calls') && <div className="flex-1 min-w-[120px]"><StatCard label="Total Calls"  value={overview.total_calls}               color="indigo" /></div>}
+            {show('total_calls') && <div className="flex-1 min-w-[120px]"><StatCard label="Completed"    value={overview.completed}                  color="emerald" /></div>}
+            {show('total_calls') && <div className="flex-1 min-w-[120px]"><StatCard label="Failed"       value={overview.failed}                     color="red" /></div>}
+            {show('success_rate') && <div className="flex-1 min-w-[120px]"><StatCard label="Success Rate" value={`${overview.success_rate}%`}         color="indigo" /></div>}
+            {show('avg_duration') && <div className="flex-1 min-w-[120px]"><StatCard label="Avg Duration" value={fmtDuration(overview.avg_duration_sec)} color="slate" /></div>}
+            {show('active_now')   && <div className="flex-1 min-w-[120px]"><StatCard label="Active Now"   value={overview.active_now}                 color="amber" pulse={overview.active_now > 0} /></div>}
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-5 mb-5">
-          {/* Call Volume Chart */}
-          <div className="col-span-2 bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-            <h2 className="text-sm font-medium text-white mb-5">Call Volume</h2>
-            {callsChart.length === 0 ? (
-              <div className="flex items-center justify-center h-32 text-slate-600 text-sm">No data yet</div>
-            ) : (
-              <div className="flex items-end gap-1 h-32">
-                {callsChart.map((day, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    <div className="absolute bottom-full mb-1 bg-[#1a1d2e] text-xs text-slate-300 px-2 py-1 rounded
-                      opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                      {day.date}: {day.total} calls
-                    </div>
-                    <div className="w-full flex flex-col-reverse gap-px">
-                      <div
-                        style={{ height: `${Math.max(2, (day.completed / maxCalls) * 120)}px` }}
-                        className="w-full bg-emerald-500/70 rounded-sm"
-                      />
-                      {day.failed > 0 && (
-                        <div
-                          style={{ height: `${Math.max(1, (day.failed / maxCalls) * 120)}px` }}
-                          className="w-full bg-red-500/60 rounded-sm"
-                        />
-                      )}
-                    </div>
-                    <span className="text-[9px] text-slate-600 mt-1">
-                      {day.date.slice(5)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-4 mt-3">
-              <Legend color="bg-emerald-500/70" label="Completed" />
-              <Legend color="bg-red-500/60" label="Failed" />
-            </div>
-          </div>
-
-          {/* Sentiment Breakdown */}
-          <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-            <h2 className="text-sm font-medium text-white mb-5">Sentiment</h2>
-            {overview?.sentiment_breakdown ? (
-              <div className="space-y-3">
-                {Object.entries(overview.sentiment_breakdown).map(([s, count]) => {
-                  const total = overview.total_calls || 1
-                  const pct = Math.round(count / total * 100)
-                  return (
-                    <div key={s}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className={`capitalize font-medium ${sentimentColor(s)}`}>{s}</span>
-                        <span className="text-slate-500">{count} ({pct}%)</span>
+        {(show('call_volume') || show('sentiment')) && (
+          <div className="grid grid-cols-3 gap-5 mb-5">
+            {/* Call Volume Chart */}
+            {show('call_volume') && (
+              <div className={`${show('sentiment') ? 'col-span-2' : 'col-span-3'} bg-[#12141f] rounded-xl border border-[#1f2235] p-5`}>
+                <h2 className="text-sm font-medium text-white mb-5">Call Volume</h2>
+                {callsChart.length === 0 ? (
+                  <div className="flex items-center justify-center h-32 text-slate-600 text-sm">No data yet</div>
+                ) : (
+                  <div className="flex items-end gap-1 h-32">
+                    {callsChart.map((day, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1 group relative">
+                        <div className="absolute bottom-full mb-1 bg-[#1a1d2e] text-xs text-slate-300 px-2 py-1 rounded
+                          opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                          {day.date}: {day.total} calls
+                        </div>
+                        <div className="w-full flex flex-col-reverse gap-px">
+                          <div
+                            style={{ height: `${Math.max(2, (day.completed / maxCalls) * 120)}px` }}
+                            className="w-full bg-emerald-500/70 rounded-sm"
+                          />
+                          {day.failed > 0 && (
+                            <div
+                              style={{ height: `${Math.max(1, (day.failed / maxCalls) * 120)}px` }}
+                              className="w-full bg-red-500/60 rounded-sm"
+                            />
+                          )}
+                        </div>
+                        <span className="text-[9px] text-slate-600 mt-1">
+                          {day.date.slice(5)}
+                        </span>
                       </div>
-                      <div className="h-1.5 bg-[#1f2235] rounded-full overflow-hidden">
-                        <div
-                          style={{ width: `${pct}%` }}
-                          className={`h-full rounded-full ${sentimentBg(s)}`}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="text-slate-600 text-sm text-center py-8">No data yet</div>
-            )}
-
-            {/* Inbound vs Outbound */}
-            {overview && (
-              <div className="mt-6 pt-4 border-t border-[#1f2235]">
-                <p className="text-xs text-slate-500 mb-3">Direction</p>
-                <div className="flex gap-4">
-                  <div>
-                    <p className="text-lg font-semibold text-white">{overview.inbound}</p>
-                    <p className="text-xs text-slate-500">Inbound</p>
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-lg font-semibold text-white">{overview.outbound}</p>
-                    <p className="text-xs text-slate-500">Outbound</p>
-                  </div>
+                )}
+                <div className="flex gap-4 mt-3">
+                  <Legend color="bg-emerald-500/70" label="Completed" />
+                  <Legend color="bg-red-500/60" label="Failed" />
                 </div>
               </div>
             )}
+
+            {/* Sentiment Breakdown */}
+            {show('sentiment') && (
+              <div className={`${show('call_volume') ? '' : 'col-span-3'} bg-[#12141f] rounded-xl border border-[#1f2235] p-5`}>
+                <h2 className="text-sm font-medium text-white mb-5">Sentiment</h2>
+                {overview?.sentiment_breakdown ? (
+                  <div className="space-y-3">
+                    {Object.entries(overview.sentiment_breakdown).map(([s, count]) => {
+                      const total = overview.total_calls || 1
+                      const pct = Math.round(count / total * 100)
+                      return (
+                        <div key={s}>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className={`capitalize font-medium ${sentimentColor(s)}`}>{s}</span>
+                            <span className="text-slate-500">{count} ({pct}%)</span>
+                          </div>
+                          <div className="h-1.5 bg-[#1f2235] rounded-full overflow-hidden">
+                            <div
+                              style={{ width: `${pct}%` }}
+                              className={`h-full rounded-full ${sentimentBg(s)}`}
+                            />
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-slate-600 text-sm text-center py-8">No data yet</div>
+                )}
+
+                {/* Inbound vs Outbound */}
+                {overview && (
+                  <div className="mt-6 pt-4 border-t border-[#1f2235]">
+                    <p className="text-xs text-slate-500 mb-3">Direction</p>
+                    <div className="flex gap-4">
+                      <div>
+                        <p className="text-lg font-semibold text-white">{overview.inbound}</p>
+                        <p className="text-xs text-slate-500">Inbound</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-semibold text-white">{overview.outbound}</p>
+                        <p className="text-xs text-slate-500">Outbound</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Provider Performance */}
-        {providers && (providers.llm?.length > 0 || providers.tts?.length > 0) && (
+        {show('providers') && providers && (providers.llm?.length > 0 || providers.tts?.length > 0) && (
           <div className="bg-[#12141f] rounded-xl border border-[#1f2235] mb-5">
             <div className="px-5 py-4 border-b border-[#1f2235]">
               <h2 className="text-sm font-medium text-white">Provider Performance</h2>
@@ -285,75 +291,81 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-5">
-          {/* Per-Agent Performance */}
-          <div className="col-span-2 bg-[#12141f] rounded-xl border border-[#1f2235]">
-            <div className="px-5 py-4 border-b border-[#1f2235]">
-              <h2 className="text-sm font-medium text-white">Agent Performance</h2>
-            </div>
-            {agents.length === 0 ? (
-              <div className="flex items-center justify-center h-24 text-slate-600 text-sm">No agent data yet</div>
-            ) : (
-              <div className="divide-y divide-[#1f2235]">
-                {agents.map(a => (
-                  <div key={a.agent_id} className="flex items-center gap-4 px-5 py-3.5">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{a.agent_name}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {a.total} calls · avg {fmtDuration(a.avg_duration_sec)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-right">
-                        <p className={`text-sm font-medium ${a.success_rate >= 80 ? 'text-emerald-400' : a.success_rate >= 60 ? 'text-amber-400' : 'text-red-400'}`}>
-                          {a.success_rate}%
-                        </p>
-                        <p className="text-xs text-slate-600">success</p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-xs font-medium capitalize ${sentimentColor(a.dominant_sentiment)}`}>
-                          {a.dominant_sentiment}
-                        </p>
-                        <p className="text-xs text-slate-600">sentiment</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Intent Breakdown */}
-          <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-            <h2 className="text-sm font-medium text-white mb-5">Intent Distribution</h2>
-            {intents?.intents?.length > 0 ? (
-              <div className="space-y-2.5">
-                {intents.intents.slice(0, 6).map(item => (
-                  <div key={item.label} className="flex items-center gap-3">
-                    <div className="h-1.5 rounded-full bg-indigo-500/60 flex-1"
-                      style={{ maxWidth: `${Math.max(item.pct, 4)}%`, minWidth: '4%' }} />
-                    <div className="flex items-center justify-between flex-1">
-                      <span className="text-xs text-slate-400 capitalize">{item.label}</span>
-                      <span className="text-xs text-slate-600">{item.pct}%</span>
-                    </div>
-                  </div>
-                ))}
-                <div className="pt-3 mt-3 border-t border-[#1f2235] flex gap-6">
-                  <div>
-                    <p className="text-base font-semibold text-emerald-400">{intents.resolved}</p>
-                    <p className="text-xs text-slate-500">Resolved</p>
-                  </div>
-                  <div>
-                    <p className="text-base font-semibold text-amber-400">{intents.escalated}</p>
-                    <p className="text-xs text-slate-500">Escalated</p>
-                  </div>
+        {(show('agents') || show('intents')) && (
+          <div className="grid grid-cols-3 gap-5">
+            {/* Per-Agent Performance */}
+            {show('agents') && (
+              <div className={`${show('intents') ? 'col-span-2' : 'col-span-3'} bg-[#12141f] rounded-xl border border-[#1f2235]`}>
+                <div className="px-5 py-4 border-b border-[#1f2235]">
+                  <h2 className="text-sm font-medium text-white">Agent Performance</h2>
                 </div>
+                {agents.length === 0 ? (
+                  <div className="flex items-center justify-center h-24 text-slate-600 text-sm">No agent data yet</div>
+                ) : (
+                  <div className="divide-y divide-[#1f2235]">
+                    {agents.map(a => (
+                      <div key={a.agent_id} className="flex items-center gap-4 px-5 py-3.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">{a.agent_name}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {a.total} calls · avg {fmtDuration(a.avg_duration_sec)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="text-right">
+                            <p className={`text-sm font-medium ${a.success_rate >= 80 ? 'text-emerald-400' : a.success_rate >= 60 ? 'text-amber-400' : 'text-red-400'}`}>
+                              {a.success_rate}%
+                            </p>
+                            <p className="text-xs text-slate-600">success</p>
+                          </div>
+                          <div className="text-right">
+                            <p className={`text-xs font-medium capitalize ${sentimentColor(a.dominant_sentiment)}`}>
+                              {a.dominant_sentiment}
+                            </p>
+                            <p className="text-xs text-slate-600">sentiment</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="text-slate-600 text-sm text-center py-8">No completed calls yet</div>
+            )}
+
+            {/* Intent Breakdown */}
+            {show('intents') && (
+              <div className={`${show('agents') ? '' : 'col-span-3'} bg-[#12141f] rounded-xl border border-[#1f2235] p-5`}>
+                <h2 className="text-sm font-medium text-white mb-5">Intent Distribution</h2>
+                {intents?.intents?.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {intents.intents.slice(0, 6).map(item => (
+                      <div key={item.label} className="flex items-center gap-3">
+                        <div className="h-1.5 rounded-full bg-indigo-500/60 flex-1"
+                          style={{ maxWidth: `${Math.max(item.pct, 4)}%`, minWidth: '4%' }} />
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="text-xs text-slate-400 capitalize">{item.label}</span>
+                          <span className="text-xs text-slate-600">{item.pct}%</span>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="pt-3 mt-3 border-t border-[#1f2235] flex gap-6">
+                      <div>
+                        <p className="text-base font-semibold text-emerald-400">{intents.resolved}</p>
+                        <p className="text-xs text-slate-500">Resolved</p>
+                      </div>
+                      <div>
+                        <p className="text-base font-semibold text-amber-400">{intents.escalated}</p>
+                        <p className="text-xs text-slate-500">Escalated</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-slate-600 text-sm text-center py-8">No completed calls yet</div>
+                )}
+              </div>
             )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

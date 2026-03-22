@@ -2,18 +2,48 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 
-const STT_OPTIONS = ['deepgram-nova-3', 'deepgram-nova-2', 'google', 'azure']
-const LLM_OPTIONS = ['gpt-4o-mini', 'gemini-flash-lite', 'gemini-2.0-flash', 'claude-haiku-4-5-20251001', 'llama-3.3-70b', 'mistral-large', 'deepseek-chat']
-const TTS_OPTIONS = ['openai-nova', 'openai-shimmer', 'openai-alloy', 'sarvam', 'elevenlabs', 'google-wavenet', 'cartesia']
-const LANG_OPTIONS = ['en', 'hi', 'multi']
-const TONE_OPTIONS = ['friendly', 'formal', 'sales']
-const OBJ_OPTIONS  = ['support', 'booking', 'qualify', 'info']
-const FIELD_TYPES  = ['text', 'boolean', 'number', 'enum']
+// ─── Provider Catalogue ────────────────────────────────────────────────────
+
+const STT_PROVIDERS = [
+  { id: 'deepgram-nova-3', name: 'Nova-3',        vendor: 'Deepgram', desc: 'Best accuracy, real-time streaming',   badge: 'Recommended' },
+  { id: 'deepgram-nova-2', name: 'Nova-2',        vendor: 'Deepgram', desc: 'Faster, slightly lower accuracy',      badge: null },
+  { id: 'google',          name: 'Speech-to-Text',vendor: 'Google',   desc: 'Strong multilingual support',          badge: null },
+  { id: 'azure',           name: 'Speech',        vendor: 'Azure',    desc: 'Enterprise-grade reliability',         badge: 'Enterprise' },
+]
+
+const LLM_PROVIDERS = [
+  { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',     vendor: 'OpenAI',    desc: 'Fast, cost-efficient, reliable',    badge: 'Recommended' },
+  { id: 'gemini-2.0-flash',           name: 'Gemini 2.0 Flash',vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast' },
+  { id: 'gemini-flash-lite',          name: 'Flash Lite',      vendor: 'Google',    desc: 'Ultra-fast, lowest cost',           badge: null },
+  { id: 'claude-haiku-4-5-20251001',  name: 'Claude Haiku',    vendor: 'Anthropic', desc: 'Nuanced instruction-following',     badge: null },
+  { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',   vendor: 'Meta',      desc: 'Open-source, self-hostable',        badge: null },
+  { id: 'mistral-large',             name: 'Mistral Large',   vendor: 'Mistral',   desc: 'EU data-resident option',           badge: null },
+  { id: 'deepseek-chat',             name: 'DeepSeek Chat',   vendor: 'DeepSeek',  desc: 'Cost-effective, fast responses',    badge: null },
+]
+
+const TTS_PROVIDERS = [
+  { id: 'openai-nova',    name: 'Nova',       vendor: 'OpenAI',    desc: 'Warm & natural, great default',    badge: 'Recommended' },
+  { id: 'openai-shimmer', name: 'Shimmer',    vendor: 'OpenAI',    desc: 'Clear & crisp, professional',      badge: null },
+  { id: 'openai-alloy',   name: 'Alloy',      vendor: 'OpenAI',    desc: 'Neutral & balanced tone',          badge: null },
+  { id: 'sarvam',         name: 'Sarvam',     vendor: 'Sarvam AI', desc: 'Native Indian language voices',    badge: 'India' },
+  { id: 'elevenlabs',     name: 'ElevenLabs', vendor: 'ElevenLabs',desc: 'Most expressive, ultra-realistic', badge: 'Expressive' },
+  { id: 'google-wavenet', name: 'WaveNet',    vendor: 'Google',    desc: 'Natural, multilingual support',    badge: null },
+  { id: 'cartesia',       name: 'Cartesia',   vendor: 'Cartesia',  desc: 'Ultra-low latency synthesis',      badge: 'Speed' },
+]
+
+const STEPS = [
+  { id: 'identity',  label: 'Identity',  desc: 'Name, persona & prompt' },
+  { id: 'stack',     label: 'AI Stack',  desc: 'STT, LLM, TTS providers' },
+  { id: 'behavior',  label: 'Behavior',  desc: 'Tone, objective, escalation' },
+  { id: 'knowledge', label: 'Knowledge', desc: 'Documents & web pages' },
+  { id: 'advanced',  label: 'Advanced',  desc: 'Extraction, goals & privacy' },
+]
 
 const EMPTY = {
   name: '', greeting: '', prompt: '', language: 'en',
-  voice: 'nova', stt_provider: 'deepgram-nova-3',
-  llm_provider: 'gpt-4o-mini', tts_provider: 'openai-nova',
+  stt_provider: 'deepgram-nova-3',
+  llm_provider: 'gpt-4o-mini',
+  tts_provider: 'openai-nova',
   behavior: { tone: 'friendly', objective: 'support', fallback: '', constraints: [] },
   extraction_schema: [],
   success_criteria: '',
@@ -30,6 +60,8 @@ const EMPTY = {
   },
 }
 
+// ─── Main Page ─────────────────────────────────────────────────────────────
+
 export default function AgentFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -39,6 +71,7 @@ export default function AgentFormPage() {
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [step, setStep] = useState('identity')
   const [versions, setVersions] = useState([])
   const [showVersions, setShowVersions] = useState(false)
   const [restoring, setRestoring] = useState(false)
@@ -70,26 +103,14 @@ export default function AgentFormPage() {
   const setBeh = (key, val) => setForm(f => ({ ...f, behavior: { ...f.behavior, [key]: val } }))
   const setEsc = (key, val) => setForm(f => ({ ...f, escalation_config: { ...f.escalation_config, [key]: val } }))
 
-  const addField = () => setForm(f => ({
-    ...f,
-    extraction_schema: [...f.extraction_schema, { field: '', type: 'text', description: '' }]
-  }))
-  const removeField = (i) => setForm(f => ({
-    ...f, extraction_schema: f.extraction_schema.filter((_, idx) => idx !== i)
-  }))
-  const setField = (i, key, val) => setForm(f => ({
-    ...f, extraction_schema: f.extraction_schema.map((fld, idx) => idx === i ? { ...fld, [key]: val } : fld)
-  }))
-
-  async function handleSubmit(e) {
-    e.preventDefault()
+  async function handleSave() {
     setError('')
     setSaving(true)
     try {
       const payload = {
         name: form.name, greeting: form.greeting, prompt: form.prompt,
-        language: form.language, voice: form.voice,
-        stt_provider: form.stt_provider, llm_provider: form.llm_provider, tts_provider: form.tts_provider,
+        language: form.language, voice: form.tts_provider,
+        stack: { stt: form.stt_provider, llm: form.llm_provider, tts: form.tts_provider },
         behavior: form.behavior,
         extraction_schema: form.extraction_schema,
         success_criteria: form.success_criteria || null,
@@ -108,340 +129,569 @@ export default function AgentFormPage() {
     }
   }
 
-  async function restoreVersion(versionId) {
-    if (!confirm('Restore this version? Current config will be saved as a new version first.')) return
-    setRestoring(true)
-    try {
-      const restored = await api.restoreAgentVersion(id, versionId)
-      setForm({
-        ...EMPTY, ...restored,
-        behavior: { ...EMPTY.behavior, ...restored.behavior },
-        escalation_config: { ...EMPTY.escalation_config, ...(restored.escalation_config || {}) },
-        extraction_schema: restored.extraction_schema || [],
-        success_criteria: restored.success_criteria || '',
-        custom_llm_url: restored.custom_llm_url || '',
-        custom_llm_model: restored.custom_llm_model || '',
-      })
-      setShowVersions(false)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setRestoring(false)
-    }
-  }
+  if (loading) return <div className="flex-1 flex items-center justify-center text-slate-600 text-sm">Loading…</div>
 
-  if (loading) return <div className="flex-1 flex items-center justify-center text-slate-600">Loading…</div>
+  const sttMeta = STT_PROVIDERS.find(p => p.id === form.stt_provider)
+  const llmMeta = LLM_PROVIDERS.find(p => p.id === form.llm_provider)
+  const ttsMeta = TTS_PROVIDERS.find(p => p.id === form.tts_provider)
+  const stepIdx = STEPS.findIndex(s => s.id === step)
 
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="px-8 py-7 max-w-3xl">
-        <div className="flex items-center gap-3 mb-7">
-          <button onClick={() => navigate('/agents')} className="text-slate-500 hover:text-slate-300 text-sm">
-            ← Agents
+    <div className="flex-1 flex flex-col overflow-hidden">
+
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between px-6 py-3.5 border-b border-[#1a1d2e] shrink-0 bg-[#080a12]">
+        <div className="flex items-center gap-2.5">
+          <button onClick={() => navigate('/agents')}
+            className="text-slate-500 hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Agents
           </button>
           <span className="text-slate-700">/</span>
-          <h1 className="text-xl font-semibold text-white">{isNew ? 'New Agent' : `Edit: ${form.name}`}</h1>
+          <span className="text-sm text-white font-medium">
+            {isNew ? 'New Agent' : (form.name || 'Edit Agent')}
+          </span>
+        </div>
+        <div className="flex items-center gap-2.5">
           {!isNew && (
-            <button
-              type="button"
-              onClick={() => setShowVersions(v => !v)}
-              className="ml-auto text-xs text-slate-400 hover:text-slate-200 px-3 py-1.5 rounded-lg border border-[#2a2d3a] hover:border-slate-500 transition-colors">
+            <button type="button" onClick={() => setShowVersions(v => !v)}
+              className="text-xs text-slate-400 hover:text-slate-200 px-3 py-1.5 rounded-lg border border-[#2a2d3a] hover:border-slate-500 transition-colors">
               {showVersions ? 'Hide History' : 'Version History'}
             </button>
           )}
+          <button onClick={() => navigate('/agents')}
+            className="text-sm text-slate-400 hover:text-slate-200 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || !form.name.trim()}
+            className="bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium px-4 py-1.5 rounded-lg text-sm transition-colors">
+            {saving ? 'Saving…' : isNew ? 'Create Agent' : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ── Left sidebar ── */}
+        <div className="w-52 shrink-0 border-r border-[#1a1d2e] flex flex-col overflow-y-auto bg-[#080a12]">
+          <nav className="p-3 space-y-0.5 mt-2">
+            {STEPS.map((s, i) => {
+              const isActive = step === s.id
+              const isBefore = i < stepIdx
+              return (
+                <button key={s.id} onClick={() => setStep(s.id)}
+                  className={`w-full text-left px-3 py-3 rounded-xl transition-all group ${
+                    isActive
+                      ? 'bg-indigo-500/10 border border-indigo-500/20'
+                      : 'border border-transparent hover:bg-white/4'
+                  }`}>
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold transition-colors ${
+                      isActive  ? 'bg-indigo-500 text-white' :
+                      isBefore  ? 'bg-indigo-500/20 text-indigo-400' :
+                                  'bg-[#1f2235] text-slate-600'
+                    }`}>
+                      {isBefore ? (
+                        <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <polyline points="2 6 5 9 10 3" />
+                        </svg>
+                      ) : i + 1}
+                    </div>
+                    <div className="min-w-0">
+                      <p className={`text-xs font-medium leading-tight ${isActive ? 'text-indigo-300' : 'text-slate-300 group-hover:text-slate-200'}`}>
+                        {s.label}
+                      </p>
+                      <p className="text-[10px] text-slate-600 mt-0.5 leading-tight">{s.desc}</p>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </nav>
+
+          {/* ── Pipeline mini preview ── */}
+          <div className="mt-auto p-4 border-t border-[#1a1d2e] mx-3 mb-3">
+            <p className="text-[9px] font-semibold text-slate-600 uppercase tracking-widest mb-3">Pipeline</p>
+            <div className="space-y-2">
+              {[
+                { label: 'STT', meta: sttMeta, raw: form.stt_provider },
+                { label: 'LLM', meta: llmMeta, raw: form.llm_provider },
+                { label: 'TTS', meta: ttsMeta, raw: form.tts_provider },
+              ].map((item, i) => (
+                <div key={i}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono text-slate-600 w-6 shrink-0">{item.label}</span>
+                    <div className="flex-1 min-w-0 bg-[#0d0f1a] rounded-lg px-2 py-1.5">
+                      <p className="text-[10px] text-slate-400 font-medium truncate leading-tight">
+                        {item.meta?.name || item.raw}
+                      </p>
+                      {item.meta?.vendor && (
+                        <p className="text-[9px] text-slate-600 leading-tight">{item.meta.vendor}</p>
+                      )}
+                    </div>
+                  </div>
+                  {i < 2 && (
+                    <div className="ml-3 w-px h-2 bg-[#2a2d3a] mt-1" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Version history panel */}
-        {showVersions && (
-          <div className="mb-6 bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-            <h2 className="text-sm font-semibold text-white mb-4">Version History</h2>
-            {versions.length === 0 ? (
-              <p className="text-xs text-slate-600">No versions saved yet. Versions are created automatically on each save.</p>
-            ) : (
-              <div className="space-y-2">
-                {versions.map(v => (
-                  <div key={v.id} className="flex items-center justify-between p-3 bg-[#0d0f18] rounded-lg border border-[#1f2235]">
-                    <div>
-                      <span className="text-xs text-slate-300 font-medium">v{v.version_num}</span>
-                      {v.note && <span className="text-xs text-slate-500 ml-2">— {v.note}</span>}
-                      <p className="text-xs text-slate-600 mt-0.5">{new Date(v.created_at).toLocaleString()}</p>
-                    </div>
-                    <button
-                      onClick={() => restoreVersion(v.id)}
-                      disabled={restoring}
-                      className="text-xs text-indigo-400 hover:text-indigo-300 px-2.5 py-1 rounded border border-indigo-500/20 hover:border-indigo-500/50 transition-colors disabled:opacity-50">
-                      Restore
-                    </button>
-                  </div>
-                ))}
+        {/* ── Main content ── */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-2xl mx-auto px-8 py-8">
+
+            {step === 'identity'  && <IdentityStep  form={form} set={set} />}
+            {step === 'stack'     && <StackStep     form={form} set={set} />}
+            {step === 'behavior'  && <BehaviorStep  form={form} setBeh={setBeh} setEsc={setEsc} />}
+            {step === 'knowledge' && (
+              isNew
+                ? <KnowledgeLocked />
+                : <KnowledgeStep agentId={id} />
+            )}
+            {step === 'advanced'  && <AdvancedStep  form={form} set={set} />}
+
+            {error && (
+              <div className="mt-6 bg-red-500/8 border border-red-500/20 rounded-xl px-4 py-3 text-xs text-red-400">
+                {error}
               </div>
             )}
+
+            {/* ── Step nav ── */}
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#1a1d2e]">
+              <button type="button"
+                onClick={() => stepIdx > 0 && setStep(STEPS[stepIdx - 1].id)}
+                disabled={stepIdx === 0}
+                className="text-sm text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-4 py-2 rounded-lg hover:bg-white/5">
+                ← Back
+              </button>
+              {stepIdx < STEPS.length - 1 ? (
+                <button type="button"
+                  onClick={() => setStep(STEPS[stepIdx + 1].id)}
+                  className="flex items-center gap-2 bg-[#12141f] hover:bg-[#1a1d2e] border border-[#2a2d3a] text-slate-200 text-sm font-medium px-5 py-2 rounded-lg transition-colors">
+                  Next
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              ) : (
+                <button onClick={handleSave}
+                  disabled={saving || !form.name.trim()}
+                  className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white font-medium px-6 py-2 rounded-lg text-sm transition-colors">
+                  {saving ? 'Saving…' : isNew ? 'Create Agent' : 'Save Changes'}
+                </button>
+              )}
+            </div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {!isNew && <KBSection agentId={id} />}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic */}
-          <Section title="Basic Info">
-            <Field label="Agent Name" required>
-              <Input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Hotel Receptionist" required />
-            </Field>
-            <Field label="Greeting" hint="First thing the agent says">
-              <Input value={form.greeting} onChange={e => set('greeting', e.target.value)} placeholder="Welcome! How can I help?" />
-            </Field>
-            <Field label="System Prompt" hint="Agent's instructions and persona">
-              <textarea
-                value={form.prompt}
-                onChange={e => set('prompt', e.target.value)}
-                rows={5}
-                placeholder="You are a helpful hotel receptionist for The Grand Hotel. Be polite, professional..."
-                className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
-              />
-            </Field>
-            <Field label="Language">
-              <Select value={form.language} onChange={e => set('language', e.target.value)} options={LANG_OPTIONS} />
-            </Field>
-          </Section>
-
-          {/* Stack */}
-          <Section title="AI Stack">
-            <div className="grid grid-cols-3 gap-4">
-              <Field label="STT Provider">
-                <Select value={form.stt_provider} onChange={e => set('stt_provider', e.target.value)} options={STT_OPTIONS} />
-              </Field>
-              <Field label="LLM Provider">
-                <Select value={form.llm_provider} onChange={e => set('llm_provider', e.target.value)} options={LLM_OPTIONS} />
-              </Field>
-              <Field label="TTS Provider">
-                <Select value={form.tts_provider} onChange={e => set('tts_provider', e.target.value)} options={TTS_OPTIONS} />
-              </Field>
-            </div>
-            <div className="mt-3 p-3 bg-[#0d0f18] rounded-lg border border-[#1f2235]">
-              <p className="text-xs text-slate-500">
-                <span className="text-slate-400 font-medium">Stack:</span>{' '}
-                {form.stt_provider} → {form.llm_provider} → {form.tts_provider}
-              </p>
-            </div>
-          </Section>
-
-          {/* Custom LLM */}
-          <Section title="Custom LLM Endpoint">
-            <p className="text-xs text-slate-500 -mt-2 mb-3">
-              Override with any OpenAI-compatible endpoint (local Ollama, vLLM, Together AI, etc.)
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Base URL" hint="e.g. http://localhost:11434/v1">
-                <Input
-                  value={form.custom_llm_url}
-                  onChange={e => set('custom_llm_url', e.target.value)}
-                  placeholder="https://api.together.ai/v1"
-                />
-              </Field>
-              <Field label="Model Name">
-                <Input
-                  value={form.custom_llm_model}
-                  onChange={e => set('custom_llm_model', e.target.value)}
-                  placeholder="meta-llama/Llama-3-70b-chat-hf"
-                />
-              </Field>
-            </div>
-            {form.custom_llm_url && (
-              <p className="text-xs text-amber-400 mt-2">
-                Custom endpoint active — LLM Provider selection above is ignored.
-              </p>
-            )}
-          </Section>
-
-          {/* Behavior */}
-          <Section title="Behavior">
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Tone">
-                <Select value={form.behavior.tone} onChange={e => setBeh('tone', e.target.value)} options={TONE_OPTIONS} />
-              </Field>
-              <Field label="Objective">
-                <Select value={form.behavior.objective} onChange={e => setBeh('objective', e.target.value)} options={OBJ_OPTIONS} />
-              </Field>
-            </div>
-            <Field label="Fallback Message" hint="Said when agent can't help">
-              <Input value={form.behavior.fallback || ''} onChange={e => setBeh('fallback', e.target.value)}
-                placeholder="Let me transfer you to our team." />
-            </Field>
-          </Section>
-
-          {/* Escalation */}
-          <Section title="Warm Transfer">
-            <div className="flex items-center gap-3 mb-4">
-              <button
-                type="button"
-                onClick={() => setEsc('enabled', !form.escalation_config.enabled)}
-                className={`relative w-10 h-5 rounded-full transition-colors ${form.escalation_config.enabled ? 'bg-indigo-500' : 'bg-[#2a2d3a]'}`}>
-                <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${form.escalation_config.enabled ? 'translate-x-5' : ''}`} />
-              </button>
-              <span className="text-xs text-slate-400">Enable warm transfer to human agent</span>
-            </div>
-            {form.escalation_config.enabled && (
-              <div className="space-y-4">
-                <Field label="Transfer Number" hint="E.164 number to dial on escalation">
-                  <Input
-                    value={form.escalation_config.transfer_number}
-                    onChange={e => setEsc('transfer_number', e.target.value)}
-                    placeholder="+91XXXXXXXXXX"
-                  />
-                </Field>
-                <Field label="Trigger Condition" hint="Describe when the agent should escalate">
-                  <Input
-                    value={form.escalation_config.trigger}
-                    onChange={e => setEsc('trigger', e.target.value)}
-                    placeholder="user asks for human, manager, or support agent"
-                  />
-                </Field>
-                <Field label="Whisper Message" hint="Spoken to human agent before connecting — caller cannot hear this">
-                  <Input
-                    value={form.escalation_config.whisper}
-                    onChange={e => setEsc('whisper', e.target.value)}
-                    placeholder="Incoming transfer from AI assistant. Caller needs human support."
-                  />
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Cool-off (seconds)" hint="Wait before connecting to human">
-                    <Input
-                      type="number"
-                      min="0" max="30"
-                      value={form.escalation_config.cool_off_sec || 0}
-                      onChange={e => setEsc('cool_off_sec', parseInt(e.target.value) || 0)}
-                    />
-                  </Field>
-                  <Field label="Announce Transfer">
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setEsc('announce_transfer', !form.escalation_config.announce_transfer)}
-                        className={`relative w-10 h-5 rounded-full transition-colors ${form.escalation_config.announce_transfer ? 'bg-indigo-500' : 'bg-[#2a2d3a]'}`}>
-                        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${form.escalation_config.announce_transfer ? 'translate-x-5' : ''}`} />
-                      </button>
-                      <span className="text-xs text-slate-500">Tell caller they're being transferred</span>
-                    </div>
-                  </Field>
+      {/* ── Version history drawer ── */}
+      {showVersions && !isNew && (
+        <div className="absolute inset-y-0 right-0 w-80 bg-[#0d0f18] border-l border-[#1f2235] flex flex-col z-20 shadow-2xl">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#1f2235]">
+            <h2 className="text-sm font-semibold text-white">Version History</h2>
+            <button onClick={() => setShowVersions(false)}
+              className="text-slate-500 hover:text-slate-300 w-6 h-6 flex items-center justify-center rounded hover:bg-white/5">✕</button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {versions.length === 0 ? (
+              <p className="text-xs text-slate-600 text-center py-8">No versions saved yet.</p>
+            ) : versions.map(v => (
+              <div key={v.id} className="flex items-center justify-between p-3 bg-[#080a12] rounded-xl border border-[#1f2235]">
+                <div>
+                  <span className="text-xs text-slate-300 font-medium">v{v.version_num}</span>
+                  {v.note && <span className="text-xs text-slate-500 ml-2">— {v.note}</span>}
+                  <p className="text-[10px] text-slate-600 mt-0.5">{new Date(v.created_at).toLocaleString()}</p>
                 </div>
-                <div className="p-3 bg-[#0d0f18] rounded-lg border border-[#1f2235]">
-                  <p className="text-xs text-slate-500">
-                    <span className="text-slate-400">Flow:</span>{' '}
-                    Trigger detected → {form.escalation_config.announce_transfer ? 'AI says "I\'m connecting you now…" → ' : ''}
-                    {form.escalation_config.cool_off_sec > 0 ? `${form.escalation_config.cool_off_sec}s pause → ` : ''}
-                    Dial {form.escalation_config.transfer_number || '<number>'}
-                    {form.escalation_config.whisper ? ' → Whisper to agent' : ''}
-                    {' → Connect'}
-                  </p>
-                </div>
-              </div>
-            )}
-          </Section>
-
-          {/* PII Redaction */}
-          <Section title="Privacy & Compliance">
-            <div className="flex items-start gap-4">
-              <div className="flex-1">
-                <p className="text-xs text-slate-400 font-medium mb-1">PII Redaction</p>
-                <p className="text-xs text-slate-500">
-                  Automatically redact phone numbers, emails, card numbers, and other PII from transcripts before storage.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => set('pii_redaction', !form.pii_redaction)}
-                className={`relative w-10 h-5 rounded-full transition-colors shrink-0 mt-0.5 ${form.pii_redaction ? 'bg-indigo-500' : 'bg-[#2a2d3a]'}`}>
-                <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${form.pii_redaction ? 'translate-x-5' : ''}`} />
-              </button>
-            </div>
-            {form.pii_redaction && (
-              <p className="text-xs text-amber-400 mt-3 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
-                PII redaction is active. Sensitive data will be replaced with [REDACTED] in transcripts.
-              </p>
-            )}
-          </Section>
-
-          {/* Extraction */}
-          <Section title="Structured Data Extraction">
-            <p className="text-xs text-slate-500 -mt-2 mb-3">
-              Fields extracted from each call transcript by LLM post-processing. Saved to call metadata.
-            </p>
-            {form.extraction_schema.map((fld, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2 mb-2">
-                <div className="col-span-4">
-                  <input value={fld.field} onChange={e => setField(i, 'field', e.target.value)}
-                    placeholder="field_name"
-                    className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
-                </div>
-                <div className="col-span-3">
-                  <select value={fld.type} onChange={e => setField(i, 'type', e.target.value)}
-                    className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-                    {FIELD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div className="col-span-4">
-                  <input value={fld.description} onChange={e => setField(i, 'description', e.target.value)}
-                    placeholder="description (optional)"
-                    className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
-                </div>
-                <div className="col-span-1 flex items-center justify-center">
-                  <button type="button" onClick={() => removeField(i)}
-                    className="text-red-400 hover:text-red-300 text-lg leading-none">×</button>
-                </div>
+                <button
+                  disabled={restoring}
+                  onClick={async () => {
+                    if (!confirm('Restore this version?')) return
+                    setRestoring(true)
+                    try {
+                      const r = await api.restoreAgentVersion(id, v.id)
+                      setForm({
+                        ...EMPTY, ...r,
+                        behavior: { ...EMPTY.behavior, ...r.behavior },
+                        escalation_config: { ...EMPTY.escalation_config, ...(r.escalation_config || {}) },
+                        extraction_schema: r.extraction_schema || [],
+                        success_criteria: r.success_criteria || '',
+                        custom_llm_url: r.custom_llm_url || '',
+                        custom_llm_model: r.custom_llm_model || '',
+                      })
+                      setShowVersions(false)
+                    } catch (err) { setError(err.message) }
+                    finally { setRestoring(false) }
+                  }}
+                  className="text-xs text-indigo-400 hover:text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-500/20 hover:border-indigo-500/40 transition-colors disabled:opacity-50">
+                  Restore
+                </button>
               </div>
             ))}
-            <button type="button" onClick={addField}
-              className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 mt-1">
-              <span className="text-base leading-none">+</span> Add field
-            </button>
-          </Section>
-
-          {/* Call Goals */}
-          <Section title="Call Goal / Success Criteria">
-            <Field label="Success Criteria" hint="LLM evaluates this after each call — result saved as goal_achieved">
-              <textarea
-                value={form.success_criteria}
-                onChange={e => set('success_criteria', e.target.value)}
-                rows={2}
-                placeholder="The call is successful if the caller confirmed an appointment, agreed to a callback, or their issue was resolved."
-                className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
-              />
-            </Field>
-          </Section>
-
-          {error && (
-            <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-              {error}
-            </p>
-          )}
-
-          <div className="flex items-center gap-3 pt-2">
-            <button type="submit" disabled={saving}
-              className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition-colors">
-              {saving ? 'Saving…' : isNew ? 'Create Agent' : 'Save Changes'}
-            </button>
-            <button type="button" onClick={() => navigate('/agents')}
-              className="text-slate-400 hover:text-slate-200 text-sm px-4 py-2.5 rounded-lg hover:bg-white/5 transition-colors">
-              Cancel
-            </button>
           </div>
-        </form>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Step: Identity ────────────────────────────────────────────────────────
+
+function IdentityStep({ form, set }) {
+  return (
+    <div className="space-y-6">
+      <StepHeader
+        title="Agent Identity"
+        desc="Define who your agent is, what it says, and how it speaks."
+      />
+
+      <div className="space-y-5">
+        <FormField label="Agent Name" required>
+          <input value={form.name} onChange={e => set('name', e.target.value)}
+            placeholder="e.g. Hotel Receptionist, Sales Assistant"
+            autoFocus
+            className="w-full bg-[#0d0f18] border border-[#2a2d3a] hover:border-[#3a3d4a] focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors" />
+        </FormField>
+
+        <FormField label="Greeting" hint="First thing the agent says when a call connects">
+          <input value={form.greeting} onChange={e => set('greeting', e.target.value)}
+            placeholder="Welcome! How can I help you today?"
+            className="w-full bg-[#0d0f18] border border-[#2a2d3a] hover:border-[#3a3d4a] focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors" />
+        </FormField>
+
+        <FormField label="System Prompt" hint="Full instructions for the agent's persona and behavior">
+          <textarea value={form.prompt} onChange={e => set('prompt', e.target.value)}
+            rows={8}
+            placeholder={"You are a helpful hotel receptionist for The Grand Hotel.\n\nBe polite, professional, and assist guests with:\n- Check-in and check-out queries\n- Room availability and upgrades\n- Restaurant reservations\n- Directions and local recommendations\n\nIf a caller needs maintenance, transfer them to the facilities team."}
+            className="w-full bg-[#0d0f18] border border-[#2a2d3a] hover:border-[#3a3d4a] focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors resize-none leading-relaxed" />
+        </FormField>
+
+        <FormField label="Language">
+          <div className="flex gap-3">
+            {[
+              { id: 'en',    label: 'English',       sub: 'US / UK' },
+              { id: 'hi',    label: 'Hindi',          sub: 'हिन्दी' },
+              { id: 'multi', label: 'Multilingual',   sub: 'Auto-detect' },
+            ].map(lang => (
+              <button key={lang.id} type="button" onClick={() => set('language', lang.id)}
+                className={`flex-1 py-3 px-4 rounded-xl border text-left transition-all ${
+                  form.language === lang.id
+                    ? 'bg-indigo-500/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
+                    : 'bg-[#0d0f18] border-[#2a2d3a] hover:border-[#3a3d4a]'
+                }`}>
+                <p className={`text-xs font-semibold ${form.language === lang.id ? 'text-indigo-300' : 'text-slate-300'}`}>
+                  {lang.label}
+                </p>
+                <p className="text-[10px] text-slate-600 mt-0.5">{lang.sub}</p>
+              </button>
+            ))}
+          </div>
+        </FormField>
       </div>
     </div>
   )
 }
 
-function KBSection({ agentId }) {
-  const [docs, setDocs]         = useState([])
-  const [loading, setLoading]   = useState(true)
+// ─── Step: AI Stack ────────────────────────────────────────────────────────
+
+function StackStep({ form, set }) {
+  return (
+    <div className="space-y-8">
+      <StepHeader
+        title="AI Stack"
+        desc="Choose the providers for each stage of the voice pipeline."
+      />
+
+      {/* Pipeline diagram */}
+      <div className="flex items-center gap-2 bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-4">
+        {[
+          { label: 'Audio In',        type: 'io' },
+          { label: null,              type: 'arrow' },
+          { label: 'Speech-to-Text',  type: 'stage', color: 'blue' },
+          { label: null,              type: 'arrow' },
+          { label: 'Language Model',  type: 'stage', color: 'purple' },
+          { label: null,              type: 'arrow' },
+          { label: 'Voice Synthesis', type: 'stage', color: 'emerald' },
+          { label: null,              type: 'arrow' },
+          { label: 'Audio Out',       type: 'io' },
+        ].map((item, i) => {
+          if (item.type === 'arrow') return (
+            <svg key={i} className="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          )
+          if (item.type === 'io') return (
+            <div key={i} className="text-[10px] text-slate-600 font-medium shrink-0">{item.label}</div>
+          )
+          const colors = {
+            blue:    'bg-blue-500/10 border-blue-500/20 text-blue-400',
+            purple:  'bg-purple-500/10 border-purple-500/20 text-purple-400',
+            emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+          }
+          return (
+            <div key={i} className={`text-[10px] font-medium px-2.5 py-1 rounded-lg border ${colors[item.color]}`}>
+              {item.label}
+            </div>
+          )
+        })}
+      </div>
+
+      <ProviderSection
+        title="Speech Recognition" stepTag="STT"
+        subtitle="Transcribes caller audio to text in real-time"
+        providers={STT_PROVIDERS}
+        selected={form.stt_provider}
+        onSelect={v => set('stt_provider', v)}
+      />
+
+      <PipelineConnector label="transcript passed to LLM" />
+
+      <ProviderSection
+        title="Language Model" stepTag="LLM"
+        subtitle="Generates intelligent responses based on your agent prompt"
+        providers={LLM_PROVIDERS}
+        selected={form.llm_provider}
+        onSelect={v => set('llm_provider', v)}
+      />
+
+      <PipelineConnector label="response synthesised to speech" />
+
+      <ProviderSection
+        title="Voice Synthesis" stepTag="TTS"
+        subtitle="Converts LLM text responses into natural-sounding audio"
+        providers={TTS_PROVIDERS}
+        selected={form.tts_provider}
+        onSelect={v => set('tts_provider', v)}
+      />
+    </div>
+  )
+}
+
+function PipelineConnector({ label }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1 h-px bg-[#1f2235]" />
+      <div className="flex items-center gap-1.5 text-[10px] text-slate-600 shrink-0">
+        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        {label}
+      </div>
+      <div className="flex-1 h-px bg-[#1f2235]" />
+    </div>
+  )
+}
+
+function ProviderSection({ title, stepTag, subtitle, providers, selected, onSelect }) {
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-8 h-8 rounded-lg bg-[#1f2235] border border-[#2a2d3a] flex items-center justify-center shrink-0">
+          <span className="text-[9px] font-bold text-slate-400 tracking-wider">{stepTag}</span>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-white">{title}</p>
+          <p className="text-xs text-slate-500">{subtitle}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2.5">
+        {providers.map(p => (
+          <ProviderCard key={p.id} provider={p} isSelected={selected === p.id} onSelect={() => onSelect(p.id)} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ProviderCard({ provider, isSelected, onSelect }) {
+  return (
+    <button type="button" onClick={onSelect}
+      className={`relative text-left p-4 rounded-xl border transition-all ${
+        isSelected
+          ? 'bg-indigo-500/8 border-indigo-500/35 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
+          : 'bg-[#0d0f18] border-[#2a2d3a] hover:border-[#3a3d4a] hover:bg-[#10121c]'
+      }`}>
+
+      {provider.badge && (
+        <span className={`absolute top-2.5 right-2.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
+          isSelected
+            ? 'bg-indigo-500/20 text-indigo-300'
+            : 'bg-[#1f2235] text-slate-500'
+        }`}>
+          {provider.badge}
+        </span>
+      )}
+
+      <p className={`text-xs font-semibold leading-tight mb-0.5 ${isSelected ? 'text-indigo-300' : 'text-white'}`}>
+        {provider.name}
+      </p>
+      <p className="text-[10px] text-slate-500 mb-1.5">{provider.vendor}</p>
+      <p className="text-[10px] text-slate-600 leading-relaxed">{provider.desc}</p>
+
+      {isSelected && (
+        <div className="absolute bottom-2.5 right-2.5 w-4 h-4 rounded-full bg-indigo-500 flex items-center justify-center">
+          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <polyline points="2 6.5 4.5 9 10 3" />
+          </svg>
+        </div>
+      )}
+    </button>
+  )
+}
+
+// ─── Step: Behavior ────────────────────────────────────────────────────────
+
+function BehaviorStep({ form, setBeh, setEsc }) {
+  return (
+    <div className="space-y-6">
+      <StepHeader title="Behavior" desc="Control how your agent acts, responds, and handles escalations." />
+
+      {/* Tone + Objective */}
+      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5 space-y-5">
+        <div className="grid grid-cols-2 gap-5">
+          <div>
+            <p className="text-xs font-semibold text-slate-400 mb-3">Tone</p>
+            <div className="space-y-2">
+              {[
+                { id: 'friendly', label: 'Friendly',   sub: 'Warm, approachable' },
+                { id: 'formal',   label: 'Formal',     sub: 'Professional, precise' },
+                { id: 'sales',    label: 'Sales',      sub: 'Persuasive, goal-driven' },
+              ].map(t => (
+                <button key={t.id} type="button" onClick={() => setBeh('tone', t.id)}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
+                    form.behavior.tone === t.id
+                      ? 'bg-indigo-500/8 border-indigo-500/30 text-indigo-300'
+                      : 'bg-[#080a12] border-[#2a2d3a] text-slate-400 hover:border-[#3a3d4a] hover:text-slate-300'
+                  }`}>
+                  <p className="text-xs font-medium">{t.label}</p>
+                  <p className="text-[10px] text-slate-600 mt-0.5">{t.sub}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-slate-400 mb-3">Objective</p>
+            <div className="space-y-2">
+              {[
+                { id: 'support',  label: 'Support',    sub: 'Resolve issues' },
+                { id: 'booking',  label: 'Booking',    sub: 'Schedule appointments' },
+                { id: 'qualify',  label: 'Qualify',    sub: 'Score leads' },
+                { id: 'info',     label: 'Info',       sub: 'Answer questions' },
+              ].map(o => (
+                <button key={o.id} type="button" onClick={() => setBeh('objective', o.id)}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
+                    form.behavior.objective === o.id
+                      ? 'bg-indigo-500/8 border-indigo-500/30 text-indigo-300'
+                      : 'bg-[#080a12] border-[#2a2d3a] text-slate-400 hover:border-[#3a3d4a] hover:text-slate-300'
+                  }`}>
+                  <p className="text-xs font-medium">{o.label}</p>
+                  <p className="text-[10px] text-slate-600 mt-0.5">{o.sub}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-400 mb-2">
+            Fallback Message
+            <span className="text-slate-600 font-normal ml-1.5">— said when the agent can't help</span>
+          </label>
+          <input value={form.behavior.fallback || ''} onChange={e => setBeh('fallback', e.target.value)}
+            placeholder="Let me transfer you to our team."
+            className="w-full bg-[#080a12] border border-[#2a2d3a] focus:border-indigo-500 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors" />
+        </div>
+      </div>
+
+      {/* Warm Transfer */}
+      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm font-semibold text-white">Warm Transfer</p>
+            <p className="text-xs text-slate-500 mt-0.5">Escalate to a human agent on trigger</p>
+          </div>
+          <Toggle value={form.escalation_config.enabled} onChange={v => setEsc('enabled', v)} />
+        </div>
+
+        {form.escalation_config.enabled && (
+          <div className="mt-5 pt-5 border-t border-[#1f2235] space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Transfer Number" hint="E.164 format">
+                <input value={form.escalation_config.transfer_number}
+                  onChange={e => setEsc('transfer_number', e.target.value)}
+                  placeholder="+91XXXXXXXXXX"
+                  className={inputCls} />
+              </FormField>
+              <FormField label="Cool-off (seconds)">
+                <input type="number" min="0" max="30"
+                  value={form.escalation_config.cool_off_sec || 0}
+                  onChange={e => setEsc('cool_off_sec', parseInt(e.target.value) || 0)}
+                  className={inputCls} />
+              </FormField>
+            </div>
+            <FormField label="Trigger Condition" hint="When should the agent escalate?">
+              <input value={form.escalation_config.trigger}
+                onChange={e => setEsc('trigger', e.target.value)}
+                placeholder="user asks for human, manager, or support agent"
+                className={inputCls} />
+            </FormField>
+            <FormField label="Whisper Message" hint="Heard only by the human agent, not the caller">
+              <input value={form.escalation_config.whisper}
+                onChange={e => setEsc('whisper', e.target.value)}
+                placeholder="Incoming AI transfer. Caller needs human support."
+                className={inputCls} />
+            </FormField>
+            <div className="flex items-center justify-between p-3 bg-[#080a12] rounded-lg border border-[#1f2235]">
+              <div>
+                <p className="text-xs font-medium text-slate-300">Announce Transfer</p>
+                <p className="text-[10px] text-slate-600 mt-0.5">Tell caller they're being transferred</p>
+              </div>
+              <Toggle value={form.escalation_config.announce_transfer} onChange={v => setEsc('announce_transfer', v)} />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Step: Knowledge ───────────────────────────────────────────────────────
+
+function KnowledgeLocked() {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-[#12141f] border border-[#1f2235] flex items-center justify-center mb-5">
+        <svg className="w-7 h-7 text-slate-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/>
+        </svg>
+      </div>
+      <p className="text-sm font-medium text-white">Create the agent first</p>
+      <p className="text-xs text-slate-600 mt-2 max-w-xs">
+        Upload documents, PDFs, and web pages after the agent is saved — they'll be available to the agent on every call.
+      </p>
+    </div>
+  )
+}
+
+function KnowledgeStep({ agentId }) {
+  const [docs, setDocs]           = useState([])
+  const [loading, setLoading]     = useState(true)
   const [uploading, setUploading] = useState(false)
-  const [error, setError]       = useState('')
-  const [dragOver, setDragOver] = useState(false)
-  const inputRef                = useRef(null)
-  const [urlInput, setUrlInput] = useState('')
-  const [urlTitle, setUrlTitle] = useState('')
+  const [error, setError]         = useState('')
+  const [dragOver, setDragOver]   = useState(false)
+  const [urlInput, setUrlInput]   = useState('')
+  const [urlTitle, setUrlTitle]   = useState('')
   const [scrapingUrl, setScrapingUrl] = useState(false)
   const [showUrlForm, setShowUrlForm] = useState(false)
+  const inputRef = useRef(null)
 
   useEffect(() => {
     api.listKb(agentId).then(setDocs).catch(console.error).finally(() => setLoading(false))
@@ -458,89 +708,66 @@ function KBSection({ agentId }) {
       setUrlInput('')
       setUrlTitle('')
       setShowUrlForm(false)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setScrapingUrl(false)
-    }
+    } catch (err) { setError(err.message) }
+    finally { setScrapingUrl(false) }
   }
 
   async function upload(file) {
     if (!file) return
-    const allowed = ['.txt', '.pdf', '.md', '.csv']
     const ext = '.' + file.name.split('.').pop().toLowerCase()
-    if (!allowed.includes(ext)) { setError(`Unsupported type. Use: ${allowed.join(', ')}`); return }
+    if (!['.txt', '.pdf', '.md', '.csv'].includes(ext)) {
+      setError('Unsupported type. Use: txt, pdf, md, csv')
+      return
+    }
     if (file.size > 5 * 1024 * 1024) { setError('File too large (max 5 MB)'); return }
     setError('')
     setUploading(true)
     try {
       const doc = await api.uploadKb(agentId, file)
       setDocs(d => [doc, ...d])
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  async function remove(docId) {
-    if (!confirm('Remove this document?')) return
-    await api.deleteKbDoc(agentId, docId).catch(console.error)
-    setDocs(d => d.filter(x => x.id !== docId))
-  }
-
-  function onDrop(e) {
-    e.preventDefault()
-    setDragOver(false)
-    const file = e.dataTransfer.files[0]
-    if (file) upload(file)
+    } catch (err) { setError(err.message) }
+    finally { setUploading(false) }
   }
 
   return (
-    <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-6 mb-6">
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="text-sm font-semibold text-white">Knowledge Base</h2>
-          <p className="text-xs text-slate-500 mt-0.5">Documents the agent can reference during calls. Supports txt, pdf, md, csv (max 5 MB each).</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setShowUrlForm(v => !v)}
-            className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 bg-white/5 hover:bg-white/10 border border-[#2a2d3a] px-3 py-1.5 rounded-lg transition-colors">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Add URL
-          </button>
-          <button type="button" onClick={() => inputRef.current?.click()}
-            className="flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Upload
-          </button>
-        </div>
+    <div className="space-y-5">
+      <StepHeader title="Knowledge Base" desc="Documents and web pages the agent can reference during calls." />
+
+      <div className="flex gap-2">
+        <button type="button" onClick={() => setShowUrlForm(v => !v)}
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 bg-white/5 hover:bg-white/8 border border-[#2a2d3a] px-3 py-2 rounded-lg transition-colors">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          Add URL
+        </button>
+        <button type="button" onClick={() => inputRef.current?.click()}
+          className="flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/8 hover:bg-indigo-500/15 border border-indigo-500/20 px-3 py-2 rounded-lg transition-colors">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Upload File
+        </button>
         <input ref={inputRef} type="file" accept=".txt,.pdf,.md,.csv" className="hidden"
           onChange={e => { upload(e.target.files[0]); e.target.value = '' }} />
       </div>
 
-      {/* URL scrape form */}
       {showUrlForm && (
-        <form onSubmit={scrapeUrl} className="mb-4 bg-[#0d0f18] rounded-lg border border-[#2a2d3a] p-3 space-y-2">
-          <p className="text-xs text-slate-400 font-medium">Scrape a web page</p>
-          <input
-            value={urlInput}
-            onChange={e => setUrlInput(e.target.value)}
-            placeholder="https://example.com/faq"
-            className="w-full bg-[#12141f] border border-[#2a2d3a] rounded px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-          />
-          <input
-            value={urlTitle}
-            onChange={e => setUrlTitle(e.target.value)}
-            placeholder="Title (optional)"
-            className="w-full bg-[#12141f] border border-[#2a2d3a] rounded px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
-          />
+        <form onSubmit={scrapeUrl} className="bg-[#0d0f18] rounded-xl border border-[#2a2d3a] p-4 space-y-3">
+          <p className="text-xs font-semibold text-slate-300">Scrape a web page</p>
+          <input value={urlInput} onChange={e => setUrlInput(e.target.value)} placeholder="https://example.com/faq"
+            className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+          <input value={urlTitle} onChange={e => setUrlTitle(e.target.value)} placeholder="Title (optional)"
+            className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
           <div className="flex gap-2">
             <button type="submit" disabled={!urlInput.trim() || scrapingUrl}
               className="flex items-center gap-1.5 text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-lg disabled:opacity-50 transition-colors">
-              {scrapingUrl ? (
-                <><div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />Scraping…</>
-              ) : 'Scrape & Add'}
+              {scrapingUrl
+                ? <><div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />Scraping…</>
+                : 'Scrape & Add'}
             </button>
             <button type="button" onClick={() => setShowUrlForm(false)}
               className="text-xs text-slate-500 hover:text-slate-300 px-3 py-1.5 transition-colors">Cancel</button>
@@ -548,46 +775,51 @@ function KBSection({ agentId }) {
         </form>
       )}
 
-      {/* Drop zone */}
       <div
         onDragOver={e => { e.preventDefault(); setDragOver(true) }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={onDrop}
+        onDrop={e => { e.preventDefault(); setDragOver(false); upload(e.dataTransfer.files[0]) }}
         onClick={() => inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-lg px-4 py-6 text-center cursor-pointer transition-colors mb-4 ${
-          dragOver ? 'border-indigo-500 bg-indigo-500/5' : 'border-[#2a2d3a] hover:border-slate-500'
-        }`}
-      >
+        className={`border-2 border-dashed rounded-xl px-4 py-10 text-center cursor-pointer transition-colors ${
+          dragOver ? 'border-indigo-500 bg-indigo-500/5' : 'border-[#2a2d3a] hover:border-[#3a3d4a]'
+        }`}>
         {uploading ? (
           <div className="flex items-center justify-center gap-2 text-slate-400 text-xs">
             <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
             Uploading…
           </div>
         ) : (
-          <p className="text-xs text-slate-500">Drop a file here or <span className="text-indigo-400">browse</span></p>
+          <>
+            <p className="text-xs text-slate-500">Drop files here or <span className="text-indigo-400">browse</span></p>
+            <p className="text-[10px] text-slate-700 mt-1">txt · pdf · md · csv · max 5 MB each</p>
+          </>
         )}
       </div>
 
-      {error && <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 mb-3">{error}</p>}
+      {error && <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
 
       {loading ? (
-        <p className="text-xs text-slate-600 text-center py-4">Loading…</p>
+        <p className="text-xs text-slate-600 text-center py-6">Loading…</p>
       ) : docs.length === 0 ? (
-        <p className="text-xs text-slate-600 text-center py-4">No documents yet. Upload one above.</p>
+        <p className="text-xs text-slate-600 text-center py-6">No documents yet.</p>
       ) : (
         <div className="space-y-2">
           {docs.map(doc => (
-            <div key={doc.id} className="flex items-start gap-3 bg-[#0d0f18] rounded-lg border border-[#1f2235] px-4 py-3">
+            <div key={doc.id} className="flex items-start gap-3 bg-[#0d0f18] rounded-xl border border-[#1f2235] px-4 py-3">
               <svg className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
               </svg>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-slate-300 truncate">{doc.filename}</p>
-                <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-2">{doc.content_preview}</p>
-                <p className="text-[10px] text-slate-700 mt-1">{new Date(doc.created_at).toLocaleDateString()}</p>
+                <p className="text-[10px] text-slate-600 mt-0.5 line-clamp-2">{doc.content_preview}</p>
               </div>
-              <button type="button" onClick={() => remove(doc.id)}
-                className="text-xs text-red-400/60 hover:text-red-400 shrink-0 px-2 py-1 rounded hover:bg-red-500/10 transition-colors">
+              <button type="button"
+                onClick={async () => {
+                  if (!confirm('Remove this document?')) return
+                  await api.deleteKbDoc(agentId, doc.id).catch(console.error)
+                  setDocs(d => d.filter(x => x.id !== doc.id))
+                }}
+                className="text-xs text-red-400/50 hover:text-red-400 shrink-0 px-2 py-1 rounded hover:bg-red-500/10 transition-colors">
                 Remove
               </button>
             </div>
@@ -598,36 +830,147 @@ function KBSection({ agentId }) {
   )
 }
 
-function Section({ title, children }) {
+// ─── Step: Advanced ────────────────────────────────────────────────────────
+
+function AdvancedStep({ form, set }) {
+  const addField    = () => set('extraction_schema', [...form.extraction_schema, { field: '', type: 'text', description: '' }])
+  const removeField = i  => set('extraction_schema', form.extraction_schema.filter((_, idx) => idx !== i))
+  const setField    = (i, key, val) => set('extraction_schema',
+    form.extraction_schema.map((fld, idx) => idx === i ? { ...fld, [key]: val } : fld)
+  )
+
   return (
-    <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-6">
-      <h2 className="text-sm font-semibold text-white mb-5">{title}</h2>
-      <div className="space-y-4">{children}</div>
+    <div className="space-y-6">
+      <StepHeader title="Advanced" desc="Data extraction, call goals, privacy, and custom LLM endpoints." />
+
+      {/* Custom LLM */}
+      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5 space-y-4">
+        <div>
+          <p className="text-sm font-semibold text-white">Custom LLM Endpoint</p>
+          <p className="text-xs text-slate-500 mt-0.5">Override with any OpenAI-compatible endpoint (Ollama, vLLM, Together AI, etc.)</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField label="Base URL" hint="e.g. http://localhost:11434/v1">
+            <input value={form.custom_llm_url} onChange={e => set('custom_llm_url', e.target.value)}
+              placeholder="https://api.together.ai/v1"
+              className={inputCls} />
+          </FormField>
+          <FormField label="Model Name">
+            <input value={form.custom_llm_model} onChange={e => set('custom_llm_model', e.target.value)}
+              placeholder="meta-llama/Llama-3-70b"
+              className={inputCls} />
+          </FormField>
+        </div>
+        {form.custom_llm_url && (
+          <p className="text-xs text-amber-400 bg-amber-500/8 border border-amber-500/20 rounded-lg px-3 py-2">
+            Custom endpoint is active — LLM Provider selection above will be ignored.
+          </p>
+        )}
+      </div>
+
+      {/* PII */}
+      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5">
+        <div className="flex items-center justify-between">
+          <div className="pr-4">
+            <p className="text-sm font-semibold text-white">PII Redaction</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Automatically redact phone numbers, emails, and card numbers from transcripts.
+            </p>
+          </div>
+          <Toggle value={form.pii_redaction} onChange={v => set('pii_redaction', v)} />
+        </div>
+      </div>
+
+      {/* Extraction Schema */}
+      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5 space-y-4">
+        <div>
+          <p className="text-sm font-semibold text-white">Data Extraction Schema</p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Fields extracted from each call by LLM post-processing. Saved to call metadata.
+          </p>
+        </div>
+        {form.extraction_schema.length > 0 && (
+          <div className="space-y-2">
+            {form.extraction_schema.map((fld, i) => (
+              <div key={i} className="grid grid-cols-12 gap-2">
+                <div className="col-span-4">
+                  <input value={fld.field} onChange={e => setField(i, 'field', e.target.value)}
+                    placeholder="field_name"
+                    className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+                </div>
+                <div className="col-span-3">
+                  <select value={fld.type} onChange={e => setField(i, 'type', e.target.value)}
+                    className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    {['text', 'boolean', 'number', 'enum'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-4">
+                  <input value={fld.description} onChange={e => setField(i, 'description', e.target.value)}
+                    placeholder="description (optional)"
+                    className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+                </div>
+                <div className="col-span-1 flex items-center justify-center">
+                  <button type="button" onClick={() => removeField(i)}
+                    className="text-red-400/50 hover:text-red-400 text-lg leading-none transition-colors">×</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <button type="button" onClick={addField}
+          className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+          <span className="text-base leading-none">+</span> Add field
+        </button>
+      </div>
+
+      {/* Call Goal */}
+      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5 space-y-3">
+        <div>
+          <p className="text-sm font-semibold text-white">Call Goal</p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            LLM evaluates this after each call — result saved as <code className="text-indigo-400 text-[10px]">goal_achieved</code>.
+          </p>
+        </div>
+        <textarea value={form.success_criteria} onChange={e => set('success_criteria', e.target.value)}
+          rows={3}
+          placeholder="The call is successful if the caller confirmed an appointment, agreed to a callback, or their issue was resolved."
+          className="w-full bg-[#080a12] border border-[#2a2d3a] focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors resize-none" />
+      </div>
     </div>
   )
 }
-function Field({ label, hint, required, children }) {
+
+// ─── Shared Primitives ─────────────────────────────────────────────────────
+
+const inputCls = 'w-full bg-[#080a12] border border-[#2a2d3a] focus:border-indigo-500 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors'
+
+function StepHeader({ title, desc }) {
+  return (
+    <div className="mb-2">
+      <h2 className="text-lg font-semibold text-white">{title}</h2>
+      {desc && <p className="text-xs text-slate-500 mt-1">{desc}</p>}
+    </div>
+  )
+}
+
+function FormField({ label, hint, required, children }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1.5">
-        {label}{required && <span className="text-red-400 ml-0.5">*</span>}
-        {hint && <span className="text-slate-600 font-normal ml-1">— {hint}</span>}
+      <label className="block text-xs font-medium text-slate-400 mb-2">
+        {label}
+        {required && <span className="text-red-400 ml-0.5">*</span>}
+        {hint && <span className="text-slate-600 font-normal ml-1.5">— {hint}</span>}
       </label>
       {children}
     </div>
   )
 }
-function Input(props) {
+
+function Toggle({ value, onChange }) {
   return (
-    <input {...props}
-      className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors" />
-  )
-}
-function Select({ value, onChange, options }) {
-  return (
-    <select value={value} onChange={onChange}
-      className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
-      {options.map(o => <option key={o} value={o}>{o}</option>)}
-    </select>
+    <button type="button" onClick={() => onChange(!value)}
+      className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${value ? 'bg-indigo-500' : 'bg-[#2a2d3a]'}`}>
+      <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${value ? 'translate-x-5' : ''}`} />
+    </button>
   )
 }

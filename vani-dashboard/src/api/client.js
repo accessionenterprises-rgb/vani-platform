@@ -150,9 +150,13 @@ export const api = {
   analyticsProviders:  (period = 7) => request('GET', `/analytics/providers?period=${period}`),
 
   // Numbers
-  listNumbers:  ()     => request('GET', '/numbers'),
-  addNumber:    (data) => request('POST', '/numbers', data),
-  deleteNumber: (id)   => request('DELETE', `/numbers/${id}`),
+  listNumbers:        ()       => request('GET', '/numbers'),
+  addNumber:          (data)   => request('POST', '/numbers', data),
+  updateNumber:       (id, d)  => request('PATCH', `/numbers/${id}`, d),
+  deleteNumber:       (id)     => request('DELETE', `/numbers/${id}`),
+  searchTwilioNumbers:(params) => request('GET', `/numbers/twilio/available?${new URLSearchParams(params)}`),
+  buyTwilioNumber:    (data)   => request('POST', '/numbers/twilio/buy', data),
+  syncTwilioNumbers:  ()       => request('POST', '/numbers/twilio/sync'),
 
   // API Keys
   listKeys:  ()     => request('GET', '/api-keys'),
