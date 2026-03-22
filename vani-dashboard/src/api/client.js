@@ -154,9 +154,9 @@ export const api = {
   addNumber:          (data)   => request('POST', '/numbers', data),
   updateNumber:       (id, d)  => request('PATCH', `/numbers/${id}`, d),
   deleteNumber:       (id)     => request('DELETE', `/numbers/${id}`),
-  searchTwilioNumbers:(params) => request('GET', `/numbers/twilio/available?${new URLSearchParams(params)}`),
-  buyTwilioNumber:    (data)   => request('POST', '/numbers/twilio/buy', data),
-  syncTwilioNumbers:  ()       => request('POST', '/numbers/twilio/sync'),
+  searchTwilioNumbers:(params) => request('GET', `/numbers/available?${new URLSearchParams(params)}`),
+  buyTwilioNumber:    (data)   => request('POST', '/numbers/buy', data),
+  syncTwilioNumbers:  ()       => request('POST', '/numbers/sync'),
 
   // API Keys
   listKeys:  ()     => request('GET', '/api-keys'),
