@@ -120,6 +120,19 @@ export default function NumberHunterPage() {
   const scanStart = useRef(null)
   const pickerRef = useRef(null)
 
+  // Auto-resume polling if a scan was already running before page load (e.g. after refresh)
+  useEffect(() => {
+    adminApi.hunterStatus().then(st => {
+      const running = Object.keys((st || {}).running || {})
+      if (running.length > 0) {
+        setStatus(st)
+        setScanCountries(running)   // show the right countries in progress bar
+        setScanning(true)
+        setScanMsg({ type: 'info', text: `Scan in progress — resuming tracking (${running.join(', ')})…` })
+      }
+    }).catch(() => {})
+  }, [])
+
   // Close country picker on outside click
   useEffect(() => {
     function handler(e) {
@@ -431,9 +444,9 @@ export default function NumberHunterPage() {
       )}
 
       {/* Scan progress bars */}
-      {isRunning && (
+      {(scanning || isRunning) && (
         <div className="bg-[#12141f] border border-[#1f2235] rounded-xl px-5 py-4 mb-5 space-y-3">
-          {runningCountries.map(c => {
+          {(isRunning ? runningCountries : scanCountries).map(c => {
             const p = status.running[c] || {}
             const pct = p.total ? Math.round((p.searched / p.total) * 100) : 0
             const elapsed = scanStart.current ? (Date.now() - scanStart.current) / 1000 : 0
@@ -451,17 +464,18 @@ export default function NumberHunterPage() {
                     {COUNTRY_FLAGS[c] || ''} {c}
                     <ServiceBadge service={p.service || 'twilio'} />
                     <span className="text-xs text-slate-500 font-normal">
-                      {p.searched?.toLocaleString() ?? 0} / {p.total?.toLocaleString() ?? '…'} patterns
-                      {p.found ? ` · ${p.found} found` : ''}
+                      {p.total
+                        ? `${p.searched?.toLocaleString() ?? 0} / ${p.total.toLocaleString()} patterns${p.found ? ` · ${p.found} found` : ''}`
+                        : 'queued…'}
                     </span>
                   </span>
                   <span className="text-xs text-slate-500">{pct}% {etaStr && `· ${etaStr}`}</span>
                 </div>
                 <div className="h-1.5 bg-[#1f2235] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                    style={{ width: `${pct}%` }}
-                  />
+                  {pct > 0
+                    ? <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                    : <div className="h-full bg-indigo-500/30 rounded-full animate-pulse w-full" />
+                  }
                 </div>
               </div>
             )
@@ -738,27 +752,27 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
   }
 
   function toggleTierGroup(tiers) {
-    const cur = draft.tiers || []
+    const cur = draft.tiers === null ? allTiers : (draft.tiers || [])
     const allIn = tiers.every(t => cur.includes(t))
     if (allIn) {
       const next = cur.filter(t => !tiers.includes(t))
-      setField('tiers', next.length ? next : null)
+      setField('tiers', next)
     } else {
       const next = [...new Set([...cur, ...tiers])]
-      setField('tiers', next.length === allTiers.length ? null : next)
+      setField('tiers', next)
     }
   }
 
   function toggleTier(t) {
-    const cur = draft.tiers || []
+    const cur = draft.tiers === null ? allTiers : (draft.tiers || [])
     const next = cur.includes(t) ? cur.filter(x => x !== t) : [...cur, t]
-    setField('tiers', next.length === 0 || next.length === allTiers.length ? null : next)
+    setField('tiers', next)
   }
 
   const selectedCountries = draft.countries || allCountries
-  const selectedTiers = draft.tiers || allTiers
+  const selectedTiers = draft.tiers === null ? allTiers : (draft.tiers || [])
   const allCountriesSel = !draft.countries
-  const allTiersSel = !draft.tiers
+  const allTiersSel = draft.tiers === null
 
   function fmtNextRun(s) {
     if (!s.next_run_at) return '—'
@@ -945,7 +959,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs text-slate-500">Patterns</label>
               <button
-                onClick={() => setField('tiers', allTiersSel ? ['A-double-seq'] : null)}
+                onClick={() => setField('tiers', allTiersSel ? [] : null)}
                 className="text-xs text-indigo-400 hover:text-indigo-300"
               >
                 {allTiersSel ? 'Select specific' : 'All patterns'}

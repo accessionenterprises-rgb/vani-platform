@@ -370,7 +370,7 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
         }).execute().data[0]
         scan_id = run["id"]
 
-        _scan_progress[country] = {"searched": 0, "total": len(patterns), "found": 0}
+        _scan_progress[country] = {"searched": 0, "total": len(patterns), "found": 0, "service": "twilio"}
 
         found = 0
         new_count = 0
