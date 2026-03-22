@@ -120,15 +120,27 @@ export default function NumberHunterPage() {
   const scanStart = useRef(null)
   const pickerRef = useRef(null)
 
-  // Auto-resume polling if a scan was already running before page load (e.g. after refresh)
+  // Auto-resume: check server AND localStorage on page load
   useEffect(() => {
+    const LS_KEY = 'vani_hunt_scanning'
     adminApi.hunterStatus().then(st => {
       const running = Object.keys((st || {}).running || {})
       if (running.length > 0) {
+        // Server confirms scan is in flight — resume
         setStatus(st)
-        setScanCountries(running)   // show the right countries in progress bar
+        setScanCountries(running)
         setScanning(true)
-        setScanMsg({ type: 'info', text: `Scan in progress — resuming tracking (${running.join(', ')})…` })
+        setScanMsg({ type: 'info', text: `Scan in progress — resuming (${running.join(', ')})…` })
+      } else {
+        // Nothing running on server — check if we have a stale localStorage entry
+        const saved = localStorage.getItem(LS_KEY)
+        if (saved) {
+          localStorage.removeItem(LS_KEY)
+          try {
+            const { countries } = JSON.parse(saved)
+            setScanMsg({ type: 'err', text: `Previous scan (${countries.join(', ')}) was interrupted — server restarted. Start a new scan.` })
+          } catch (_) {}
+        }
       }
     }).catch(() => {})
   }, [])
@@ -257,6 +269,7 @@ export default function NumberHunterPage() {
           clearInterval(pollRef.current)
           pollRef.current = null
           scanStart.current = null
+          localStorage.removeItem('vani_hunt_scanning')
           setScanning(false)
           const s = await adminApi.hunterScans(null)
           const last = s?.[0]
@@ -283,6 +296,7 @@ export default function NumberHunterPage() {
     setCountryPickerOpen(false)
     setScanMsg(null)
     setScanning(true)
+    localStorage.setItem('vani_hunt_scanning', JSON.stringify({ countries: scanCountries }))
     try {
       const r = await adminApi.hunterScan(scanCountries)
       const label = r.countries?.length === 1
@@ -292,6 +306,7 @@ export default function NumberHunterPage() {
       const st = await adminApi.hunterStatus()
       setStatus(st)
     } catch (e) {
+      localStorage.removeItem('vani_hunt_scanning')
       setScanMsg({ type: 'err', text: e.message })
       setScanning(false)
     }

@@ -480,7 +480,7 @@ async def daily_scan(countries: Optional[list[str]] = None, tiers_filter: Option
     sem = asyncio.Semaphore(_COUNTRY_CONCURRENCY)
 
     async def _run_one(country: str, npas: list[int]) -> None:
-        if _scan_running.get(country):
+        if _scan_running.get(country) is True:  # skip if actively running; 'queued' is ok
             return
         async with sem:
             _scan_running[country] = True

@@ -542,6 +542,9 @@ async def admin_hunter_scan(body: AdminScanRequest):
         raise HTTPException(status_code=409, detail=f"Already scanning: {already}")
 
     total_patterns = sum(len(build_patterns(NANP_COUNTRIES[c])) for c in targets)
+    # Pre-mark as queued BEFORE create_task so status endpoint shows them immediately
+    for c in targets:
+        _scan_running[c] = "queued"
     asyncio.create_task(daily_scan(countries=targets))
     return {
         "started": True,
