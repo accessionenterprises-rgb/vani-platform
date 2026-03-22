@@ -440,7 +440,11 @@ function BuyModal({ agents, onBought, onClose }) {
           <button
             onClick={buy}
             disabled={!selected || !agentId || buying}
-            className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors">
+            className={`flex items-center gap-2 font-medium px-5 py-2 rounded-lg text-sm transition-colors ${
+              !selected || !agentId || buying
+                ? 'bg-[#1f2235] text-slate-500 cursor-not-allowed'
+                : 'bg-indigo-500 hover:bg-indigo-600 text-white'
+            }`}>
             {buying
               ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Purchasing…</>
               : <>Purchase Number</>}
