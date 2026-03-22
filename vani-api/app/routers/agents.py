@@ -32,6 +32,8 @@ class EscalationConfig(BaseModel):
     transfer_number: Optional[str] = None
     trigger: str = "user asks for human"
     whisper: str = "Caller is being transferred. Please assist them."
+    cool_off_sec: int = 0
+    announce_transfer: bool = True
 
 
 class CreateAgentRequest(BaseModel):
