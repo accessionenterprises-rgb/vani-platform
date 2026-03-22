@@ -93,7 +93,7 @@ async def login(body: LoginRequest):
             json={"email": body.email, "password": body.password},
         )
     if r.status_code != 200:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=400, detail="Invalid email or password")
 
     data = r.json()
     return AuthResponse(
