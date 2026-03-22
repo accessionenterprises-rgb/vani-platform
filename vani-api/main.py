@@ -56,10 +56,38 @@ async def start_number_hunter_scheduler() -> None:
 
 
 async def _hunter_scheduler() -> None:
-    """Run a full NANP scan ~2 h after startup, then every 24 h."""
+    """Run a full NANP scan ~30 min after startup, then every 24 h.
+
+    Also skips the initial scan if one completed within the last 20 hours
+    (prevents double-scans on Railway restarts).
+    """
     from app.routers.number_hunter import daily_scan
-    await asyncio.sleep(7200)   # 2-hour warm-up delay on cold start
+    from app.db import get_db
+    from datetime import datetime, timezone, timedelta
+
+    await asyncio.sleep(1800)   # 30-min warm-up on cold start
+
     while True:
+        # Skip if a scan completed recently (within last 20 h)
+        try:
+            db = get_db()
+            recent = (
+                db.table("number_scan_runs")
+                .select("completed_at")
+                .eq("status", "completed")
+                .order("completed_at", desc=True)
+                .limit(1)
+                .execute()
+                .data
+            )
+            if recent and recent[0]["completed_at"]:
+                last = datetime.fromisoformat(recent[0]["completed_at"].replace("Z", "+00:00"))
+                if datetime.now(timezone.utc) - last < timedelta(hours=20):
+                    await asyncio.sleep(3600)
+                    continue
+        except Exception:
+            pass
+
         try:
             await daily_scan()
         except Exception as exc:

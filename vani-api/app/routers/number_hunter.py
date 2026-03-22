@@ -217,11 +217,14 @@ def build_tollfree_patterns() -> list[dict]:
 
 # ── AI memorability scoring ───────────────────────────────────────────────────
 
+_SCORE_CHUNK = 150   # max numbers per Claude call
+
+
 async def score_numbers_with_ai(numbers: list[str]) -> dict[str, dict]:
     """
-    Batch-score a list of phone numbers for memorability using Claude Haiku.
+    Batch-score phone numbers for memorability using Claude Haiku.
+    Chunks into batches of 150 to stay within token limits.
     Returns dict: phone_number -> {score: int, reason: str}
-    Numbers are passed as formatted strings e.g. '415-415-4150'.
     """
     if not numbers or not settings.anthropic_api_key:
         return {}
@@ -230,46 +233,58 @@ async def score_numbers_with_ai(numbers: list[str]) -> dict[str, dict]:
         d = n.replace("+1", "")
         return f"{d[:3]}-{d[3:6]}-{d[6:]}"
 
+    def _parse_raw(raw: str) -> list:
+        raw = raw.strip()
+        if "```" in raw:
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.strip()
+        start = raw.find("[")
+        end = raw.rfind("]")
+        if start != -1 and end != -1:
+            raw = raw[start:end + 1]
+        return json.loads(raw)
+
+    results: dict[str, dict] = {}
+
     try:
         import anthropic
         client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
 
-        numbered = "\n".join(f"{i+1}. {_fmt(n)}" for i, n in enumerate(numbers))
-        prompt = (
-            "Rate each phone number 1-10 for vanity/memorability.\n"
-            "Criteria: digit repetition, visual symmetry, spoken rhythm, instant recall.\n"
-            "10 = instantly memorable (e.g. 800-888-8888). 1 = random.\n"
-            'Reply ONLY as a JSON array: [{"i":1,"score":9,"reason":"..."},...]\n\n'
-            f"Numbers:\n{numbered}"
-        )
-
-        msg = await asyncio.to_thread(
-            lambda: client.messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=32000,
-                messages=[{"role": "user", "content": prompt}],
+        for chunk_start in range(0, len(numbers), _SCORE_CHUNK):
+            chunk = numbers[chunk_start:chunk_start + _SCORE_CHUNK]
+            numbered = "\n".join(f"{i+1}. {_fmt(n)}" for i, n in enumerate(chunk))
+            prompt = (
+                "Rate each phone number 1-10 for vanity/memorability.\n"
+                "Criteria: digit repetition, visual symmetry, spoken rhythm, instant recall.\n"
+                "10 = instantly memorable (e.g. 800-888-8888). 1 = random.\n"
+                'Reply ONLY as a JSON array: [{"i":1,"score":9,"reason":"..."},...]\n\n'
+                f"Numbers:\n{numbered}"
             )
-        )
+            try:
+                msg = await asyncio.to_thread(
+                    lambda p=prompt: client.messages.create(
+                        model="claude-haiku-4-5-20251001",
+                        max_tokens=2048,
+                        messages=[{"role": "user", "content": p}],
+                    )
+                )
+                scores = _parse_raw(msg.content[0].text)
+                for entry in scores:
+                    idx = entry["i"] - 1
+                    if 0 <= idx < len(chunk):
+                        results[chunk[idx]] = {
+                            "score": int(entry["score"]),
+                            "reason": entry.get("reason", ""),
+                        }
+            except Exception as exc:
+                logger.warning("AI scoring chunk failed: %s", exc)
 
-        raw = msg.content[0].text.strip()
-        # Strip markdown fences if present
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        scores = json.loads(raw)
-
-        return {
-            numbers[entry["i"] - 1]: {
-                "score": int(entry["score"]),
-                "reason": entry.get("reason", ""),
-            }
-            for entry in scores
-            if 1 <= entry["i"] <= len(numbers)
-        }
     except Exception as exc:
         logger.warning("AI scoring failed: %s", exc)
-        return {}
+
+    return results
 
 
 # ── Twilio search ─────────────────────────────────────────────────────────────
@@ -357,8 +372,7 @@ async def scan_country(country: str, npas: list[int]) -> dict:
 
         await asyncio.gather(*[do_one(p) for p in patterns])
 
-        # Mark numbers not seen this run as gone
-        gone_count = 0
+        # Mark numbers not seen this run as gone (bulk update)
         all_avail = (
             db.table("number_hunt_results")
             .select("number,id")
@@ -367,10 +381,10 @@ async def scan_country(country: str, npas: list[int]) -> dict:
             .execute()
             .data
         )
-        for row in all_avail:
-            if row["number"] not in seen:
-                db.table("number_hunt_results").update({"status": "gone"}).eq("id", row["id"]).execute()
-                gone_count += 1
+        gone_ids = [row["id"] for row in all_avail if row["number"] not in seen]
+        gone_count = len(gone_ids)
+        if gone_ids:
+            db.table("number_hunt_results").update({"status": "gone"}).in_("id", gone_ids).execute()
 
         # AI scoring for newly discovered numbers
         if newly_inserted:
