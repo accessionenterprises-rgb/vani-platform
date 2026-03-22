@@ -546,6 +546,16 @@ async def admin_hunter_scan(body: AdminScanRequest):
     return {"started": True, "country": country, "patterns": len(build_patterns(npas))}
 
 
+@router.post("/hunter/scan-all", dependencies=[Depends(_verify_token)])
+async def admin_hunter_scan_all():
+    import asyncio
+    from app.routers.number_hunter import daily_scan, _scan_running
+    if any(_scan_running.values()):
+        raise HTTPException(status_code=409, detail="A scan is already running")
+    asyncio.create_task(daily_scan())
+    return {"started": True, "message": "Full NANP scan queued (all 15 countries)"}
+
+
 class AdminPurchaseRequest(BaseModel):
     number: str
 
