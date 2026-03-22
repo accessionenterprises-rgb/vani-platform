@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { flushSync } from 'react-dom'
 import { api } from '../api/client'
 
 const AuthContext = createContext(null)
@@ -27,7 +28,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('vani_token', data.access_token)
     localStorage.setItem('vani_tenant', data.tenant_id)
     const me = await api.me()
-    setUser(me)
+    flushSync(() => setUser(me))
     return me
   }
 
@@ -36,7 +37,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('vani_token', data.access_token)
     localStorage.setItem('vani_tenant', data.tenant_id)
     const me = await api.me()
-    setUser(me)
+    flushSync(() => setUser(me))
     return me
   }
 
