@@ -1,11 +1,12 @@
 """Vani API — entrypoint."""
+import asyncio
 import structlog
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import agents, analytics, api_keys, auth, calls, campaigns, dnc, kb, numbers, outbound, playground_chat, products, tools, webhooks
+from app.routers import admin, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, number_hunter, numbers, outbound, playground_chat, products, tools, webhooks
 
 logger = structlog.get_logger()
 
@@ -22,12 +23,14 @@ app.add_middleware(
         "https://vani.live",
         "https://app.vani.live",
         "https://dashboard.vani.live",
+        "https://admin.vani.live",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+app.include_router(admin.router)
 app.include_router(auth.router)
 app.include_router(agents.router)
 app.include_router(kb.router)
@@ -39,9 +42,29 @@ app.include_router(campaigns.router)
 app.include_router(analytics.router)
 app.include_router(api_keys.router)
 app.include_router(numbers.router)
+app.include_router(number_hunter.router)
 app.include_router(webhooks.router)
 app.include_router(dnc.router)
 app.include_router(playground_chat.router)
+app.include_router(dialer.router)
+
+
+@app.on_event("startup")
+async def start_number_hunter_scheduler() -> None:
+    """Launch the daily number hunter scan as a background asyncio task."""
+    asyncio.create_task(_hunter_scheduler())
+
+
+async def _hunter_scheduler() -> None:
+    """Run a full NANP scan ~2 h after startup, then every 24 h."""
+    from app.routers.number_hunter import daily_scan
+    await asyncio.sleep(7200)   # 2-hour warm-up delay on cold start
+    while True:
+        try:
+            await daily_scan()
+        except Exception as exc:
+            logger.error("number_hunter daily_scan error", error=str(exc))
+        await asyncio.sleep(86400)  # 24 hours
 
 
 @app.get("/health")

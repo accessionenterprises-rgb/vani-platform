@@ -7,8 +7,9 @@ import AgentsPage      from './pages/AgentsPage'
 import AgentFormPage   from './pages/AgentFormPage'
 import CallsPage       from './pages/CallsPage'
 import CallDetailPage  from './pages/CallDetailPage'
-import NumbersPage     from './pages/NumbersPage'
-import WebhooksPage    from './pages/WebhooksPage'
+import NumbersPage       from './pages/NumbersPage'
+import NumberHunterPage  from './pages/NumberHunterPage'
+import WebhooksPage      from './pages/WebhooksPage'
 import SettingsPage    from './pages/SettingsPage'
 import CampaignsPage       from './pages/CampaignsPage'
 import CampaignDetailPage  from './pages/CampaignDetailPage'
@@ -16,6 +17,7 @@ import AnalyticsPage   from './pages/AnalyticsPage'
 import TemplatesPage   from './pages/TemplatesPage'
 import PlaygroundPage  from './pages/PlaygroundPage'
 import KioskPage       from './pages/KioskPage'
+import DialerPage      from './pages/DialerPage'
 
 function AppShell() {
   return (
@@ -32,10 +34,12 @@ function AppShell() {
           <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
           <Route path="/analytics"     element={<AnalyticsPage />} />
           <Route path="/playground"    element={<PlaygroundPage />} />
-          <Route path="/numbers"       element={<NumbersPage />} />
+          <Route path="/numbers"        element={<NumbersPage />} />
+          <Route path="/number-hunter" element={<NumberHunterPage />} />
           <Route path="/webhooks"      element={<WebhooksPage />} />
           <Route path="/templates"     element={<TemplatesPage />} />
           <Route path="/settings"      element={<SettingsPage />} />
+          <Route path="/dialer"        element={<DialerPage />} />
           <Route path="*"              element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -159,4 +159,16 @@ export const api = {
 
   // Dialer
   getDialerToken: () => request('GET', '/dialer/token'),
+
+  // Number Hunter
+  hunterResults: (status = 'available', country = null, tier = null) => {
+    const qs = new URLSearchParams({ status })
+    if (country) qs.set('country', country)
+    if (tier) qs.set('tier', tier)
+    return request('GET', `/hunter/results?${qs}`)
+  },
+  hunterScans:   (country = null) => request('GET', `/hunter/scans${country ? `?country=${country}` : ''}`),
+  hunterStatus:  () => request('GET', '/hunter/status'),
+  hunterScan:    (country = 'US') => request('POST', '/hunter/scan', { country }),
+  hunterPurchase:(number) => request('POST', '/hunter/purchase', { number }),
 }

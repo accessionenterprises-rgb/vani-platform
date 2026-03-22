@@ -71,4 +71,16 @@ async def get_tenant_id(
     if not user_id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
+    # ── Check tenant is not disabled by admin ─────────────────────────────────
+    db = get_db()
+    tenant = (
+        db.table("tenants")
+        .select("active")
+        .eq("id", user_id)
+        .maybe_single()
+        .execute()
+    )
+    if tenant.data and tenant.data.get("active") is False:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled")
+
     return user_id

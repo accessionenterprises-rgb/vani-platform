@@ -1,0 +1,368 @@
+"""Admin API — platform operator endpoints.
+
+Auth: POST /admin/auth with { "secret": ADMIN_SECRET } → { "token": <jwt> }
+All other /admin/* routes require: Authorization: Bearer <admin_token>
+"""
+import time
+from typing import Optional
+
+import httpx
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
+from pydantic import BaseModel
+
+from app.config import settings
+from app.db import get_db
+
+router = APIRouter(prefix="/admin", tags=["admin"])
+bearer = HTTPBearer(auto_error=False)
+
+_ALGORITHM = "HS256"
+_TOKEN_TTL = 60 * 60 * 12  # 12 hours
+
+
+# ─── Admin Auth ───────────────────────────────────────────────────────────────
+
+def _make_token() -> str:
+    payload = {"role": "admin", "iat": int(time.time()), "exp": int(time.time()) + _TOKEN_TTL}
+    return jwt.encode(payload, settings.admin_secret, algorithm=_ALGORITHM)
+
+
+def _verify_token(creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer)) -> None:
+    if creds is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing admin token")
+    try:
+        payload = jwt.decode(creds.credentials, settings.admin_secret, algorithms=[_ALGORITHM])
+        if payload.get("role") != "admin":
+            raise ValueError
+    except (JWTError, ValueError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin token")
+
+
+class AuthRequest(BaseModel):
+    secret: str
+
+
+@router.post("/auth")
+def admin_login(body: AuthRequest):
+    if not settings.admin_secret or body.secret != settings.admin_secret:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
+    return {"token": _make_token()}
+
+
+# ─── Platform Stats ───────────────────────────────────────────────────────────
+
+@router.get("/stats", dependencies=[Depends(_verify_token)])
+def platform_stats():
+    db = get_db()
+    tenants = db.table("tenants").select("id, active, plan, created_at").execute()
+    agents = db.table("agents").select("id, active").execute()
+    calls = db.table("calls").select("id, status, duration_sec, created_at").execute()
+
+    tenant_rows = tenants.data or []
+    agent_rows = agents.data or []
+    call_rows = calls.data or []
+
+    active_calls = [c for c in call_rows if c.get("status") in ("active", "connecting", "routing")]
+    today = time.strftime("%Y-%m-%d")
+    calls_today = [c for c in call_rows if (c.get("created_at") or "").startswith(today)]
+    total_duration = sum(c.get("duration_sec") or 0 for c in call_rows if c.get("status") == "completed")
+
+    plan_breakdown = {}
+    for t in tenant_rows:
+        plan = t.get("plan", "starter")
+        plan_breakdown[plan] = plan_breakdown.get(plan, 0) + 1
+
+    return {
+        "tenants": {
+            "total": len(tenant_rows),
+            "active": sum(1 for t in tenant_rows if t.get("active", True)),
+            "disabled": sum(1 for t in tenant_rows if not t.get("active", True)),
+            "by_plan": plan_breakdown,
+        },
+        "agents": {
+            "total": len(agent_rows),
+            "active": sum(1 for a in agent_rows if a.get("active", True)),
+        },
+        "calls": {
+            "total": len(call_rows),
+            "active_now": len(active_calls),
+            "today": len(calls_today),
+            "total_minutes": round(total_duration / 60, 1),
+        },
+    }
+
+
+# ─── Tenants ──────────────────────────────────────────────────────────────────
+
+@router.get("/tenants", dependencies=[Depends(_verify_token)])
+def list_tenants(
+    plan: Optional[str] = None,
+    active: Optional[bool] = None,
+    search: Optional[str] = None,
+):
+    db = get_db()
+    q = db.table("tenants").select("*")
+    if plan:
+        q = q.eq("plan", plan)
+    if active is not None:
+        q = q.eq("active", active)
+    rows = q.order("created_at", desc=True).execute().data or []
+
+    if search:
+        s = search.lower()
+        rows = [r for r in rows if s in (r.get("name") or "").lower() or s in (r.get("email") or "").lower()]
+
+    # Enrich with agent + call counts
+    tenant_ids = [r["id"] for r in rows]
+    agent_counts: dict = {}
+    call_counts: dict = {}
+
+    if tenant_ids:
+        agents = db.table("agents").select("tenant_id").in_("tenant_id", tenant_ids).execute().data or []
+        for a in agents:
+            tid = a["tenant_id"]
+            agent_counts[tid] = agent_counts.get(tid, 0) + 1
+
+        calls = db.table("calls").select("tenant_id").in_("tenant_id", tenant_ids).execute().data or []
+        for c in calls:
+            tid = c["tenant_id"]
+            call_counts[tid] = call_counts.get(tid, 0) + 1
+
+    for r in rows:
+        tid = r["id"]
+        r["agent_count"] = agent_counts.get(tid, 0)
+        r["call_count"] = call_counts.get(tid, 0)
+
+    return rows
+
+
+@router.get("/tenants/{tenant_id}", dependencies=[Depends(_verify_token)])
+def get_tenant(tenant_id: str):
+    db = get_db()
+    tenant = db.table("tenants").select("*").eq("id", tenant_id).maybe_single().execute()
+    if not tenant.data:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    agents = db.table("agents").select("*").eq("tenant_id", tenant_id).order("created_at", desc=True).execute().data or []
+    calls = db.table("calls").select("id, status, direction, duration_sec, phone, created_at").eq("tenant_id", tenant_id).order("created_at", desc=True).limit(20).execute().data or []
+    numbers = db.table("phone_numbers").select("*").eq("tenant_id", tenant_id).execute().data or []
+
+    return {
+        **tenant.data,
+        "agents": agents,
+        "recent_calls": calls,
+        "phone_numbers": numbers,
+    }
+
+
+class UpdateTenantBody(BaseModel):
+    plan: Optional[str] = None
+    active: Optional[bool] = None
+    name: Optional[str] = None
+
+
+@router.patch("/tenants/{tenant_id}", dependencies=[Depends(_verify_token)])
+def update_tenant(tenant_id: str, body: UpdateTenantBody):
+    db = get_db()
+    updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    result = db.table("tenants").update(updates).eq("id", tenant_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    return result.data[0]
+
+
+@router.delete("/tenants/{tenant_id}", dependencies=[Depends(_verify_token)])
+async def delete_tenant(tenant_id: str):
+    db = get_db()
+    # Delete Supabase auth user via admin API
+    auth_url = f"{settings.supabase_url}/auth/v1/admin/users/{tenant_id}"
+    async with httpx.AsyncClient() as client:
+        await client.delete(
+            auth_url,
+            headers={"apikey": settings.supabase_service_key, "Authorization": f"Bearer {settings.supabase_service_key}"},
+        )
+    # Cascade deletes agents, calls, etc. via FK ON DELETE CASCADE
+    db.table("tenants").delete().eq("id", tenant_id).execute()
+    return {"deleted": True}
+
+
+# ─── Agents (cross-tenant) ────────────────────────────────────────────────────
+
+@router.get("/agents", dependencies=[Depends(_verify_token)])
+def list_all_agents(tenant_id: Optional[str] = None, search: Optional[str] = None):
+    db = get_db()
+    q = db.table("agents").select("*, tenants(name, email)")
+    if tenant_id:
+        q = q.eq("tenant_id", tenant_id)
+    rows = q.order("created_at", desc=True).execute().data or []
+
+    if search:
+        s = search.lower()
+        rows = [r for r in rows if s in (r.get("name") or "").lower()]
+
+    return rows
+
+
+@router.patch("/agents/{agent_id}", dependencies=[Depends(_verify_token)])
+def admin_update_agent(agent_id: str, body: dict):
+    db = get_db()
+    allowed = {"name", "prompt", "greeting", "active", "llm_provider", "stt_provider", "tts_provider", "voice", "language"}
+    updates = {k: v for k, v in body.items() if k in allowed}
+    if not updates:
+        raise HTTPException(status_code=400, detail="No valid fields")
+    result = db.table("agents").update(updates).eq("id", agent_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    return result.data[0]
+
+
+@router.delete("/agents/{agent_id}", dependencies=[Depends(_verify_token)])
+def admin_delete_agent(agent_id: str):
+    db = get_db()
+    db.table("agents").delete().eq("id", agent_id).execute()
+    return {"deleted": True}
+
+
+# ─── Calls (cross-tenant) ─────────────────────────────────────────────────────
+
+@router.get("/calls", dependencies=[Depends(_verify_token)])
+def list_all_calls(
+    tenant_id: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 50,
+):
+    db = get_db()
+    q = db.table("calls").select("*, tenants(name), agents(name)")
+    if tenant_id:
+        q = q.eq("tenant_id", tenant_id)
+    if status:
+        q = q.eq("status", status)
+    rows = q.order("created_at", desc=True).limit(min(limit, 200)).execute().data or []
+    return rows
+
+
+# ─── Platform Config ──────────────────────────────────────────────────────────
+
+@router.get("/config", dependencies=[Depends(_verify_token)])
+def get_config():
+    db = get_db()
+    rows = db.table("platform_config").select("key, value, updated_at").execute().data or []
+    return {r["key"]: r["value"] for r in rows}
+
+
+@router.patch("/config", dependencies=[Depends(_verify_token)])
+def update_config(body: dict):
+    db = get_db()
+    for key, value in body.items():
+        db.table("platform_config").upsert(
+            {"key": key, "value": str(value), "updated_at": "now()"}
+        ).execute()
+    return {"updated": list(body.keys())}
+
+
+# ─── System Health ────────────────────────────────────────────────────────────
+
+@router.get("/health", dependencies=[Depends(_verify_token)])
+async def system_health():
+    services = [
+        {"name": "vani-api",         "url": "https://api.vani.live/health"},
+        {"name": "vani-orchestrator","url": "https://orchestrator.vani.live/health"},
+        {"name": "vani-engine",      "url": "https://engine.vani.live/health"},
+    ]
+    results = []
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        for svc in services:
+            try:
+                r = await client.get(svc["url"])
+                results.append({
+                    "name": svc["name"],
+                    "url": svc["url"],
+                    "status": "healthy" if r.status_code == 200 else "degraded",
+                    "latency_ms": round(r.elapsed.total_seconds() * 1000),
+                    "response": r.json() if r.status_code == 200 else None,
+                })
+            except Exception as e:
+                results.append({
+                    "name": svc["name"],
+                    "url": svc["url"],
+                    "status": "down",
+                    "latency_ms": None,
+                    "error": str(e),
+                })
+    return {"services": results, "checked_at": int(time.time())}
+
+
+# ─── Tenant Impersonation ─────────────────────────────────────────────────────
+
+@router.post("/tenants/{tenant_id}/impersonate", dependencies=[Depends(_verify_token)])
+async def impersonate_tenant(tenant_id: str):
+    """Generate a magic link for this tenant so admin can log in as them."""
+    db = get_db()
+    tenant = db.table("tenants").select("email").eq("id", tenant_id).maybe_single().execute()
+    if not tenant.data:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    email = tenant.data["email"]
+    auth_url = f"{settings.supabase_url}/auth/v1/admin/users/{tenant_id}/magic_link"
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            auth_url,
+            headers={
+                "apikey": settings.supabase_service_key,
+                "Authorization": f"Bearer {settings.supabase_service_key}",
+                "Content-Type": "application/json",
+            },
+            json={"email": email},
+        )
+
+    if r.status_code not in (200, 201):
+        raise HTTPException(status_code=500, detail="Failed to generate magic link")
+
+    data = r.json()
+    magic_url = data.get("action_link") or data.get("magic_link") or ""
+    return {"email": email, "magic_link": magic_url}
+
+
+# ─── Plans Management ─────────────────────────────────────────────────────────
+
+PLAN_DEFINITIONS = {
+    "starter": {
+        "name": "Starter",
+        "max_agents": 2,
+        "max_calls_per_month": 500,
+        "max_concurrent_calls": 2,
+        "features": ["basic_analytics", "kb_upload", "webhooks"],
+    },
+    "growth": {
+        "name": "Growth",
+        "max_agents": 10,
+        "max_calls_per_month": 5000,
+        "max_concurrent_calls": 10,
+        "features": ["basic_analytics", "advanced_analytics", "kb_upload", "webhooks", "campaigns", "api_access"],
+    },
+    "enterprise": {
+        "name": "Enterprise",
+        "max_agents": -1,
+        "max_calls_per_month": -1,
+        "max_concurrent_calls": -1,
+        "features": ["all"],
+    },
+}
+
+
+@router.get("/plans", dependencies=[Depends(_verify_token)])
+def get_plans():
+    db = get_db()
+    plan_counts: dict = {}
+    tenants = db.table("tenants").select("plan").execute().data or []
+    for t in tenants:
+        p = t.get("plan", "starter")
+        plan_counts[p] = plan_counts.get(p, 0) + 1
+    return [
+        {**v, "slug": k, "tenant_count": plan_counts.get(k, 0)}
+        for k, v in PLAN_DEFINITIONS.items()
+    ]

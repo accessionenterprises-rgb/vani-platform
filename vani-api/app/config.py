@@ -13,5 +13,15 @@ class Settings(BaseSettings):
     environment: str = "development"
     port: int = 8000
 
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_api_key: str = ""
+    twilio_api_secret: str = ""
+    twilio_twiml_app_sid: str = ""
+    twilio_caller_id: str = "+19209209967"
+
+    # Admin panel — set ADMIN_SECRET on Railway
+    admin_secret: str = "vani-admin-change-me"
+
 
 settings = Settings()
