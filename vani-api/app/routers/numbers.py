@@ -1,8 +1,8 @@
 """Phone number management — with Twilio search, buy, and sync."""
-import asyncio
-from functools import partial
 from typing import Optional
 from uuid import UUID
+
+import anyio
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -163,23 +163,22 @@ async def search_available_numbers(
     limit: int = Query(20, le=50),
     tenant_id: str = Depends(get_tenant_id),
 ):
-    client = _twilio_client()
-    loop = asyncio.get_event_loop()
-
-    def _search():
-        resource = getattr(
-            client.available_phone_numbers(country),
-            "toll_free" if number_type == "toll_free" else number_type,
-        )
-        kwargs: dict = {"limit": limit}
-        if area_code and number_type == "local":
-            kwargs["area_code"] = area_code
-        if contains:
-            kwargs["contains"] = contains
-        return resource.list(**kwargs)
-
     try:
-        numbers = await loop.run_in_executor(None, _search)
+        client = _twilio_client()
+
+        def _search():
+            resource = getattr(
+                client.available_phone_numbers(country),
+                "toll_free" if number_type == "toll_free" else number_type,
+            )
+            kwargs: dict = {"limit": limit}
+            if area_code and number_type == "local":
+                kwargs["area_code"] = area_code
+            if contains:
+                kwargs["contains"] = contains
+            return resource.list(**kwargs)
+
+        numbers = await anyio.to_thread.run_sync(_search)
         return [
             {
                 "phone_number": n.phone_number,
@@ -188,8 +187,8 @@ async def search_available_numbers(
                 "region": getattr(n, "region", "") or "",
                 "country": country,
                 "capabilities": {
-                    "voice": bool(getattr(n.capabilities, "voice", False) if hasattr(n, "capabilities") else False),
-                    "sms":   bool(getattr(n.capabilities, "sms",   False) if hasattr(n, "capabilities") else False),
+                    "voice": bool((n.capabilities or {}).get("voice", False)),
+                    "sms":   bool((n.capabilities or {}).get("sms",   False)),
                 },
             }
             for n in numbers
@@ -225,10 +224,9 @@ async def buy_twilio_number(
         raise HTTPException(status_code=409, detail="Number already registered")
 
     client = _twilio_client()
-    loop = asyncio.get_event_loop()
     try:
-        purchased = await loop.run_in_executor(
-            None, partial(client.incoming_phone_numbers.create, phone_number=body.phone_number)
+        purchased = await anyio.to_thread.run_sync(
+            lambda: client.incoming_phone_numbers.create(phone_number=body.phone_number)
         )
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Twilio purchase failed: {exc}")
@@ -261,11 +259,8 @@ async def sync_twilio_numbers(tenant_id: str = Depends(get_tenant_id)):
     existing_set = {r["number"] for r in (existing.data or [])}
 
     client = _twilio_client()
-    loop = asyncio.get_event_loop()
     try:
-        twilio_numbers = await loop.run_in_executor(
-            None, partial(client.incoming_phone_numbers.list)
-        )
+        twilio_numbers = await anyio.to_thread.run_sync(client.incoming_phone_numbers.list)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Twilio sync failed: {exc}")
 
