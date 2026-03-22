@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || '/api'
+const BASE = import.meta.env.VITE_API_URL || 'https://api.vani.live'
 
 function getToken() {
   return localStorage.getItem('vani_token')
@@ -152,4 +152,7 @@ export const api = {
   // Playground (text chat)
   playgroundChat:        (data)       => request('POST', '/playground/chat', data),
   playgroundClearSession:(session_id) => request('DELETE', `/playground/chat/${session_id}`),
+
+  // Dialer
+  getDialerToken: () => request('GET', '/dialer/token'),
 }
