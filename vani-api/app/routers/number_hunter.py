@@ -488,12 +488,12 @@ async def daily_scan(countries: Optional[list[str]] = None, tiers_filter: Option
                 logger.info("Scan starting: %s", country)
                 await scan_country(country, npas, tiers_filter=tiers_filter)
                 logger.info("Scan done: %s", country)
+                _scan_running[country] = False
             except Exception as exc:
                 logger.error("Scan error for %s: %s", country, exc)
-                # Store error so status endpoint can surface it to the UI
+                # Keep _scan_running as "error" (truthy) so status endpoint returns it
+                _scan_running[country] = "error"
                 _scan_progress[country] = {"searched": 0, "total": 0, "found": 0, "error": str(exc), "service": "twilio"}
-            finally:
-                _scan_running[country] = False
 
     await asyncio.gather(*[_run_one(c, npas) for c, npas in targets.items()])
 

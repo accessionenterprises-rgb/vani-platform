@@ -537,7 +537,7 @@ async def admin_hunter_scan(body: AdminScanRequest):
     unknown = [c for c in targets if c not in NANP_COUNTRIES]
     if unknown:
         raise HTTPException(status_code=400, detail=f"Unknown country codes: {unknown}")
-    already = [c for c in targets if _scan_running.get(c)]
+    already = [c for c in targets if _scan_running.get(c) is True]
     if already:
         raise HTTPException(status_code=409, detail=f"Already scanning: {already}")
 
