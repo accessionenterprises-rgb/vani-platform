@@ -154,7 +154,7 @@ async def delete_number(number_id: UUID, tenant_id: str = Depends(get_tenant_id)
 
 # ─── Twilio: Search available numbers ─────────────────────────────────────────
 
-@router.get("/twilio/available")
+@router.get("/available")
 async def search_available_numbers(
     country: str = Query("US"),
     area_code: str = Query(None),
@@ -201,7 +201,7 @@ async def search_available_numbers(
 
 # ─── Twilio: Buy a number ──────────────────────────────────────────────────────
 
-@router.post("/twilio/buy", response_model=PhoneNumberResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/buy", response_model=PhoneNumberResponse, status_code=status.HTTP_201_CREATED)
 async def buy_twilio_number(
     body: BuyTwilioNumberRequest,
     tenant_id: str = Depends(get_tenant_id),
@@ -248,7 +248,7 @@ async def buy_twilio_number(
 
 # ─── Twilio: Sync existing numbers ────────────────────────────────────────────
 
-@router.post("/twilio/sync")
+@router.post("/sync")
 async def sync_twilio_numbers(tenant_id: str = Depends(get_tenant_id)):
     db = get_db()
 
