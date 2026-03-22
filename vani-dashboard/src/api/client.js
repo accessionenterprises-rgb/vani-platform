@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || 'https://api.vani.live'
+const BASE = 'https://api.vani.live'
 
 function getToken() {
   return localStorage.getItem('vani_token')
