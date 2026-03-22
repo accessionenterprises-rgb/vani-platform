@@ -31,6 +31,15 @@ export function AuthProvider({ children }) {
     return me
   }
 
+  async function register(name, email, password) {
+    const data = await api.signup(email, password, name)
+    localStorage.setItem('vani_token', data.access_token)
+    localStorage.setItem('vani_tenant', data.tenant_id)
+    const me = await api.me()
+    setUser(me)
+    return me
+  }
+
   function logout() {
     localStorage.removeItem('vani_token')
     localStorage.removeItem('vani_tenant')
@@ -38,7 +47,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )
