@@ -1,4 +1,6 @@
 """Phone number management — with Twilio search, buy, and sync."""
+import asyncio
+from functools import partial
 from typing import Optional
 from uuid import UUID
 
@@ -162,7 +164,9 @@ async def search_available_numbers(
     tenant_id: str = Depends(get_tenant_id),
 ):
     client = _twilio_client()
-    try:
+    loop = asyncio.get_event_loop()
+
+    def _search():
         resource = getattr(
             client.available_phone_numbers(country),
             "toll_free" if number_type == "toll_free" else number_type,
@@ -172,8 +176,10 @@ async def search_available_numbers(
             kwargs["area_code"] = area_code
         if contains:
             kwargs["contains"] = contains
+        return resource.list(**kwargs)
 
-        numbers = resource.list(**kwargs)
+    try:
+        numbers = await loop.run_in_executor(None, _search)
         return [
             {
                 "phone_number": n.phone_number,
@@ -182,8 +188,8 @@ async def search_available_numbers(
                 "region": getattr(n, "region", "") or "",
                 "country": country,
                 "capabilities": {
-                    "voice": bool((getattr(n, "capabilities", None) or {}).get("voice")),
-                    "sms":   bool((getattr(n, "capabilities", None) or {}).get("SMS")),
+                    "voice": bool(getattr(n.capabilities, "voice", False) if hasattr(n, "capabilities") else False),
+                    "sms":   bool(getattr(n.capabilities, "sms",   False) if hasattr(n, "capabilities") else False),
                 },
             }
             for n in numbers
@@ -203,7 +209,6 @@ async def buy_twilio_number(
 ):
     db = get_db()
 
-    # Verify agent belongs to this tenant
     agent = (
         db.table("agents").select("id")
         .eq("id", body.agent_id).eq("tenant_id", tenant_id)
@@ -212,7 +217,6 @@ async def buy_twilio_number(
     if not agent.data:
         raise HTTPException(status_code=404, detail="Agent not found")
 
-    # Check not already in DB
     existing = (
         db.table("phone_numbers").select("id")
         .eq("number", body.phone_number).maybe_single().execute()
@@ -220,14 +224,15 @@ async def buy_twilio_number(
     if existing.data:
         raise HTTPException(status_code=409, detail="Number already registered")
 
-    # Purchase from Twilio
     client = _twilio_client()
+    loop = asyncio.get_event_loop()
     try:
-        purchased = client.incoming_phone_numbers.create(phone_number=body.phone_number)
+        purchased = await loop.run_in_executor(
+            None, partial(client.incoming_phone_numbers.create, phone_number=body.phone_number)
+        )
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Twilio purchase failed: {exc}")
 
-    # Save to DB
     result = (
         db.table("phone_numbers")
         .insert({
@@ -247,10 +252,6 @@ async def buy_twilio_number(
 
 @router.post("/twilio/sync")
 async def sync_twilio_numbers(tenant_id: str = Depends(get_tenant_id)):
-    """Pull numbers already provisioned on the Twilio account into Vani.
-    Numbers not yet in DB are imported as unassigned (agent_id = null).
-    Numbers already in DB are skipped.
-    """
     db = get_db()
 
     existing = (
@@ -260,8 +261,11 @@ async def sync_twilio_numbers(tenant_id: str = Depends(get_tenant_id)):
     existing_set = {r["number"] for r in (existing.data or [])}
 
     client = _twilio_client()
+    loop = asyncio.get_event_loop()
     try:
-        twilio_numbers = client.incoming_phone_numbers.list()
+        twilio_numbers = await loop.run_in_executor(
+            None, partial(client.incoming_phone_numbers.list)
+        )
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Twilio sync failed: {exc}")
 
