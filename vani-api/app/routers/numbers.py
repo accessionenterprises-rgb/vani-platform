@@ -25,7 +25,7 @@ class AddNumberRequest(BaseModel):
 
 class BuyTwilioNumberRequest(BaseModel):
     phone_number: str
-    agent_id: str
+    agent_id: Optional[str] = None
 
 
 class PhoneNumberResponse(BaseModel):
@@ -208,13 +208,14 @@ async def buy_twilio_number(
 ):
     db = get_db()
 
-    agent = (
-        db.table("agents").select("id")
-        .eq("id", body.agent_id).eq("tenant_id", tenant_id)
-        .maybe_single().execute()
-    )
-    if not agent.data:
-        raise HTTPException(status_code=404, detail="Agent not found")
+    if body.agent_id:
+        agent = (
+            db.table("agents").select("id")
+            .eq("id", body.agent_id).eq("tenant_id", tenant_id)
+            .maybe_single().execute()
+        )
+        if not agent.data:
+            raise HTTPException(status_code=404, detail="Agent not found")
 
     existing = (
         db.table("phone_numbers").select("id")
