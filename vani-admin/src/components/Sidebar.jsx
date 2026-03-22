@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../context/AdminAuthContext'
+import { useMemo } from 'react'
 
 const NAV = [
   {
@@ -22,12 +23,13 @@ const NAV = [
       { label: 'Platform Config', to: '/config', icon: <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> },
       { label: 'System Health',   to: '/health', icon: <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> },
       { label: 'Plans',           to: '/plans',  icon: <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8}><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> },
+      { label: 'Admin Users',     to: '/admin-users', superadminOnly: true, icon: <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8}><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M18 8h4M20 6v4"/></svg> },
     ],
   },
 ]
 
 export default function Sidebar() {
-  const { logout } = useAdminAuth()
+  const { logout, adminUser } = useAdminAuth()
   const navigate = useNavigate()
 
   return (
@@ -54,7 +56,7 @@ export default function Sidebar() {
               </p>
             )}
             <div className="space-y-0.5">
-              {group.items.map(({ label, to, icon }) => (
+              {group.items.filter(item => !item.superadminOnly || adminUser?.role === 'superadmin').map(({ label, to, icon }) => (
                 <NavLink
                   key={to}
                   to={to}
@@ -76,7 +78,19 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-3 pb-5 space-y-0.5 border-t border-[#1a1d2e] pt-3">
+      <div className="px-3 pb-5 border-t border-[#1a1d2e] pt-3">
+        {adminUser && (
+          <div className="flex items-center gap-2.5 px-3 py-2 mb-1">
+            <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
+              <span className="text-xs font-semibold text-indigo-400">{adminUser.name?.[0]?.toUpperCase() || 'A'}</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-slate-300 truncate">{adminUser.name}</p>
+              <p className="text-[10px] text-slate-600 capitalize">{adminUser.role}</p>
+            </div>
+          </div>
+        )}
+        <div className="space-y-0.5">
         <a
           href="https://dashboard.vani.live"
           target="_blank"
@@ -99,6 +113,7 @@ export default function Sidebar() {
           </svg>
           Sign out
         </button>
+        </div>
       </div>
     </aside>
   )

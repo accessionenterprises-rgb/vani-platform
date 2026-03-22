@@ -5,7 +5,8 @@ import { useAdminAuth } from '../context/AdminAuthContext'
 export default function LoginPage() {
   const { login } = useAdminAuth()
   const navigate = useNavigate()
-  const [secret, setSecret] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -14,10 +15,10 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      await login(secret)
+      await login(email, password)
       navigate('/')
     } catch (err) {
-      setError(err.message || 'Invalid secret')
+      setError(err.message || 'Invalid email or password')
     } finally {
       setLoading(false)
     }
@@ -40,18 +41,29 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-[#0d0f1a] rounded-2xl border border-[#1a1d2e] p-8">
-          <h1 className="text-lg font-semibold text-white mb-1">Admin access</h1>
-          <p className="text-sm text-slate-500 mb-6">Enter your admin secret to continue.</p>
+          <h1 className="text-lg font-semibold text-white mb-1">Admin sign in</h1>
+          <p className="text-sm text-slate-500 mb-6">Sign in to your admin account.</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">Admin secret</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Email</label>
+              <input
+                type="email"
+                required
+                autoFocus
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full bg-[#080a12] border border-[#1a1d2e] hover:border-[#2a2d3e] focus:border-indigo-500 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-colors"
+                placeholder="admin@vani.live"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Password</label>
               <input
                 type="password"
                 required
-                autoFocus
-                value={secret}
-                onChange={e => setSecret(e.target.value)}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 className="w-full bg-[#080a12] border border-[#1a1d2e] hover:border-[#2a2d3e] focus:border-indigo-500 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition-colors"
                 placeholder="••••••••••••"
               />
@@ -68,7 +80,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
             >
-              {loading ? 'Verifying…' : 'Access admin panel'}
+              {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
         </div>

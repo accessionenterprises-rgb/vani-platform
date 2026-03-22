@@ -13,20 +13,9 @@ export default function WebhooksPage() {
   const [createdSecret, setCreatedSecret] = useState(null)
 
   useEffect(() => {
-    api.listWebhooks?.() ?? fetch('/api/webhooks', { headers: { Authorization: `Bearer ${localStorage.getItem('vani_token')}` } })
-      .then(r => r.json()).then(setHooks).catch(console.error).finally(() => setLoading(false))
+    api.listWebhooks().then(data => setHooks(Array.isArray(data) ? data : []))
+      .catch(console.error).finally(() => setLoading(false))
   }, [])
-
-  // Use raw fetch since api client may not have webhooks yet
-  async function loadHooks() {
-    const r = await fetch('/api/webhooks', {
-      headers: { Authorization: `Bearer ${localStorage.getItem('vani_token')}` }
-    })
-    const data = await r.json()
-    setHooks(Array.isArray(data) ? data : [])
-  }
-
-  useEffect(() => { loadHooks().finally(() => setLoading(false)) }, [])
 
   async function handleAdd(e) {
     e.preventDefault()
@@ -37,19 +26,7 @@ export default function WebhooksPage() {
     setError('')
     setSaving(true)
     try {
-      const r = await fetch('/api/webhooks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('vani_token')}`,
-        },
-        body: JSON.stringify({ url: form.url, events: form.events }),
-      })
-      if (!r.ok) {
-        const d = await r.json()
-        throw new Error(d.detail || 'Create failed')
-      }
-      const created = await r.json()
+      const created = await api.createWebhook({ url: form.url, events: form.events })
       setCreatedSecret(created.secret)
       setHooks(h => [{ ...created, secret: null }, ...h])
       setAdding(false)
@@ -63,23 +40,13 @@ export default function WebhooksPage() {
 
   async function handleDelete(id) {
     if (!confirm('Delete this webhook?')) return
-    await fetch(`/api/webhooks/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${localStorage.getItem('vani_token')}` },
-    })
+    await api.deleteWebhook(id).catch(console.error)
     setHooks(h => h.filter(x => x.id !== id))
   }
 
   async function handleToggle(id, active) {
-    const r = await fetch(`/api/webhooks/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('vani_token')}`,
-      },
-      body: JSON.stringify({ active: !active }),
-    })
-    if (r.ok) setHooks(h => h.map(x => x.id === id ? { ...x, active: !active } : x))
+    await api.updateWebhook(id, { active: !active }).catch(console.error)
+    setHooks(h => h.map(x => x.id === id ? { ...x, active: !active } : x))
   }
 
   function toggleEvent(ev) {

@@ -53,6 +53,24 @@ export const api = {
   // KB
   listKb:      (agentId)          => request('GET', `/agents/${agentId}/kb`),
   deleteKbDoc: (agentId, docId)   => request('DELETE', `/agents/${agentId}/kb/${docId}`),
+  uploadKb: (agentId, file) => {
+    const headers = {}
+    const token = getToken()
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    const fd = new FormData()
+    fd.append('file', file)
+    return fetch(`${BASE}/agents/${agentId}/kb`, { method: 'POST', headers, body: fd })
+      .then(async res => {
+        if (res.status === 401) { localStorage.removeItem('vani_token'); window.location.href = '/login'; return }
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }))
+          const detail = err.detail
+          const msg = Array.isArray(detail) ? detail.map(d => d.msg || JSON.stringify(d)).join(', ') : (typeof detail === 'string' ? detail : null)
+          throw new Error(msg || `HTTP ${res.status}`)
+        }
+        return res.json()
+      })
+  },
 
   // Tools (function calling)
   listTools:   (agentId)         => request('GET', `/agents/${agentId}/tools`),

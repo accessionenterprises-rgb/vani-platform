@@ -35,8 +35,16 @@ async function request(method, path, body) {
 }
 
 export const adminApi = {
-  login:   (secret) => request('POST', '/admin/auth', { secret }),
-  stats:   ()       => request('GET', '/admin/stats'),
+  login:     (email, password) => request('POST', '/admin/auth', { email, password }),
+  me:        ()                => request('GET', '/admin/auth/me'),
+  stats:     ()                => request('GET', '/admin/stats'),
+
+  // Admin user management (superadmin only)
+  listAdmins:   ()             => request('GET', '/admin/admins'),
+  createAdmin:  (data)         => request('POST', '/admin/admins', data),
+  updateAdmin:  (id, data)     => request('PATCH', `/admin/admins/${id}`, data),
+  deleteAdmin:  (id)           => request('DELETE', `/admin/admins/${id}`),
+  bootstrap:    (data)         => request('POST', '/admin/bootstrap', data),
 
   // Tenants
   listTenants:  (params = {}) => {

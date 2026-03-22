@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 
@@ -168,6 +168,8 @@ export default function AgentFormPage() {
             )}
           </div>
         )}
+
+        {!isNew && <KBSection agentId={id} />}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic */}
@@ -361,6 +363,115 @@ export default function AgentFormPage() {
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+function KBSection({ agentId }) {
+  const [docs, setDocs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const [dragOver, setDragOver] = useState(false)
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    api.listKb(agentId).then(setDocs).catch(console.error).finally(() => setLoading(false))
+  }, [agentId])
+
+  async function upload(file) {
+    if (!file) return
+    const allowed = ['.txt', '.pdf', '.md', '.csv']
+    const ext = '.' + file.name.split('.').pop().toLowerCase()
+    if (!allowed.includes(ext)) { setError(`Unsupported type. Use: ${allowed.join(', ')}`); return }
+    if (file.size > 5 * 1024 * 1024) { setError('File too large (max 5 MB)'); return }
+    setError('')
+    setUploading(true)
+    try {
+      const doc = await api.uploadKb(agentId, file)
+      setDocs(d => [doc, ...d])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  async function remove(docId) {
+    if (!confirm('Remove this document?')) return
+    await api.deleteKbDoc(agentId, docId).catch(console.error)
+    setDocs(d => d.filter(x => x.id !== docId))
+  }
+
+  function onDrop(e) {
+    e.preventDefault()
+    setDragOver(false)
+    const file = e.dataTransfer.files[0]
+    if (file) upload(file)
+  }
+
+  return (
+    <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-6 mb-6">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-sm font-semibold text-white">Knowledge Base</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Documents the agent can reference during calls. Supports txt, pdf, md, csv (max 5 MB each).</p>
+        </div>
+        <button type="button" onClick={() => inputRef.current?.click()}
+          className="flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload
+        </button>
+        <input ref={inputRef} type="file" accept=".txt,.pdf,.md,.csv" className="hidden"
+          onChange={e => { upload(e.target.files[0]); e.target.value = '' }} />
+      </div>
+
+      {/* Drop zone */}
+      <div
+        onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        onClick={() => inputRef.current?.click()}
+        className={`border-2 border-dashed rounded-lg px-4 py-6 text-center cursor-pointer transition-colors mb-4 ${
+          dragOver ? 'border-indigo-500 bg-indigo-500/5' : 'border-[#2a2d3a] hover:border-slate-500'
+        }`}
+      >
+        {uploading ? (
+          <div className="flex items-center justify-center gap-2 text-slate-400 text-xs">
+            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            Uploading…
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500">Drop a file here or <span className="text-indigo-400">browse</span></p>
+        )}
+      </div>
+
+      {error && <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 mb-3">{error}</p>}
+
+      {loading ? (
+        <p className="text-xs text-slate-600 text-center py-4">Loading…</p>
+      ) : docs.length === 0 ? (
+        <p className="text-xs text-slate-600 text-center py-4">No documents yet. Upload one above.</p>
+      ) : (
+        <div className="space-y-2">
+          {docs.map(doc => (
+            <div key={doc.id} className="flex items-start gap-3 bg-[#0d0f18] rounded-lg border border-[#1f2235] px-4 py-3">
+              <svg className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-slate-300 truncate">{doc.filename}</p>
+                <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-2">{doc.content_preview}</p>
+                <p className="text-[10px] text-slate-700 mt-1">{new Date(doc.created_at).toLocaleDateString()}</p>
+              </div>
+              <button type="button" onClick={() => remove(doc.id)}
+                className="text-xs text-red-400/60 hover:text-red-400 shrink-0 px-2 py-1 rounded hover:bg-red-500/10 transition-colors">
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

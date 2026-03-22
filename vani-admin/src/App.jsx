@@ -10,6 +10,7 @@ import CallsPage          from './pages/CallsPage'
 import PlatformConfigPage from './pages/PlatformConfigPage'
 import SystemHealthPage   from './pages/SystemHealthPage'
 import PlansPage          from './pages/PlansPage'
+import AdminUsersPage    from './pages/AdminUsersPage'
 
 function RequireAuth({ children }) {
   const { token } = useAdminAuth()
@@ -31,6 +32,7 @@ function AdminShell() {
           <Route path="/config"        element={<PlatformConfigPage />} />
           <Route path="/health"        element={<SystemHealthPage />} />
           <Route path="/plans"         element={<PlansPage />} />
+          <Route path="/admin-users"   element={<AdminUsersPage />} />
           <Route path="*"              element={<Navigate to="/" replace />} />
         </Routes>
       </main>

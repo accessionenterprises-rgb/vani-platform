@@ -16,7 +16,7 @@ RUN uv pip install --system \
     "supabase>=2.9" "pydantic>=2.9" "pydantic-settings>=2.5" \
     "python-multipart>=0.0.12" "pypdf>=4.3" \
     "python-dotenv" "structlog>=24.4" "httpx>=0.27" \
-    "python-jose[cryptography]"
+    "python-jose[cryptography]" "bcrypt>=4.0"
 
 EXPOSE 8000
 
