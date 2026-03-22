@@ -447,6 +447,24 @@ function KBSection({ agentId }) {
     api.listKb(agentId).then(setDocs).catch(console.error).finally(() => setLoading(false))
   }, [agentId])
 
+  async function scrapeUrl(e) {
+    e.preventDefault()
+    if (!urlInput.trim()) return
+    setError('')
+    setScrapingUrl(true)
+    try {
+      const doc = await api.addKbUrl(agentId, urlInput.trim(), urlTitle.trim())
+      setDocs(d => [doc, ...d])
+      setUrlInput('')
+      setUrlTitle('')
+      setShowUrlForm(false)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setScrapingUrl(false)
+    }
+  }
+
   async function upload(file) {
     if (!file) return
     const allowed = ['.txt', '.pdf', '.md', '.csv']
@@ -485,14 +503,50 @@ function KBSection({ agentId }) {
           <h2 className="text-sm font-semibold text-white">Knowledge Base</h2>
           <p className="text-xs text-slate-500 mt-0.5">Documents the agent can reference during calls. Supports txt, pdf, md, csv (max 5 MB each).</p>
         </div>
-        <button type="button" onClick={() => inputRef.current?.click()}
-          className="flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors">
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Upload
-        </button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setShowUrlForm(v => !v)}
+            className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 bg-white/5 hover:bg-white/10 border border-[#2a2d3a] px-3 py-1.5 rounded-lg transition-colors">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Add URL
+          </button>
+          <button type="button" onClick={() => inputRef.current?.click()}
+            className="flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/15 border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload
+          </button>
+        </div>
         <input ref={inputRef} type="file" accept=".txt,.pdf,.md,.csv" className="hidden"
           onChange={e => { upload(e.target.files[0]); e.target.value = '' }} />
       </div>
+
+      {/* URL scrape form */}
+      {showUrlForm && (
+        <form onSubmit={scrapeUrl} className="mb-4 bg-[#0d0f18] rounded-lg border border-[#2a2d3a] p-3 space-y-2">
+          <p className="text-xs text-slate-400 font-medium">Scrape a web page</p>
+          <input
+            value={urlInput}
+            onChange={e => setUrlInput(e.target.value)}
+            placeholder="https://example.com/faq"
+            className="w-full bg-[#12141f] border border-[#2a2d3a] rounded px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+          />
+          <input
+            value={urlTitle}
+            onChange={e => setUrlTitle(e.target.value)}
+            placeholder="Title (optional)"
+            className="w-full bg-[#12141f] border border-[#2a2d3a] rounded px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+          />
+          <div className="flex gap-2">
+            <button type="submit" disabled={!urlInput.trim() || scrapingUrl}
+              className="flex items-center gap-1.5 text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-lg disabled:opacity-50 transition-colors">
+              {scrapingUrl ? (
+                <><div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />Scraping…</>
+              ) : 'Scrape & Add'}
+            </button>
+            <button type="button" onClick={() => setShowUrlForm(false)}
+              className="text-xs text-slate-500 hover:text-slate-300 px-3 py-1.5 transition-colors">Cancel</button>
+          </div>
+        </form>
+      )}
 
       {/* Drop zone */}
       <div

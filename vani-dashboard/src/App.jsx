@@ -1,8 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Sidebar from './components/Sidebar'
-import LoginPage       from './pages/LoginPage'
-import DashboardPage   from './pages/DashboardPage'
+import LoginPage          from './pages/LoginPage'
+import DashboardPage      from './pages/DashboardPage'
+import IntegrationsPage   from './pages/IntegrationsPage'
+import ChannelsPage       from './pages/ChannelsPage'
+import FlowBuilderPage    from './pages/FlowBuilderPage'
 import AgentsPage      from './pages/AgentsPage'
 import AgentFormPage   from './pages/AgentFormPage'
 import CallsPage       from './pages/CallsPage'
@@ -38,6 +41,9 @@ function AppShell() {
           <Route path="/templates"     element={<TemplatesPage />} />
           <Route path="/settings"      element={<SettingsPage />} />
           <Route path="/dialer"        element={<DialerPage />} />
+          <Route path="/integrations"  element={<IntegrationsPage />} />
+          <Route path="/channels"      element={<ChannelsPage />} />
+          <Route path="/flow-builder"  element={<FlowBuilderPage />} />
           <Route path="*"              element={<Navigate to="/" replace />} />
         </Routes>
       </main>

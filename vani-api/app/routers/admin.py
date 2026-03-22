@@ -520,30 +520,35 @@ def admin_hunter_status():
 
 
 class AdminScanRequest(BaseModel):
-    country: str
+    country: Optional[str] = None           # single country (legacy)
+    countries: Optional[list] = None        # multiple countries (new)
 
 
 @router.post("/hunter/scan", dependencies=[Depends(_verify_token)])
 async def admin_hunter_scan(body: AdminScanRequest):
     import asyncio
-    from app.routers.number_hunter import _scan_running, _scan_progress, scan_country, NANP_COUNTRIES, build_patterns
-    country = body.country.upper()
-    if country not in NANP_COUNTRIES:
-        raise HTTPException(status_code=400, detail=f"Unknown country '{country}'")
-    if _scan_running.get(country):
-        raise HTTPException(status_code=409, detail=f"Scan already running for {country}")
+    from app.routers.number_hunter import _scan_running, daily_scan, NANP_COUNTRIES, build_patterns
 
-    npas = NANP_COUNTRIES[country]
+    # Resolve country list — support both single `country` and list `countries`
+    raw = body.countries or ([body.country] if body.country else None)
+    if not raw:
+        raise HTTPException(status_code=400, detail="Provide 'country' or 'countries'")
+    targets = [c.upper() for c in raw]
+    unknown = [c for c in targets if c not in NANP_COUNTRIES]
+    if unknown:
+        raise HTTPException(status_code=400, detail=f"Unknown country codes: {unknown}")
+    already = [c for c in targets if _scan_running.get(c)]
+    if already:
+        raise HTTPException(status_code=409, detail=f"Already scanning: {already}")
 
-    async def run():
-        _scan_running[country] = True
-        try:
-            await scan_country(country, npas)
-        finally:
-            _scan_running[country] = False
-
-    asyncio.create_task(run())
-    return {"started": True, "country": country, "patterns": len(build_patterns(npas))}
+    total_patterns = sum(len(build_patterns(NANP_COUNTRIES[c])) for c in targets)
+    asyncio.create_task(daily_scan(countries=targets))
+    return {
+        "started": True,
+        "countries": targets,
+        "patterns": total_patterns,
+        "parallel": len(targets) > 1,
+    }
 
 
 @router.post("/hunter/scan-all", dependencies=[Depends(_verify_token)])
@@ -553,7 +558,7 @@ async def admin_hunter_scan_all():
     if any(_scan_running.values()):
         raise HTTPException(status_code=409, detail="A scan is already running")
     asyncio.create_task(daily_scan())
-    return {"started": True, "message": "Full NANP scan queued (all 15 countries)"}
+    return {"started": True, "message": "All 15 countries queued in parallel (up to 4 at once)"}
 
 
 # ── Scan Schedules ────────────────────────────────────────────────────────────

@@ -96,7 +96,10 @@ export const adminApi = {
     return request('GET', `/admin/hunter/scans${qs}`)
   },
   hunterStatus:   ()        => request('GET',  '/admin/hunter/status'),
-  hunterScan:     (country) => request('POST', '/admin/hunter/scan',     { country }),
+  hunterScan:     (countries) => {
+    const list = Array.isArray(countries) ? countries : [countries]
+    return request('POST', '/admin/hunter/scan', { countries: list })
+  },
   hunterScanAll:  ()        => request('POST', '/admin/hunter/scan-all'),
   hunterPurchase: (number)  => request('POST', '/admin/hunter/purchase', { number }),
 

@@ -2,17 +2,20 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const NAV = [
-  { to: '/',           label: 'Dashboard',  icon: GridIcon },
-  { to: '/agents',     label: 'Agents',     icon: BotIcon },
-  { to: '/calls',      label: 'Calls',      icon: PhoneIcon },
-  { to: '/dialer',     label: 'Dialer',     icon: DialerIcon },
-  { to: '/campaigns',  label: 'Campaigns',  icon: MegaphoneIcon },
-  { to: '/analytics',  label: 'Analytics',  icon: ChartIcon },
-  { to: '/playground', label: 'Playground', icon: BeakerIcon },
-  { to: '/numbers',        label: 'Numbers',    icon: HashIcon },
-  { to: '/webhooks',       label: 'Webhooks',   icon: WebhookIcon },
-  { to: '/templates',  label: 'Templates',  icon: TemplateIcon },
-  { to: '/settings',   label: 'Settings',   icon: SettingsIcon },
+  { to: '/',             label: 'Dashboard',     icon: GridIcon },
+  { to: '/agents',       label: 'Agents',        icon: BotIcon },
+  { to: '/calls',        label: 'Calls',         icon: PhoneIcon },
+  { to: '/dialer',       label: 'Dialer',        icon: DialerIcon },
+  { to: '/campaigns',    label: 'Campaigns',     icon: MegaphoneIcon },
+  { to: '/analytics',    label: 'Analytics',     icon: ChartIcon },
+  { to: '/playground',   label: 'Playground',    icon: BeakerIcon },
+  { to: '/flow-builder', label: 'Flow Builder',  icon: FlowIcon },
+  { to: '/channels',     label: 'Channels',      icon: ChannelsIcon },
+  { to: '/integrations', label: 'Integrations',  icon: IntegrationIcon },
+  { to: '/numbers',      label: 'Numbers',       icon: HashIcon },
+  { to: '/webhooks',     label: 'Webhooks',      icon: WebhookIcon },
+  { to: '/templates',    label: 'Templates',     icon: TemplateIcon },
+  { to: '/settings',     label: 'Settings',      icon: SettingsIcon },
 ]
 
 export default function Sidebar() {
@@ -182,6 +185,35 @@ function RadarIcon({ className }) {
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="12" cy="12" r="2"/>
       <path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/>
+    </svg>
+  )
+}
+function FlowIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="2" y="3" width="6" height="4" rx="1"/>
+      <rect x="16" y="10" width="6" height="4" rx="1"/>
+      <rect x="2" y="17" width="6" height="4" rx="1"/>
+      <path d="M8 5h4a2 2 0 0 1 2 2v6"/>
+      <path d="M8 19h4a2 2 0 0 0 2-2v-5"/>
+    </svg>
+  )
+}
+function ChannelsIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12"/>
+      <path d="M2 8.08V5a2 2 0 0 1 2-2h3"/>
+      <rect x="8" y="2" width="8" height="6" rx="1"/>
+      <path d="M16 8v8a2 2 0 0 1-2 2H8"/>
+    </svg>
+  )
+}
+function IntegrationIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
     </svg>
   )
 }

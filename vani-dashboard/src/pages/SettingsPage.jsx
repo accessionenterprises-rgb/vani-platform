@@ -4,6 +4,108 @@ import { useAuth } from '../context/AuthContext'
 
 const PLAN_LIMITS = { starter: 5, growth: 20, enterprise: 100 }
 
+// ── Team Management ─────────────────────────────────────────────────────────
+function TeamSection() {
+  const [members, setMembers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [inviteEmail, setInviteEmail]   = useState('')
+  const [inviteName, setInviteName]     = useState('')
+  const [inviteRole, setInviteRole]     = useState('member')
+  const [inviting, setInviting]         = useState(false)
+  const [inviteError, setInviteError]   = useState('')
+
+  useEffect(() => {
+    api.listTeam().then(setMembers).catch(console.error).finally(() => setLoading(false))
+  }, [])
+
+  async function handleInvite(e) {
+    e.preventDefault()
+    if (!inviteEmail.trim() || !inviteName.trim()) return
+    setInviteError('')
+    setInviting(true)
+    try {
+      const m = await api.inviteMember({ email: inviteEmail.trim(), name: inviteName.trim(), role: inviteRole })
+      setMembers(ms => [...ms, m])
+      setInviteEmail('')
+      setInviteName('')
+    } catch (err) { setInviteError(err.message) }
+    finally { setInviting(false) }
+  }
+
+  async function handleRoleChange(id, role) {
+    await api.updateMember(id, role)
+    setMembers(ms => ms.map(m => m.id === id ? { ...m, role } : m))
+  }
+
+  async function handleRemove(id) {
+    if (!confirm('Remove this team member?')) return
+    await api.removeMember(id)
+    setMembers(ms => ms.filter(m => m.id !== id))
+  }
+
+  const ROLE_COLORS = { admin: 'text-indigo-400 bg-indigo-500/10', member: 'text-emerald-400 bg-emerald-500/10', viewer: 'text-slate-400 bg-slate-500/10' }
+
+  return (
+    <Section title="Team" className="mt-5">
+      <p className="text-xs text-slate-500 mb-4">
+        Invite teammates to collaborate in this workspace. Admins can edit agents and settings. Members can run calls. Viewers can only view data.
+      </p>
+
+      <form onSubmit={handleInvite} className="grid grid-cols-5 gap-2 mb-5">
+        <input value={inviteName} onChange={e => setInviteName(e.target.value)} placeholder="Full name"
+          className="col-span-2 bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+        <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="Email address"
+          className="col-span-2 bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+        <select value={inviteRole} onChange={e => setInviteRole(e.target.value)}
+          className="bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-2 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+          <option value="admin">Admin</option>
+          <option value="member">Member</option>
+          <option value="viewer">Viewer</option>
+        </select>
+        <button type="submit" disabled={inviting || !inviteEmail.trim() || !inviteName.trim()}
+          className="col-span-5 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors">
+          {inviting ? 'Inviting…' : 'Invite Member'}
+        </button>
+      </form>
+
+      {inviteError && <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2 mb-4">{inviteError}</p>}
+
+      {loading ? (
+        <div className="text-center py-4 text-xs text-slate-600">Loading…</div>
+      ) : members.length === 0 ? (
+        <div className="text-center py-4 text-xs text-slate-600">No team members yet. Invite someone above.</div>
+      ) : (
+        <div className="divide-y divide-[#1f2235] border border-[#1f2235] rounded-lg overflow-hidden">
+          {members.map(m => (
+            <div key={m.id} className="flex items-center gap-3 px-4 py-3 bg-[#0d0f18]">
+              <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-semibold text-indigo-400 shrink-0">
+                {m.name[0]?.toUpperCase() || '?'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-slate-200">{m.name}</p>
+                <p className="text-[11px] text-slate-600">{m.email}</p>
+              </div>
+              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                m.status === 'invited' ? 'text-amber-400 bg-amber-500/10' : 'text-emerald-400 bg-emerald-500/10'
+              }`}>
+                {m.status}
+              </span>
+              <select value={m.role} onChange={e => handleRoleChange(m.id, e.target.value)}
+                className={`text-xs px-2 py-0.5 rounded font-medium bg-transparent border-0 focus:outline-none cursor-pointer ${ROLE_COLORS[m.role] || 'text-slate-400'}`}>
+                <option value="admin">admin</option>
+                <option value="member">member</option>
+                <option value="viewer">viewer</option>
+              </select>
+              <button onClick={() => handleRemove(m.id)}
+                className="text-xs text-red-400/70 hover:text-red-400 transition-colors ml-1">Remove</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
+  )
+}
+
 export default function SettingsPage() {
   const { user } = useAuth()
   const [keys, setKeys] = useState([])
@@ -158,6 +260,9 @@ export default function SettingsPage() {
             </div>
           )}
         </Section>
+
+        {/* Team Management */}
+        <TeamSection />
 
         {/* Telephony endpoints */}
         <Section title="Telephony Endpoints" className="mt-5">

@@ -1,6 +1,21 @@
 import { useEffect, useState, useCallback } from 'react'
 import { api } from '../api/client'
 
+// Persist pinned widgets to localStorage
+const STORAGE_KEY = 'vani_pinned_widgets'
+const ALL_WIDGETS = [
+  { id: 'total_calls',   label: 'Total Calls' },
+  { id: 'success_rate',  label: 'Success Rate' },
+  { id: 'avg_duration',  label: 'Avg Duration' },
+  { id: 'active_now',    label: 'Active Now' },
+  { id: 'call_volume',   label: 'Call Volume Chart' },
+  { id: 'sentiment',     label: 'Sentiment' },
+  { id: 'providers',     label: 'Provider Performance' },
+  { id: 'agents',        label: 'Agent Performance' },
+  { id: 'intents',       label: 'Intent Distribution' },
+]
+const DEFAULT_PINNED = ALL_WIDGETS.map(w => w.id)
+
 const PERIODS = [
   { label: '7 days', value: 7 },
   { label: '14 days', value: 14 },
@@ -18,6 +33,20 @@ export default function AnalyticsPage() {
   const [loading, setLoading]         = useState(true)
   const [lastUpdated, setLastUpdated] = useState(null)
   const [refreshing, setRefreshing]   = useState(false)
+  const [pinned, setPinned]           = useState(() => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_PINNED }
+    catch { return DEFAULT_PINNED }
+  })
+  const [customizing, setCustomizing] = useState(false)
+
+  function togglePin(id) {
+    setPinned(prev => {
+      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+      return next
+    })
+  }
+  const show = id => pinned.includes(id)
 
   const fetchData = useCallback(async (isAuto = false) => {
     if (!isAuto) setLoading(true); else setRefreshing(true)
@@ -66,6 +95,15 @@ export default function AnalyticsPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <button onClick={() => setCustomizing(v => !v)}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                customizing ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' : 'text-slate-500 hover:text-slate-300 bg-[#12141f] border-[#1f2235]'
+              }`}>
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+              {customizing ? 'Done' : 'Customize'}
+            </button>
             <button onClick={() => fetchData()} disabled={refreshing}
               className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 bg-[#12141f] border border-[#1f2235] px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
               <svg className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -88,6 +126,25 @@ export default function AnalyticsPage() {
           </div>
           </div>
         </div>
+
+        {/* Widget picker */}
+        {customizing && (
+          <div className="mb-5 bg-[#12141f] rounded-xl border border-indigo-500/20 p-4">
+            <p className="text-xs font-medium text-slate-300 mb-3">Toggle widgets to show/hide them:</p>
+            <div className="flex flex-wrap gap-2">
+              {ALL_WIDGETS.map(w => (
+                <button key={w.id} onClick={() => togglePin(w.id)}
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+                    pinned.includes(w.id)
+                      ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30'
+                      : 'text-slate-500 border-[#2a2d3a] hover:text-slate-300'
+                  }`}>
+                  {pinned.includes(w.id) ? '✓ ' : ''}{w.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* KPI Cards */}
         {overview && (

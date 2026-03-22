@@ -105,9 +105,10 @@ export default function NumberHunterPage() {
   const [country, setCountry]         = useState('')
   const [tierFilter, setTierFilter]   = useState('')
   const [scoreFilter, setScoreFilter] = useState('')   // '', '8', '6', 'unscored'
-  const [scanning, setScanning]       = useState(false)
-  const [scanCountry, setScanCountry] = useState('US')
-  const [purchasing, setPurchasing]   = useState(null)
+  const [scanning, setScanning]         = useState(false)
+  const [scanCountries, setScanCountries] = useState(['US'])  // multi-select
+  const [countryPickerOpen, setCountryPickerOpen] = useState(false)
+  const [purchasing, setPurchasing]     = useState(null)
   const [toast, setToast]             = useState(null)
   const [scanMsg, setScanMsg]         = useState(null)   // {type:'info'|'ok'|'err', text}
   const [schedules, setSchedules]     = useState([])
@@ -117,6 +118,16 @@ export default function NumberHunterPage() {
   const [schedSaving, setSchedSaving] = useState(false)
   const pollRef  = useRef(null)
   const scanStart = useRef(null)
+  const pickerRef = useRef(null)
+
+  // Close country picker on outside click
+  useEffect(() => {
+    function handler(e) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) setCountryPickerOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   function showToast(msg, type = 'ok') {
     setToast({ msg, type })
@@ -255,11 +266,16 @@ export default function NumberHunterPage() {
   }, [scanning])
 
   async function handleScan() {
+    if (!scanCountries.length) return
+    setCountryPickerOpen(false)
     setScanMsg(null)
     setScanning(true)
     try {
-      const r = await adminApi.hunterScan(scanCountry)
-      setScanMsg({ type: 'info', text: `Scanning ${r.country} — ${r.patterns?.toLocaleString() || 0} patterns` })
+      const r = await adminApi.hunterScan(scanCountries)
+      const label = r.countries?.length === 1
+        ? `${r.countries[0]} — ${r.patterns?.toLocaleString() || 0} patterns`
+        : `${r.countries?.join(', ')} — ${r.patterns?.toLocaleString() || 0} patterns total (${r.countries?.length} in parallel)`
+      setScanMsg({ type: 'info', text: `Scanning ${label}` })
       const st = await adminApi.hunterStatus()
       setStatus(st)
     } catch (e) {
@@ -273,7 +289,7 @@ export default function NumberHunterPage() {
     setScanning(true)
     try {
       await adminApi.hunterScanAll()
-      setScanMsg({ type: 'info', text: 'Full NANP scan started — all 15 countries queued sequentially' })
+      setScanMsg({ type: 'info', text: 'All 15 countries scanning in parallel (up to 4 at once)' })
       const st = await adminApi.hunterStatus()
       setStatus(st)
     } catch (e) {
@@ -332,23 +348,57 @@ export default function NumberHunterPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <select
-            value={scanCountry}
-            onChange={e => setScanCountry(e.target.value)}
-            disabled={isRunning}
-            className="bg-[#12141f] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 disabled:opacity-40"
-          >
-            {(status.countries?.length ? status.countries : Object.keys(COUNTRY_FLAGS)).map(c => (
-              <option key={c} value={c}>{COUNTRY_FLAGS[c] || ''} {c}</option>
-            ))}
-          </select>
+          {/* Multi-country picker */}
+          <div className="relative" ref={pickerRef}>
+            <button
+              onClick={() => !isRunning && setCountryPickerOpen(o => !o)}
+              disabled={isRunning}
+              className="bg-[#12141f] border border-[#2a2d3a] hover:border-indigo-500/50 disabled:opacity-40 rounded-lg px-3 py-2 text-sm text-white flex items-center gap-2 min-w-[120px]"
+            >
+              <span className="flex-1 text-left truncate">
+                {scanCountries.length === 0 ? 'No countries' :
+                 scanCountries.length === Object.keys(COUNTRY_FLAGS).length ? 'All countries' :
+                 scanCountries.length === 1 ? `${COUNTRY_FLAGS[scanCountries[0]] || ''} ${scanCountries[0]}` :
+                 `${scanCountries.length} countries`}
+              </span>
+              <span className="text-slate-500 text-xs">▾</span>
+            </button>
+            {countryPickerOpen && (
+              <div className="absolute top-full mt-1 right-0 z-40 bg-[#12141f] border border-[#2a2d3a] rounded-xl shadow-xl p-2 w-56 max-h-72 overflow-y-auto">
+                <div className="flex items-center justify-between px-2 py-1 mb-1">
+                  <span className="text-[10px] text-slate-500 uppercase tracking-wider">Select countries</span>
+                  <button
+                    className="text-[10px] text-indigo-400 hover:text-indigo-300"
+                    onClick={() => setScanCountries(
+                      scanCountries.length === Object.keys(COUNTRY_FLAGS).length ? [] : Object.keys(COUNTRY_FLAGS)
+                    )}
+                  >
+                    {scanCountries.length === Object.keys(COUNTRY_FLAGS).length ? 'None' : 'All'}
+                  </button>
+                </div>
+                {(status.countries?.length ? status.countries : Object.keys(COUNTRY_FLAGS)).map(c => (
+                  <label key={c} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={scanCountries.includes(c)}
+                      onChange={() => setScanCountries(cs =>
+                        cs.includes(c) ? cs.filter(x => x !== c) : [...cs, c]
+                      )}
+                      className="accent-indigo-500"
+                    />
+                    <span className="text-sm text-white">{COUNTRY_FLAGS[c] || ''} {c}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             onClick={handleScan}
-            disabled={scanning || isRunning}
+            disabled={scanning || isRunning || !scanCountries.length}
             className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             <RadarIcon className="w-4 h-4" />
-            Scan
+            Scan{scanCountries.length > 1 ? ` (${scanCountries.length})` : ''}
           </button>
           <button
             onClick={handleScanAll}
