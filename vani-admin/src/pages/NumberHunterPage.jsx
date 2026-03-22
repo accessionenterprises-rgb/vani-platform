@@ -122,15 +122,19 @@ export default function NumberHunterPage() {
 
   // Auto-resume polling if a scan was already running before page load (e.g. after refresh)
   useEffect(() => {
-    adminApi.hunterStatus().then(st => {
-      const running = Object.keys((st || {}).running || {})
-      if (running.length > 0) {
-        setStatus(st)
-        setScanCountries(running)
-        setScanning(true)
-        setScanMsg({ type: 'info', text: `Scan in progress — resuming (${running.join(', ')})…` })
-      }
-    }).catch(() => {})
+    adminApi.hunterStatus()
+      .then(st => {
+        const running = Object.keys((st || {}).running || {})
+        const errors = running.filter(c => st.running[c]?.error).map(c => `${c}: ${st.running[c].error}`)
+        setScanMsg({ type: 'info', text: `[debug] token ok · running=${JSON.stringify(running)}${errors.length ? ' · errors: ' + errors.join(', ') : ''}` })
+        if (running.length > 0) {
+          setStatus(st)
+          setScanCountries(running)
+          setScanning(true)
+          setScanMsg({ type: 'info', text: `Scan in progress — resuming (${running.join(', ')})…` })
+        }
+      })
+      .catch(e => setScanMsg({ type: 'err', text: `[debug] error: ${e.message}` }))
   }, [])
 
   // Close country picker on outside click

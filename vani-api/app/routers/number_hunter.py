@@ -490,6 +490,8 @@ async def daily_scan(countries: Optional[list[str]] = None, tiers_filter: Option
                 logger.info("Scan done: %s", country)
             except Exception as exc:
                 logger.error("Scan error for %s: %s", country, exc)
+                # Store error so status endpoint can surface it to the UI
+                _scan_progress[country] = {"searched": 0, "total": 0, "found": 0, "error": str(exc), "service": "twilio"}
             finally:
                 _scan_running[country] = False
 
