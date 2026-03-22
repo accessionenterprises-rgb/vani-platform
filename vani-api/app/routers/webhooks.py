@@ -20,6 +20,7 @@ class CreateWebhookRequest(BaseModel):
 
 
 class WebhookResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     url: str
     events: list[str]

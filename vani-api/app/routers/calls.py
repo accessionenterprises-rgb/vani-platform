@@ -14,6 +14,7 @@ router = APIRouter(prefix="/calls", tags=["calls"])
 
 
 class CallResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     tenant_id: str
     agent_id: Optional[str]

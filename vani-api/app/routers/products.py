@@ -31,6 +31,7 @@ class UpdateProductRequest(BaseModel):
 
 
 class ProductResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     agent_id: str
     name: str

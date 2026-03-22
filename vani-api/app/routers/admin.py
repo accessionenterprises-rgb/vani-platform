@@ -481,3 +481,96 @@ def get_plans():
         {**v, "slug": k, "tenant_count": plan_counts.get(k, 0)}
         for k, v in PLAN_DEFINITIONS.items()
     ]
+
+
+# ── Number Hunter (admin view) ────────────────────────────────────────────────
+
+@router.get("/hunter/results", dependencies=[Depends(_verify_token)])
+def admin_hunter_results(
+    status: Optional[str] = None,
+    country: Optional[str] = None,
+    tier: Optional[str] = None,
+):
+    db = get_db()
+    q = db.table("number_hunt_results").select("*")
+    if status:
+        q = q.eq("status", status)
+    if country:
+        q = q.eq("country", country)
+    if tier:
+        q = q.eq("tier", tier)
+    q = q.order("ai_score", desc=True, nulls_first=False).order("first_seen", desc=True)
+    return q.execute().data or []
+
+
+@router.get("/hunter/scans", dependencies=[Depends(_verify_token)])
+def admin_hunter_scans(country: Optional[str] = None):
+    db = get_db()
+    q = db.table("number_scan_runs").select("*").order("started_at", desc=True).limit(20)
+    if country:
+        q = q.eq("country", country)
+    return q.execute().data or []
+
+
+@router.get("/hunter/status", dependencies=[Depends(_verify_token)])
+def admin_hunter_status():
+    from app.routers.number_hunter import _scan_running, _scan_progress, NANP_COUNTRIES
+    running = {c: _scan_progress.get(c, {}) for c in _scan_running if _scan_running[c]}
+    return {"running": running, "countries": list(NANP_COUNTRIES.keys())}
+
+
+class AdminScanRequest(BaseModel):
+    country: str
+
+
+@router.post("/hunter/scan", dependencies=[Depends(_verify_token)])
+async def admin_hunter_scan(body: AdminScanRequest):
+    import asyncio
+    from app.routers.number_hunter import _scan_running, _scan_progress, scan_country, NANP_COUNTRIES, build_patterns
+    country = body.country.upper()
+    if country not in NANP_COUNTRIES:
+        raise HTTPException(status_code=400, detail=f"Unknown country '{country}'")
+    if _scan_running.get(country):
+        raise HTTPException(status_code=409, detail=f"Scan already running for {country}")
+
+    npas = NANP_COUNTRIES[country]
+
+    async def run():
+        _scan_running[country] = True
+        try:
+            await scan_country(country, npas)
+        finally:
+            _scan_running[country] = False
+
+    asyncio.create_task(run())
+    return {"started": True, "country": country, "patterns": len(build_patterns(npas))}
+
+
+class AdminPurchaseRequest(BaseModel):
+    number: str
+
+
+@router.post("/hunter/purchase", dependencies=[Depends(_verify_token)])
+async def admin_hunter_purchase(body: AdminPurchaseRequest):
+    import asyncio
+    from app.routers.number_hunter import NANP_COUNTRIES
+    from app.config import settings as _s
+    if not _s.twilio_account_sid or not _s.twilio_auth_token:
+        raise HTTPException(status_code=503, detail="Twilio credentials not configured")
+    db = get_db()
+    try:
+        from twilio.rest import Client
+        client = Client(_s.twilio_account_sid, _s.twilio_auth_token)
+        purchased = await asyncio.to_thread(
+            lambda: client.incoming_phone_numbers.create(phone_number=body.number)
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Twilio purchase failed: {exc}")
+    # Detect country from existing record
+    row = db.table("number_hunt_results").select("country").eq("number", body.number).maybe_single().execute()
+    country = row.data["country"] if row.data else "US"
+    db.table("number_hunt_results").update({
+        "status": "purchased",
+        "purchased_at": "now()",
+    }).eq("number", body.number).eq("country", country).execute()
+    return {"number": body.number, "sid": purchased.sid}

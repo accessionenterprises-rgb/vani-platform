@@ -43,6 +43,7 @@ class CreateCampaignRequest(BaseModel):
 
 
 class CampaignResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     tenant_id: str
     agent_id: str

@@ -12,6 +12,7 @@ router = APIRouter(prefix="/agents/{agent_id}/kb", tags=["knowledge-base"])
 
 
 class KBDocResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     agent_id: str
     filename: str

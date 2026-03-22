@@ -20,6 +20,7 @@ class CreateKeyRequest(BaseModel):
 
 
 class APIKeyResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     name: str
     created_at: str

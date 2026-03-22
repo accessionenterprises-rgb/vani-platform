@@ -67,6 +67,7 @@ class UpdateAgentRequest(BaseModel):
 
 
 class AgentResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     tenant_id: str
     name: str
@@ -88,6 +89,7 @@ class AgentResponse(BaseModel):
 
 
 class AgentVersionResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     agent_id: str
     version_num: int

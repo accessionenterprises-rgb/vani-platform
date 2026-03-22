@@ -1,19 +1,29 @@
 """Number Hunter — finds memorable Twilio phone numbers across NANP countries.
 
 Patterns searched:
-  S-ten         : AAAAAAAAAA (10 identical digits)
-  A-double-seq  : xyzxyz + 4-digit sequential/pattern ending
-  A-double-rev  : xyzxyz + rev(xyz) + single digit
-  A-seven       : xyz + aaaaaaa (area code + 7 identical, e.g. 919-111-1111)
-  A-mirror      : xyz + rev(xyz) + **** (open mirror)
-  B-segments    : AAA-BBB-CCCC (three uniform segments)
-  B-fivefive    : AAAAABBBBB (5+5 split)
-  TF-double-*   : Toll-free NPA repeated twice + pattern ending (US only)
+  P-suffix-quad  : ****AAAA — suffix quad repeats (0000…9999 anywhere)
+  P-seq5/6/7     : long sequential runs (12345, 123456, 1234567)
+  A-double-seq   : xyzxyz + 52 sequential/pattern endings (SEQ4)
+  A-seven        : xyz + aaaaaaa (e.g. 919-111-1111)
+  A-mirror       : xyz + rev(xyz) open (6-char prefix)
+  A-double-rev   : xyzxyz + rev(xyz) + single digit
+  B-segments     : AAA-BBB-CCCC (three uniform segments)
+  B-fivefive     : AAAAABBBBB (5+5 split)
+  B-double-block : AAABBB (double 3-block)
+  B-alternating  : ABABAB (alternating 6-block)
+  B-alt10        : ABABABABAB (full 10-digit alternating)
+  B-aab/aba/abb  : 3-unit repeating triples ×3 + free last digit
+  B-abc-triple   : ABC×3 — 3-distinct-digit repeating triple
+  TF-double-*    : Toll-free NPA×2 + AAAA/AABB/sequential (US only)
+
+  AI scoring: after each country scan, new numbers are batch-scored by
+  Claude Haiku for memorability (1-10) and stored as ai_score + ai_reason.
 
 Countries: all NANP (+1) nations — US, CA, PR, VI, GU, AS, MP, BM, KY, JM, TT, BB, BS, GD, DO
 """
 
 import asyncio
+import json
 import logging
 from datetime import datetime, timezone
 from typing import Optional
@@ -42,21 +52,21 @@ CA_CODES = [
 ]
 
 NANP_COUNTRIES: dict[str, list[int]] = {
-    "US": list(range(200, 1000)),   # all valid NPAs 200–999
+    "US": list(range(200, 1000)),
     "CA": CA_CODES,
-    "PR": [787, 939],               # Puerto Rico
-    "VI": [340],                    # US Virgin Islands
-    "GU": [671],                    # Guam
-    "AS": [684],                    # American Samoa
-    "MP": [670],                    # N. Mariana Islands
-    "BM": [441],                    # Bermuda
-    "KY": [345],                    # Cayman Islands
-    "JM": [876],                    # Jamaica
-    "TT": [868],                    # Trinidad & Tobago
-    "BB": [246],                    # Barbados
-    "BS": [242],                    # Bahamas
-    "GD": [473],                    # Grenada
-    "DO": [809, 829, 849],          # Dominican Republic
+    "PR": [787, 939],
+    "VI": [340],
+    "GU": [671],
+    "AS": [684],
+    "MP": [670],
+    "BM": [441],
+    "KY": [345],
+    "JM": [876],
+    "TT": [868],
+    "BB": [246],
+    "BS": [242],
+    "GD": [473],
+    "DO": [809, 829, 849],
 }
 
 SEQ4 = [
@@ -75,9 +85,9 @@ SEQ4 = [
 
 TF_PREFIXES = ["800", "888", "877", "866", "855", "844", "833", "822"]
 
-# ── Active scan state (in-process tracking) ───────────────────────────────────
+# ── Active scan state ─────────────────────────────────────────────────────────
 _scan_running: dict[str, bool] = {}
-_scan_progress: dict[str, dict] = {}  # country -> {searched, total, found}
+_scan_progress: dict[str, dict] = {}
 
 
 # ── Pattern generators ────────────────────────────────────────────────────────
@@ -86,17 +96,48 @@ def build_patterns(npas: list[int]) -> list[dict]:
     """Return all search dicts for the given NPA list."""
     s: list[dict] = []
 
-    # 1. xyzxyz + SEQ4 endings
+    # 0. Long sequential runs (5, 6, 7 digits)
+    for length in (5, 6, 7):
+        tier = f"P-seq{length}"
+        max_start = 10 - length
+        for i in range(max_start + 1):
+            asc  = "".join(str(i + k) for k in range(length))
+            desc = "".join(str(9 - i - k) for k in range(length))
+            s.append({"label": f"seq{length}-asc-{i}",    "pattern": asc,  "tier": tier})
+            s.append({"label": f"seq{length}-desc-{9-i}", "pattern": desc, "tier": tier})
+
+    # 1. Pure suffix quads (0000…9999 anywhere in number)
+    for a in range(0, 10):
+        s.append({"label": f"ends-{a}x4", "pattern": str(a) * 4, "tier": "P-suffix-quad"})
+
+    # 2. xyzxyz + SEQ4 endings
     for n in npas:
         npa = str(n)
         for end in SEQ4:
             s.append({"label": f"{npa}x2-{end}", "pattern": f"{npa}{npa}{end}", "tier": "A-double-seq"})
 
-    # 2. 10 identical — AAAAAAAAAA
-    for a in range(2, 10):
-        s.append({"label": f"{a}x10", "pattern": str(a) * 10, "tier": "S-ten"})
+    # 3. NPA + a×7 (e.g. 919-222-2222) — full a∈{2..9}
+    for n in npas:
+        npa = str(n)
+        for a in range(2, 10):
+            s.append({"label": f"{npa}-{a}x7", "pattern": npa + str(a) * 7, "tier": "A-seven"})
 
-    # 3. AAA-BBB-CCCC (uniform segments)
+    # 4. NPA·rev(NPA) open — 6-char substring, no wildcards
+    for n in npas:
+        npa = str(n)
+        rev = npa[::-1]
+        if int(rev[0]) < 2:
+            continue
+        s.append({"label": f"{npa}-{rev}-open", "pattern": f"{npa}{rev}", "tier": "A-mirror"})
+
+    # 5. NPA×2·rev(NPA)·X — full x∈{0..9}
+    for n in npas:
+        npa = str(n)
+        rev = npa[::-1]
+        for x in range(0, 10):
+            s.append({"label": f"{npa}x2-{rev}-{x}", "pattern": f"{npa}{npa}{rev}{x}", "tier": "A-double-rev"})
+
+    # 6. AAA-BBB-CCCC (three uniform segments)
     for a in range(2, 10):
         for b in range(2, 10):
             for c in range(0, 10):
@@ -108,49 +149,52 @@ def build_patterns(npas: list[int]) -> list[dict]:
                     "tier": "B-segments",
                 })
 
-    # 4. AAAAABBBBB (5+5 split)
+    # 7. AAAAABBBBB (5+5 split)
     for a in range(2, 10):
         for b in range(0, 10):
             if a == b:
                 continue
-            s.append({
-                "label": f"{a}x5-{b}x5",
-                "pattern": str(a) * 5 + str(b) * 5,
-                "tier": "B-fivefive",
-            })
+            s.append({"label": f"{a}x5-{b}x5", "pattern": str(a) * 5 + str(b) * 5, "tier": "B-fivefive"})
 
-    # 5. NPA + a×7 = xyz-aaa-aaaa (e.g. 919-111-1111)
-    for n in npas:
-        npa = str(n)
-        for a in range(2, 10):  # NXX must start ≥ 2
-            s.append({
-                "label": f"{npa}-{a}x7",
-                "pattern": npa + str(a) * 7,
-                "tier": "A-seven",
-            })
+    # 8. AAABBB (double 3-block)
+    for a in range(2, 10):
+        for b in range(0, 10):
+            if a == b:
+                continue
+            s.append({"label": f"{a}x3-{b}x3-block", "pattern": str(a) * 3 + str(b) * 3, "tier": "B-double-block"})
 
-    # 6. NPA·rev(NPA)·**** (mirror open)
-    for n in npas:
-        npa = str(n)
-        rev = npa[::-1]
-        if int(rev[0]) < 2:
-            continue
-        s.append({
-            "label": f"{npa}-{rev}-xxxx",
-            "pattern": f"{npa}{rev}****",
-            "tier": "A-mirror",
-        })
+    # 9. ABABAB (alternating 6-block)
+    for a in range(2, 10):
+        for b in range(0, 10):
+            if a == b:
+                continue
+            s.append({"label": f"{a}{b}-alt6", "pattern": f"{a}{b}{a}{b}{a}{b}", "tier": "B-alternating"})
 
-    # 7. NPA×2·rev(NPA)·X
-    for n in npas:
-        npa = str(n)
-        rev = npa[::-1]
-        for x in range(0, 10):
-            s.append({
-                "label": f"{npa}x2-{rev}-{x}",
-                "pattern": f"{npa}{npa}{rev}{x}",
-                "tier": "A-double-rev",
-            })
+    # 10. ABABABABAB (full 10-digit alternating, b≥2 for NXX)
+    for a in range(2, 10):
+        for b in range(2, 10):
+            if a == b:
+                continue
+            s.append({"label": f"{a}{b}-alt10", "pattern": f"{a}{b}" * 5, "tier": "B-alt10"})
+
+    # 11. 3-unit repeating triples ×3 + free last digit (9-char prefix)
+    for a in range(2, 10):
+        for b in range(0, 10):
+            if a == b:
+                continue
+            s.append({"label": f"{a}{a}{b}-triple", "pattern": f"{a}{a}{b}" * 3, "tier": "B-aab-triple"})
+            s.append({"label": f"{a}{b}{a}-triple", "pattern": f"{a}{b}{a}" * 3, "tier": "B-aba-triple"})
+            s.append({"label": f"{a}{b}{b}-triple", "pattern": f"{a}{b}{b}" * 3, "tier": "B-abb-triple"})
+
+    # 12. ABC×3 + free (3 distinct digits, 9-char prefix)
+    for a in range(2, 10):
+        for b in range(0, 10):
+            if b == a:
+                continue
+            for c in range(0, 10):
+                if c == a or c == b:
+                    continue
+                s.append({"label": f"{a}{b}{c}-triple", "pattern": f"{a}{b}{c}" * 3, "tier": "B-abc-triple"})
 
     return s
 
@@ -171,7 +215,64 @@ def build_tollfree_patterns() -> list[dict]:
     return s
 
 
-# ── Twilio search (sync — called via asyncio.to_thread) ───────────────────────
+# ── AI memorability scoring ───────────────────────────────────────────────────
+
+async def score_numbers_with_ai(numbers: list[str]) -> dict[str, dict]:
+    """
+    Batch-score a list of phone numbers for memorability using Claude Haiku.
+    Returns dict: phone_number -> {score: int, reason: str}
+    Numbers are passed as formatted strings e.g. '415-415-4150'.
+    """
+    if not numbers or not settings.anthropic_api_key:
+        return {}
+
+    def _fmt(n: str) -> str:
+        d = n.replace("+1", "")
+        return f"{d[:3]}-{d[3:6]}-{d[6:]}"
+
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+
+        numbered = "\n".join(f"{i+1}. {_fmt(n)}" for i, n in enumerate(numbers))
+        prompt = (
+            "Rate each phone number 1-10 for vanity/memorability.\n"
+            "Criteria: digit repetition, visual symmetry, spoken rhythm, instant recall.\n"
+            "10 = instantly memorable (e.g. 800-888-8888). 1 = random.\n"
+            'Reply ONLY as a JSON array: [{"i":1,"score":9,"reason":"..."},...]\n\n'
+            f"Numbers:\n{numbered}"
+        )
+
+        msg = await asyncio.to_thread(
+            lambda: client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=32000,
+                messages=[{"role": "user", "content": prompt}],
+            )
+        )
+
+        raw = msg.content[0].text.strip()
+        # Strip markdown fences if present
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        scores = json.loads(raw)
+
+        return {
+            numbers[entry["i"] - 1]: {
+                "score": int(entry["score"]),
+                "reason": entry.get("reason", ""),
+            }
+            for entry in scores
+            if 1 <= entry["i"] <= len(numbers)
+        }
+    except Exception as exc:
+        logger.warning("AI scoring failed: %s", exc)
+        return {}
+
+
+# ── Twilio search ─────────────────────────────────────────────────────────────
 
 def _twilio_search(country: str, pattern: str) -> list[str]:
     if not settings.twilio_account_sid or not settings.twilio_auth_token:
@@ -179,9 +280,7 @@ def _twilio_search(country: str, pattern: str) -> list[str]:
     try:
         from twilio.rest import Client
         client = Client(settings.twilio_account_sid, settings.twilio_auth_token)
-        results = client.available_phone_numbers(country).local.list(
-            contains=pattern, limit=10
-        )
+        results = client.available_phone_numbers(country).local.list(contains=pattern, limit=10)
         return [n.phone_number for n in results]
     except Exception:
         return []
@@ -190,7 +289,6 @@ def _twilio_search(country: str, pattern: str) -> list[str]:
 # ── Core scan logic ───────────────────────────────────────────────────────────
 
 async def scan_country(country: str, npas: list[int]) -> dict:
-    """Scan one country; upserts results into DB. Returns summary dict."""
     db = get_db()
     scan_id: Optional[str] = None
 
@@ -199,7 +297,6 @@ async def scan_country(country: str, npas: list[int]) -> dict:
         if country == "US":
             patterns += build_tollfree_patterns()
 
-        # Record scan run
         run = db.table("number_scan_runs").insert({
             "country": country,
             "total_patterns": len(patterns),
@@ -212,6 +309,7 @@ async def scan_country(country: str, npas: list[int]) -> dict:
         found = 0
         new_count = 0
         seen: set[str] = set()
+        newly_inserted: list[str] = []
 
         CONCURRENCY = 15
         sem = asyncio.Semaphore(CONCURRENCY)
@@ -252,11 +350,11 @@ async def scan_country(country: str, npas: list[int]) -> dict:
                             "status": "available",
                         }).execute()
                         new_count += 1
+                        newly_inserted.append(num)
 
                 _scan_progress[country]["searched"] += 1
                 _scan_progress[country]["found"] = found
 
-        # Run all patterns concurrently (semaphore throttles to 15 at a time)
         await asyncio.gather(*[do_one(p) for p in patterns])
 
         # Mark numbers not seen this run as gone
@@ -273,6 +371,16 @@ async def scan_country(country: str, npas: list[int]) -> dict:
             if row["number"] not in seen:
                 db.table("number_hunt_results").update({"status": "gone"}).eq("id", row["id"]).execute()
                 gone_count += 1
+
+        # AI scoring for newly discovered numbers
+        if newly_inserted:
+            logger.info("AI scoring %d new numbers for %s", len(newly_inserted), country)
+            scores = await score_numbers_with_ai(newly_inserted)
+            for num, rating in scores.items():
+                db.table("number_hunt_results").update({
+                    "ai_score": rating["score"],
+                    "ai_reason": rating["reason"],
+                }).eq("number", num).eq("country", country).execute()
 
         now = datetime.now(timezone.utc).isoformat()
         db.table("number_scan_runs").update({
@@ -299,7 +407,6 @@ async def scan_country(country: str, npas: list[int]) -> dict:
 
 
 async def daily_scan() -> None:
-    """Run all NANP countries sequentially — called by the startup scheduler."""
     for country, npas in NANP_COUNTRIES.items():
         if _scan_running.get(country):
             continue
@@ -312,7 +419,7 @@ async def daily_scan() -> None:
             logger.error("Daily scan error for %s: %s", country, exc)
         finally:
             _scan_running[country] = False
-        await asyncio.sleep(2)  # brief gap between countries
+        await asyncio.sleep(2)
 
 
 # ── API Endpoints ─────────────────────────────────────────────────────────────
@@ -324,13 +431,12 @@ async def list_results(
     status: str = "available",
     _: str = Depends(get_tenant_id),
 ):
-    """List memorable numbers found by the hunter."""
     db = get_db()
     q = (
         db.table("number_hunt_results")
         .select("*")
         .eq("status", status)
-        .order("first_seen", desc=True)
+        .order("ai_score", desc=True, nulls_last=True)
     )
     if country:
         q = q.eq("country", country.upper())
@@ -344,7 +450,6 @@ async def list_scans(
     country: Optional[str] = None,
     _: str = Depends(get_tenant_id),
 ):
-    """Recent scan run history."""
     db = get_db()
     q = db.table("number_scan_runs").select("*").order("started_at", desc=True)
     if country:
@@ -354,7 +459,6 @@ async def list_scans(
 
 @router.get("/status")
 async def scan_status(_: str = Depends(get_tenant_id)):
-    """Return which countries are currently scanning + progress."""
     return {
         "running": {c: _scan_progress.get(c, {}) for c, v in _scan_running.items() if v},
         "countries": list(NANP_COUNTRIES.keys()),
@@ -371,13 +475,9 @@ async def trigger_scan(
     background_tasks: BackgroundTasks,
     _: str = Depends(get_tenant_id),
 ):
-    """Trigger a manual scan for a specific country."""
     country = body.country.upper()
     if country not in NANP_COUNTRIES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown country '{country}'. Valid: {list(NANP_COUNTRIES.keys())}",
-        )
+        raise HTTPException(status_code=400, detail=f"Unknown country '{country}'")
     if _scan_running.get(country):
         raise HTTPException(status_code=409, detail=f"Scan already running for {country}")
 
@@ -401,7 +501,6 @@ async def purchase_number(
     body: PurchaseRequest,
     tenant_id: str = Depends(get_tenant_id),
 ):
-    """Purchase a memorable number via Twilio and record it."""
     if not settings.twilio_account_sid or not settings.twilio_auth_token:
         raise HTTPException(status_code=503, detail="Twilio credentials not configured")
 

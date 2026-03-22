@@ -31,6 +31,7 @@ class AuthResponse(BaseModel):
 
 
 class MeResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     name: str
     email: str

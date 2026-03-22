@@ -18,6 +18,7 @@ class AddNumberRequest(BaseModel):
 
 
 class PhoneNumberResponse(BaseModel):
+    model_config = {"extra": "ignore"}
     id: str
     number: str
     agent_id: str
