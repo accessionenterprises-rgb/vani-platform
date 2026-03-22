@@ -253,10 +253,23 @@ export default function NumberHunterPage() {
       try {
         const st = await adminApi.hunterStatus()
         setStatus(st)
-        const hasRunning = Object.keys(st.running || {}).length > 0
-        // Mark the moment we first see the scan actually running
+        const entries = Object.entries(st.running || {})
+        const active = entries.filter(([, p]) => !p.error)
+        const errored = entries.filter(([, p]) => p.error)
+        const hasRunning = entries.length > 0
+        // Mark the moment we first see anything (active or errored)
         if (hasRunning && !scanStart.current) scanStart.current = Date.now()
-        // Only stop when we've seen it running AND it stopped (avoids false-stop before scan starts)
+        // Stop if all running scans have errored out
+        if (errored.length > 0 && active.length === 0 && scanStart.current) {
+          clearInterval(pollRef.current)
+          pollRef.current = null
+          scanStart.current = null
+          setScanning(false)
+          const errMsg = errored.map(([c, p]) => `${c}: ${p.error}`).join(' | ')
+          setScanMsg({ type: 'err', text: `✗ Scan failed — ${errMsg}` })
+          load()
+        }
+        // Stop when we've seen it running AND it stopped normally
         if (!hasRunning && scanStart.current) {
           clearInterval(pollRef.current)
           pollRef.current = null
@@ -468,17 +481,21 @@ export default function NumberHunterPage() {
                     {COUNTRY_FLAGS[c] || ''} {c}
                     <ServiceBadge service={p.service || 'twilio'} />
                     <span className="text-xs text-slate-500 font-normal">
-                      {p.total
-                        ? `${p.searched?.toLocaleString() ?? 0} / ${p.total.toLocaleString()} patterns${p.found ? ` · ${p.found} found` : ''}`
-                        : 'queued…'}
+                      {p.error ? <span className="text-red-400">error</span>
+                        : p.total
+                          ? `${p.searched?.toLocaleString() ?? 0} / ${p.total.toLocaleString()} patterns${p.found ? ` · ${p.found} found` : ''}`
+                          : 'queued…'}
                     </span>
                   </span>
                   <span className="text-xs text-slate-500">{pct}% {etaStr && `· ${etaStr}`}</span>
                 </div>
+                {p.error && <div className="text-xs text-red-400 mb-1 font-mono">{p.error}</div>}
                 <div className="h-1.5 bg-[#1f2235] rounded-full overflow-hidden">
-                  {pct > 0
-                    ? <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-                    : <div className="h-full bg-indigo-500/30 rounded-full animate-pulse w-full" />
+                  {p.error
+                    ? <div className="h-full bg-red-500/50 rounded-full w-full" />
+                    : pct > 0
+                      ? <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                      : <div className="h-full bg-indigo-500/30 rounded-full animate-pulse w-full" />
                   }
                 </div>
               </div>
