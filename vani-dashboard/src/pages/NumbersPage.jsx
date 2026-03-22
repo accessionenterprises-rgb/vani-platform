@@ -261,11 +261,11 @@ function BuyModal({ agents, onBought, onClose }) {
   }
 
   async function buy() {
-    if (!selected || !agentId) return
+    if (!selected) return
     setError('')
     setBuying(true)
     try {
-      const num = await api.buyTwilioNumber({ phone_number: selected.phone_number, agent_id: agentId })
+      const num = await api.buyTwilioNumber({ phone_number: selected.phone_number, agent_id: agentId || null })
       onBought(num)
     } catch (err) {
       setError(err.message)
@@ -439,12 +439,8 @@ function BuyModal({ agents, onBought, onClose }) {
           </button>
           <button
             onClick={buy}
-            disabled={!selected || !agentId || buying}
-            className={`flex items-center gap-2 font-medium px-5 py-2 rounded-lg text-sm transition-colors ${
-              !selected || !agentId || buying
-                ? 'bg-[#1f2235] text-slate-500 cursor-not-allowed'
-                : 'bg-indigo-500 hover:bg-indigo-600 text-white'
-            }`}>
+            disabled={!selected || buying}
+            className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors">
             {buying
               ? <><div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />Purchasing…</>
               : <>Purchase Number</>}
