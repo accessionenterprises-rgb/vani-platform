@@ -51,6 +51,7 @@ export const api = {
   restoreAgentVersion: (id, versionId) => request('POST', `/agents/${id}/versions/${versionId}/restore`),
   getWidgetKey:    (agentId)           => request('GET', `/agents/${agentId}/widget-key`),
   createWidgetKey: (agentId)           => request('POST', `/agents/${agentId}/widget-key`),
+  builderChat:     (message, history)  => request('POST', '/builder/chat', { message, history }),
 
   // KB
   listKb:      (agentId)          => request('GET', `/agents/${agentId}/kb`),

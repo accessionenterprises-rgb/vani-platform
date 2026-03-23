@@ -20,6 +20,7 @@ import TemplatesPage   from './pages/TemplatesPage'
 import PlaygroundPage  from './pages/PlaygroundPage'
 import KioskPage       from './pages/KioskPage'
 import DialerPage      from './pages/DialerPage'
+import AgentBuilderPage from './pages/AgentBuilderPage'
 
 function AppShell() {
   return (
@@ -29,6 +30,7 @@ function AppShell() {
         <Routes>
           <Route path="/"              element={<DashboardPage />} />
           <Route path="/agents"        element={<AgentsPage />} />
+          <Route path="/agents/build"  element={<AgentBuilderPage />} />
           <Route path="/agents/:id"    element={<AgentFormPage />} />
           <Route path="/calls"         element={<CallsPage />} />
           <Route path="/calls/:id"     element={<CallDetailPage />} />

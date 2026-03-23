@@ -49,7 +49,7 @@ export default function AgentsPage() {
                 className="pl-8 pr-3 py-1.5 bg-[#12141f] border border-[#1f2235] rounded-lg text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 w-44"
               />
             </div>
-            <Link to="/agents/new"
+            <Link to="/agents/build"
               className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
               <span className="text-lg leading-none">+</span> New Agent
             </Link>
@@ -75,7 +75,7 @@ export default function AgentsPage() {
                 </div>
                 <p className="text-slate-400 font-medium mb-1">No agents yet</p>
                 <p className="text-sm text-slate-600 mb-4">Create your first AI voice agent</p>
-                <Link to="/agents/new"
+                <Link to="/agents/build"
                   className="inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
                   + Create Agent
                 </Link>
