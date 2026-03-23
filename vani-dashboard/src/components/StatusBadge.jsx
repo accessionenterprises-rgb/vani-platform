@@ -1,20 +1,20 @@
 const STYLES = {
-  active:          'bg-green-50 text-green-700 border-green-200',
-  completed:       'bg-gray-50 text-gray-600 border-gray-200',
-  failed:          'bg-red-50 text-red-600 border-red-200',
-  connecting:      'bg-yellow-50 text-yellow-700 border-yellow-200',
-  routing:         'bg-blue-50 text-blue-600 border-blue-200',
-  incoming:        'bg-indigo-50 text-indigo-600 border-indigo-200',
-  ending:          'bg-orange-50 text-orange-600 border-orange-200',
-  post_processing: 'bg-purple-50 text-purple-600 border-purple-200',
-  inbound:         'bg-gray-50 text-gray-600 border-gray-200',
-  outbound:        'bg-blue-50 text-blue-600 border-blue-200',
+  active:          'bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]',
+  completed:       'bg-[#F5F5F4] text-[#57534E] border-[#E7E5E4]',
+  failed:          'bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]',
+  connecting:      'bg-[#FEFCE8] text-[#A16207] border-[#FEF08A]',
+  routing:         'bg-[#EFF4FF] text-[#2563EB] border-[#BFDBFE]',
+  incoming:        'bg-[#EEF2FF] text-[#4338CA] border-[#C7D2FE]',
+  ending:          'bg-[#FFF7ED] text-[#EA580C] border-[#FED7AA]',
+  post_processing: 'bg-[#F5F3FF] text-[#7C3AED] border-[#DDD6FE]',
+  inbound:         'bg-[#F5F5F4] text-[#57534E] border-[#E7E5E4]',
+  outbound:        'bg-[#EFF4FF] text-[#2563EB] border-[#BFDBFE]',
 }
 
 export default function StatusBadge({ status }) {
-  const cls = STYLES[status?.toLowerCase()] || 'bg-gray-50 text-gray-500 border-gray-200'
+  const cls = STYLES[status?.toLowerCase()] || 'bg-[#F5F5F4] text-[#78716C] border-[#E7E5E4]'
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${cls}`}>
+    <span className={`inline-flex items-center px-2 py-[2px] rounded-md text-[10px] font-semibold border tracking-wide ${cls}`}>
       {status}
     </span>
   )

@@ -1,11 +1,36 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --bg: #FAFAF9;
+  --card: #FFFFFF;
+  --sidebar: #FAFAF9;
+  --border: #E8E5E2;
+  --border-light: #F0EDEA;
+  --text: #1A1816;
+  --text-secondary: #78716C;
+  --text-muted: #A8A29E;
+  --accent: #2563EB;
+  --accent-light: #EFF4FF;
+  --accent-hover: #1D4ED8;
+  --green: #16A34A;
+  --green-light: #F0FDF4;
+  --red: #DC2626;
+  --orange: #EA580C;
+  --radius: 12px;
+}
+
+* {
+  border-color: var(--border);
+}
 
 body {
-  background-color: #f8f9fa;
-  color: #1f2937;
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Figtree', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }
 
 #root {
@@ -13,14 +38,16 @@ body {
   min-height: 100vh;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* Premium scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #D6D3D1; border-radius: 100px; }
+::-webkit-scrollbar-thumb:hover { background: #A8A29E; }
 
 /* Voice waveform animation */
 @keyframes wave {
   0%, 100% { height: 4px; }
-  50% { height: 16px; }
+  50% { height: 20px; }
 }
 .wave-bar {
   animation: wave 1.2s ease-in-out infinite;
@@ -29,3 +56,20 @@ body {
 .wave-bar:nth-child(3) { animation-delay: 0.2s; }
 .wave-bar:nth-child(4) { animation-delay: 0.3s; }
 .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+/* Glow pulse for active elements */
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(37, 99, 235, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3); }
+}
+.glow { animation: glow 2s ease-in-out infinite; }
+
+/* Press effect for buttons */
+.press:active { transform: scale(0.97); }
+
+/* Subtle card hover */
+.card-hover { transition: all 0.2s ease; }
+.card-hover:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
