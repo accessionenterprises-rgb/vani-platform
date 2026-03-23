@@ -32,20 +32,20 @@ OPENAI_VOICES = {
     "openai-onyx": "onyx",
 }
 
-# Sarvam voices (bulbul:v1 — updated speaker names Mar 2026)
+# Sarvam voices (bulbul:v3 — Mar 2026)
 SARVAM_VOICES = {
-    "sarvam-anushka":  {"speaker": "anushka",  "lang": "hi-IN", "label": "Anushka (F)"},
-    "sarvam-manisha":  {"speaker": "manisha",  "lang": "hi-IN", "label": "Manisha (F)"},
     "sarvam-priya":    {"speaker": "priya",    "lang": "hi-IN", "label": "Priya (F)"},
     "sarvam-neha":     {"speaker": "neha",     "lang": "hi-IN", "label": "Neha (F)"},
     "sarvam-shreya":   {"speaker": "shreya",   "lang": "hi-IN", "label": "Shreya (F)"},
     "sarvam-kavya":    {"speaker": "kavya",    "lang": "hi-IN", "label": "Kavya (F)"},
-    "sarvam-abhilash": {"speaker": "abhilash", "lang": "hi-IN", "label": "Abhilash (M)"},
+    "sarvam-simran":   {"speaker": "simran",   "lang": "hi-IN", "label": "Simran (F)"},
+    "sarvam-ritu":     {"speaker": "ritu",     "lang": "hi-IN", "label": "Ritu (F)"},
     "sarvam-rahul":    {"speaker": "rahul",    "lang": "hi-IN", "label": "Rahul (M)"},
     "sarvam-amit":     {"speaker": "amit",     "lang": "hi-IN", "label": "Amit (M)"},
     "sarvam-dev":      {"speaker": "dev",      "lang": "hi-IN", "label": "Dev (M)"},
     "sarvam-rohan":    {"speaker": "rohan",    "lang": "hi-IN", "label": "Rohan (M)"},
     "sarvam-kabir":    {"speaker": "kabir",    "lang": "hi-IN", "label": "Kabir (M)"},
+    "sarvam-aditya":   {"speaker": "aditya",   "lang": "hi-IN", "label": "Aditya (M)"},
 }
 
 # All previewable voices
@@ -77,7 +77,7 @@ async def preview_voice(voice: str, tenant_id: str = Depends(get_tenant_id)):
 
     # Also handle bare sarvam provider ID
     if voice == "sarvam":
-        return await _preview_sarvam(SARVAM_VOICES["sarvam-anushka"])
+        return await _preview_sarvam(SARVAM_VOICES["sarvam-priya"])
 
     raise HTTPException(status_code=400, detail=f"Preview not available for '{voice}'.")
 
@@ -130,10 +130,8 @@ async def _preview_sarvam(voice_meta: dict) -> Response:
                     "inputs": [PREVIEW_TEXT_HI],
                     "target_language_code": voice_meta["lang"],
                     "speaker": voice_meta["speaker"],
-                    "model": "bulbul:v1",
-                    "pitch": 0,
+                    "model": "bulbul:v3",
                     "pace": 1.0,
-                    "loudness": 1.5,
                     "speech_sample_rate": 22050,
                     "enable_preprocessing": True,
                 },

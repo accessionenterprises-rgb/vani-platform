@@ -26,18 +26,18 @@ except ImportError:
 SARVAM_API_URL = "https://api.sarvam.ai/text-to-speech"
 
 VOICE_MAP = {
-    "anushka":  "anushka",
-    "manisha":  "manisha",
     "priya":    "priya",
     "neha":     "neha",
     "shreya":   "shreya",
     "kavya":    "kavya",
-    "abhilash": "abhilash",
+    "simran":   "simran",
+    "ritu":     "ritu",
     "rahul":    "rahul",
     "amit":     "amit",
     "dev":      "dev",
     "rohan":    "rohan",
     "kabir":    "kabir",
+    "aditya":   "aditya",
 }
 
 LANG_MAP = {
@@ -62,16 +62,14 @@ def _wav_bytes_to_pcm(wav_bytes: bytes) -> tuple[bytes, int, int]:
 async def _call_sarvam(text: str, voice: str, language: str, api_key: str) -> bytes:
     """Call Sarvam TTS API and return raw WAV bytes."""
     lang_code = LANG_MAP.get(language, "en-IN")
-    speaker = VOICE_MAP.get(voice, "meera")
+    speaker = VOICE_MAP.get(voice, "priya")
 
     payload = {
         "inputs": [text],
         "target_language_code": lang_code,
         "speaker": speaker,
-        "model": "bulbul:v1",
-        "pitch": 0,
+        "model": "bulbul:v3",
         "pace": 1.0,
-        "loudness": 1.5,
         "speech_sample_rate": 22050,
         "enable_preprocessing": True,
     }
