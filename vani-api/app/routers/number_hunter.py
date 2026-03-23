@@ -153,10 +153,6 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
             s.append({"label": f"seq{length}-asc-{i}",    "pattern": asc,  "tier": tier})
             s.append({"label": f"seq{length}-desc-{9-i}", "pattern": desc, "tier": tier})
 
-    # 1. Pure suffix quads (0000…9999 anywhere in number)
-    for a in range(0, 10):
-        s.append({"label": f"ends-{a}x4", "pattern": str(a) * 4, "tier": "P-suffix-quad"})
-
     # 2. xyzxyz + SEQ4 endings
     for n in npas:
         npa = str(n)
