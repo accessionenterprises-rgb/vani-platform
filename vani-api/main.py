@@ -194,6 +194,16 @@ def health():
     return {"ok": True, "service": "vani-api", "version": "2.0.0"}
 
 
+@app.delete("/debug/hunter/clear")
+def debug_clear():
+    """Temporary — clear all results and scan logs."""
+    from app.db import get_db as _gdb
+    db = _gdb()
+    db.table("number_hunt_results").delete().in_("status", ["available", "gone"]).execute()
+    db.table("number_scan_runs").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+    return {"cleared": True}
+
+
 @app.get("/debug/hunter")
 def debug_hunter():
     """Temporary debug endpoint — remove after scan is working."""
