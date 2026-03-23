@@ -25,15 +25,11 @@ STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static" / "voice-p
 PREVIEW_TEXT_EN = "Hi there! Thanks for calling. I'm your AI assistant and I'm here to help you today. How can I assist you?"
 PREVIEW_TEXT_HI = "नमस्ते! कॉल करने के लिए धन्यवाद। मैं आपकी AI असिस्टेंट हूं। मैं आज आपकी कैसे मदद कर सकती हूं?"
 
-# OpenAI voices
-OPENAI_VOICES = {
-    "openai-nova": "nova",
-    "openai-shimmer": "shimmer",
-    "openai-alloy": "alloy",
-    "openai-echo": "echo",
-    "openai-fable": "fable",
-    "openai-onyx": "onyx",
-}
+# OpenAI voices (TTS-1 + new voices)
+OPENAI_VOICES = {f"openai-{v}": v for v in [
+    "alloy", "ash", "ballad", "cedar", "coral", "echo",
+    "fable", "marin", "nova", "onyx", "sage", "shimmer", "verse",
+]}
 
 # Sarvam voices (bulbul:v3 — all 39 voices)
 SARVAM_VOICES = {f"sarvam-{v}": {"speaker": v} for v in [
@@ -86,19 +82,21 @@ async def _preview_openai_live(openai_voice: str) -> Response:
     api_key = os.getenv("OPENAI_API_KEY", "")
     if not api_key:
         raise HTTPException(status_code=500, detail="OpenAI API key not configured")
-    try:
-        async with httpx.AsyncClient(timeout=15) as client:
-            resp = await client.post(
-                "https://api.openai.com/v1/audio/speech",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-                json={"model": "tts-1", "input": PREVIEW_TEXT_EN, "voice": openai_voice, "response_format": "mp3"},
-            )
-        resp.raise_for_status()
-        return Response(content=resp.content, media_type="audio/mpeg",
-                        headers={"Cache-Control": "public, max-age=86400"})
-    except Exception as exc:
-        logger.error("tts_preview_openai_failed", voice=openai_voice, error=str(exc))
-        raise HTTPException(status_code=502, detail="TTS preview failed")
+    # Try tts-1 first, fall back to gpt-4o-mini-tts for newer voices
+    for model in ["tts-1", "gpt-4o-mini-tts"]:
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.post(
+                    "https://api.openai.com/v1/audio/speech",
+                    headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                    json={"model": model, "input": PREVIEW_TEXT_EN, "voice": openai_voice, "response_format": "mp3"},
+                )
+            resp.raise_for_status()
+            return Response(content=resp.content, media_type="audio/mpeg",
+                            headers={"Cache-Control": "public, max-age=86400"})
+        except Exception:
+            continue
+    raise HTTPException(status_code=502, detail="TTS preview failed")
 
 
 async def _preview_sarvam_live(voice_meta: dict, lang: str = "hi") -> Response:

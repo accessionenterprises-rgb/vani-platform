@@ -22,13 +22,28 @@ const LLM_PROVIDERS = [
 ]
 
 const TTS_PROVIDERS = [
-  { id: 'openai-nova',    name: 'Nova',       vendor: 'OpenAI',    desc: 'Warm & natural, great default',    badge: 'Recommended' },
-  { id: 'openai-shimmer', name: 'Shimmer',    vendor: 'OpenAI',    desc: 'Clear & crisp, professional',      badge: null },
-  { id: 'openai-alloy',   name: 'Alloy',      vendor: 'OpenAI',    desc: 'Neutral & balanced tone',          badge: null },
-  { id: 'sarvam',         name: 'Sarvam',     vendor: 'Sarvam AI', desc: 'Native Indian language voices',    badge: 'India' },
+  { id: 'openai',         name: 'OpenAI',     vendor: 'OpenAI',    desc: '6 voices — warm, crisp, natural',  badge: 'Recommended' },
+  { id: 'sarvam',         name: 'Sarvam',     vendor: 'Sarvam AI', desc: '39 Indian voices — Hi & En',       badge: 'India' },
   { id: 'elevenlabs',     name: 'ElevenLabs', vendor: 'ElevenLabs',desc: 'Most expressive, ultra-realistic', badge: 'Expressive' },
   { id: 'google-wavenet', name: 'WaveNet',    vendor: 'Google',    desc: 'Natural, multilingual support',    badge: null },
   { id: 'cartesia',       name: 'Cartesia',   vendor: 'Cartesia',  desc: 'Ultra-low latency synthesis',      badge: 'Speed' },
+]
+
+const OPENAI_VOICES = [
+  // Provider voices (OpenAI native)
+  { id: 'openai-alloy',    name: 'Alloy',    accent: 'American', age: 'Young',       src: 'Provider' },
+  { id: 'openai-ash',      name: 'Ash',      accent: 'American', age: 'Mid',         src: 'Provider' },
+  { id: 'openai-ballad',   name: 'Ballad',   accent: 'American', age: 'Mid',         src: 'Provider' },
+  { id: 'openai-cedar',    name: 'Cedar',    accent: 'American', age: 'Mid',         src: 'Provider' },
+  { id: 'openai-coral',    name: 'Coral',    accent: 'American', age: 'Mid',         src: 'Provider' },
+  { id: 'openai-echo',     name: 'Echo',     accent: 'American', age: 'Mid',         src: 'Provider' },
+  { id: 'openai-fable',    name: 'Fable',    accent: 'British',  age: 'Young',       src: 'Provider' },
+  { id: 'openai-marin',    name: 'Marin',    accent: 'American', age: 'Mid',         src: 'Provider' },
+  { id: 'openai-nova',     name: 'Nova',     accent: 'American', age: 'Mature',      src: 'Provider' },
+  { id: 'openai-onyx',     name: 'Onyx',     accent: 'American', age: 'Mid',         src: 'Provider' },
+  { id: 'openai-sage',     name: 'Sage',     accent: 'American', age: 'Young',       src: 'Provider' },
+  { id: 'openai-shimmer',  name: 'Shimmer',  accent: 'American', age: 'Mature',      src: 'Provider' },
+  { id: 'openai-verse',    name: 'Verse',    accent: 'American', age: 'Mid',         src: 'Provider' },
 ]
 
 const VOICE_STEPS = [
@@ -155,7 +170,7 @@ export default function AgentFormPage() {
 
   const sttMeta = STT_PROVIDERS.find(p => p.id === form.stt_provider)
   const llmMeta = LLM_PROVIDERS.find(p => p.id === form.llm_provider)
-  const ttsMeta = TTS_PROVIDERS.find(p => p.id === form.tts_provider)
+  const ttsMeta = TTS_PROVIDERS.find(p => p.id === form.tts_provider || form.tts_provider?.startsWith(p.id + '-'))
   const stepIdx = STEPS.findIndex(s => s.id === step)
 
   return (
@@ -528,12 +543,15 @@ function StackStep({ form, set }) {
         onSelect={v => set('tts_provider', v)}
       />
 
-      {/* Voice preview — OpenAI voices */}
-      {form.tts_provider?.startsWith('openai-') && (
-        <VoicePreview voice={form.tts_provider} />
+      {/* OpenAI voice picker */}
+      {(form.tts_provider === 'openai' || form.tts_provider?.startsWith('openai-')) && (
+        <OpenAIVoicePicker
+          selected={form.tts_provider?.startsWith('openai-') ? form.tts_provider : 'openai-nova'}
+          onSelect={v => set('tts_provider', v)}
+        />
       )}
 
-      {/* Sarvam voice picker — show when any sarvam voice is selected */}
+      {/* Sarvam voice picker */}
       {(form.tts_provider === 'sarvam' || form.tts_provider?.startsWith('sarvam-')) && (
         <SarvamVoicePicker
           selected={form.tts_provider?.startsWith('sarvam-') ? form.tts_provider : 'sarvam-priya'}
@@ -573,7 +591,7 @@ function ProviderSection({ title, stepTag, subtitle, providers, selected, onSele
       </div>
       <div className="grid grid-cols-2 gap-2.5">
         {providers.map(p => (
-          <ProviderCard key={p.id} provider={p} isSelected={selected === p.id} onSelect={() => onSelect(p.id)} />
+          <ProviderCard key={p.id} provider={p} isSelected={selected === p.id || selected?.startsWith(p.id + '-')} onSelect={() => onSelect(p.id)} />
         ))}
       </div>
     </div>
@@ -1081,6 +1099,31 @@ function VoicePreview({ voice, lang }) {
         <p className="text-xs font-medium text-slate-300">Preview {voiceName} voice</p>
         <p className="text-[10px] text-slate-600 mt-0.5">Hear how your agent will sound on calls</p>
       </div>
+    </div>
+  )
+}
+
+
+// ─── OpenAI Voice Picker ──────────────────────────────────────────────────
+
+function OpenAIVoicePicker({ selected, onSelect }) {
+  return (
+    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
+      <p className="text-xs font-semibold text-slate-400">Choose OpenAI Voice</p>
+      <div className="grid grid-cols-4 gap-2">
+        {OPENAI_VOICES.map(v => (
+          <button key={v.id} type="button" onClick={() => onSelect(v.id)}
+            className={`p-2.5 rounded-xl border text-left transition-all ${
+              selected === v.id
+                ? 'bg-indigo-500/10 border-indigo-500/40'
+                : 'bg-[#080a12] border-[#2a2d3a] hover:border-[#3a3d4a]'
+            }`}>
+            <p className={`text-xs font-semibold ${selected === v.id ? 'text-indigo-300' : 'text-slate-300'}`}>{v.name}</p>
+            <p className="text-[10px] text-slate-600 mt-0.5">{v.accent} · {v.age}</p>
+          </button>
+        ))}
+      </div>
+      <VoicePreview voice={selected} />
     </div>
   )
 }
