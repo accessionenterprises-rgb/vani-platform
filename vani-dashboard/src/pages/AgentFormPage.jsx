@@ -7,18 +7,24 @@ import { api } from '../api/client'
 const STT_PROVIDERS = [
   { id: 'deepgram-nova-3', name: 'Nova-3',        vendor: 'Deepgram', desc: 'Best accuracy, real-time streaming',   badge: 'Recommended' },
   { id: 'deepgram-nova-2', name: 'Nova-2',        vendor: 'Deepgram', desc: 'Faster, slightly lower accuracy',      badge: null },
+  { id: 'sarvam-saaras',   name: 'Saaras v2',     vendor: 'Sarvam AI',desc: 'Best Hindi & Hinglish, lowest cost',   badge: 'India' },
+  { id: 'openai-whisper',  name: 'Whisper',       vendor: 'OpenAI',   desc: 'Accurate, 50+ languages',             badge: null },
   { id: 'google',          name: 'Speech-to-Text',vendor: 'Google',   desc: 'Strong multilingual support',          badge: null },
   { id: 'azure',           name: 'Speech',        vendor: 'Azure',    desc: 'Enterprise-grade reliability',         badge: 'Enterprise' },
 ]
 
 const LLM_PROVIDERS = [
-  { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',     vendor: 'OpenAI',    desc: 'Fast, cost-efficient, reliable',    badge: 'Recommended' },
-  { id: 'gemini-2.0-flash',           name: 'Gemini 2.0 Flash',vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast' },
-  { id: 'gemini-flash-lite',          name: 'Flash Lite',      vendor: 'Google',    desc: 'Ultra-fast, lowest cost',           badge: null },
-  { id: 'claude-haiku-4-5-20251001',  name: 'Claude Haiku',    vendor: 'Anthropic', desc: 'Nuanced instruction-following',     badge: null },
-  { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',   vendor: 'Meta',      desc: 'Open-source, self-hostable',        badge: null },
-  { id: 'mistral-large',             name: 'Mistral Large',   vendor: 'Mistral',   desc: 'EU data-resident option',           badge: null },
-  { id: 'deepseek-chat',             name: 'DeepSeek Chat',   vendor: 'DeepSeek',  desc: 'Cost-effective, fast responses',    badge: null },
+  { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',      vendor: 'OpenAI',    desc: 'Fast, cost-efficient, reliable',    badge: 'Recommended' },
+  { id: 'gemini-3.0-flash',           name: 'Gemini 3.0 Flash', vendor: 'Google',    desc: 'Latest — fastest & smartest',       badge: 'Best Value' },
+  { id: 'gemini-2.0-flash',           name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast' },
+  { id: 'gemini-flash-lite',          name: 'Flash Lite',       vendor: 'Google',    desc: 'Ultra-fast, lowest cost',           badge: null },
+  { id: 'claude-haiku-4-5-20251001',  name: 'Claude Haiku',     vendor: 'Anthropic', desc: 'Nuanced instruction-following',     badge: null },
+  { id: 'gpt-4o',                     name: 'GPT-4o',           vendor: 'OpenAI',    desc: 'Most capable, higher cost',         badge: 'Premium' },
+  { id: 'gpt-4o-mini-realtime',      name: 'GPT-4o Mini RT',   vendor: 'OpenAI',    desc: 'Speech-to-speech, low latency',     badge: 'Realtime' },
+  { id: 'gpt-4o-realtime',           name: 'GPT-4o Realtime',  vendor: 'OpenAI',    desc: 'Speech-to-speech, most capable',    badge: 'Realtime' },
+  { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',    vendor: 'Meta',      desc: 'Open-source, self-hostable',        badge: null },
+  { id: 'mistral-large',             name: 'Mistral Large',    vendor: 'Mistral',   desc: 'EU data-resident option',           badge: null },
+  { id: 'deepseek-chat',             name: 'DeepSeek Chat',    vendor: 'DeepSeek',  desc: 'Cost-effective, fast responses',    badge: null },
 ]
 
 const TTS_PROVIDERS = [
