@@ -22,7 +22,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Widget endpoints need cross-origin access from customer sites
+    allow_origins=["*"] if settings.environment == "development" else [
+        "https://vani.live",
+        "https://app.vani.live",
+        "https://dashboard.vani.live",
+        "https://admin.vani.live",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
