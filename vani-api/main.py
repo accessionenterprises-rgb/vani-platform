@@ -181,7 +181,8 @@ def debug_hunter():
     """Temporary debug endpoint — remove after scan is working."""
     from app.routers.number_hunter import _scan_running, _scan_progress, NANP_COUNTRIES
     from app.config import settings as s
-    db = get_db()
+    from app.db import get_db as _gdb
+    db = _gdb()
     recent = db.table("number_scan_runs").select("*").order("started_at", desc=True).limit(5).execute().data or []
     return {
         "in_memory": {
