@@ -205,12 +205,12 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
                         continue
                     s.append({"label": f"{npa}-{a}x3-{b}x2-{c}x2", "pattern": f"{npa}{a}{a}{a}{b}{b}{c}{c}", "tier": "A-npa-aaabbcc"})
 
-    # 8. ABABAB (alternating 6-block)
+    # 8. ABABABAB (8-digit alternating)
     for a in range(2, 10):
         for b in range(0, 10):
             if a == b:
                 continue
-            s.append({"label": f"{a}{b}-alt6", "pattern": f"{a}{b}{a}{b}{a}{b}", "tier": "B-alternating"})
+            s.append({"label": f"{a}{b}-alt8", "pattern": f"{a}{b}" * 4, "tier": "B-alt8"})
 
     # 9. ABABABABAB (full 10-digit alternating, b≥2 for NXX)
     for a in range(2, 10):
