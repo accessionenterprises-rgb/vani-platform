@@ -193,19 +193,7 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
                     continue
                 s.append({"label": f"{npa}-{a}x3-{b}x3", "pattern": f"{npa}{a}{a}{a}{b}{b}{b}", "tier": "A-npa-aaabbb"})
 
-    # 7. NPA + AAA + BB + CC (area code followed by aaabbcc)
-    for n in npas:
-        npa = str(n)
-        for a in range(0, 10):
-            for b in range(0, 10):
-                if a == b:
-                    continue
-                for c in range(0, 10):
-                    if c == a or c == b:
-                        continue
-                    s.append({"label": f"{npa}-{a}x3-{b}x2-{c}x2", "pattern": f"{npa}{a}{a}{a}{b}{b}{c}{c}", "tier": "A-npa-aaabbcc"})
-
-    # 8. ABABABAB (8-digit alternating)
+    # 7. ABABABAB (8-digit alternating)
     for a in range(2, 10):
         for b in range(0, 10):
             if a == b:

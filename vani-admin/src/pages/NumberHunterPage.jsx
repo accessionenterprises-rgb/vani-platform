@@ -3,7 +3,7 @@ import { adminApi } from '../api/client'
 
 const TIER_GROUPS = {
   'S · Elite': ['S-bookend-quad', 'S-triple-npa'],
-  'A · Premium': ['A-double-seq', 'A-double-rev', 'A-seven', 'A-mirror', 'A-bookend-pair', 'A-npa-aaabbb', 'A-npa-aaabbcc', 'A-palindrome', 'A-ascending-pairs', 'A-descending-pairs'],
+  'A · Premium': ['A-double-seq', 'A-double-rev', 'A-seven', 'A-mirror', 'A-bookend-pair', 'A-npa-aaabbb', 'A-palindrome', 'A-ascending-pairs', 'A-descending-pairs'],
   'B · Notable': ['B-alt8', 'B-alt10', 'B-xxyy-alt'],
   'P · Prefix':  ['P-suffix-quad', 'P-seq6', 'P-seq7'],
   'TF · Toll-Free': ['TF-double-aaaa', 'TF-double-aabb', 'TF-double-seq'],
