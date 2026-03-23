@@ -143,7 +143,7 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
     """Return all search dicts for the given NPA list, optionally limited to tiers_filter."""
     s: list[dict] = []
 
-    # 0. Long sequential runs (6, 7 digits only — 5 is too common)
+    # 0. Sequences anywhere (6, 7 digits) — position-agnostic substring
     for length in (6, 7):
         tier = f"P-seq{length}"
         max_start = 10 - length
@@ -153,23 +153,17 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
             s.append({"label": f"seq{length}-asc-{i}",    "pattern": asc,  "tier": tier})
             s.append({"label": f"seq{length}-desc-{9-i}", "pattern": desc, "tier": tier})
 
+    # 1. Identical digit runs anywhere — position-agnostic substring
+    for length in (5, 6, 7):
+        tier = f"P-identical{length}"
+        for a in range(0, 10):
+            s.append({"label": f"{a}x{length}", "pattern": str(a) * length, "tier": tier})
+
     # 2. xyzxyz + SEQ4 endings
     for n in npas:
         npa = str(n)
         for end in SEQ4:
             s.append({"label": f"{npa}x2-{end}", "pattern": f"{npa}{npa}{end}", "tier": "A-double-seq"})
-
-    # 3. NPA + a×7 (e.g. 919-222-2222) — full a∈{2..9}
-    for n in npas:
-        npa = str(n)
-        for a in range(2, 10):
-            s.append({"label": f"{npa}-{a}x7", "pattern": npa + str(a) * 7, "tier": "A-seven"})
-
-    # 3b. NPA + a×6 (e.g. 919-222-222X) — 9-char substring match
-    for n in npas:
-        npa = str(n)
-        for a in range(2, 10):
-            s.append({"label": f"{npa}-{a}x6", "pattern": npa + str(a) * 6, "tier": "A-six"})
 
     # 5. NPA×2·rev(NPA)·X — full x∈{0..9}
     for n in npas:
