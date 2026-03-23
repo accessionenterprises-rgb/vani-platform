@@ -46,10 +46,14 @@ export default function NumbersPage() {
     }
   }
 
+  const [savedId, setSavedId] = useState(null)
+
   async function handleAssign(numberId, agentId) {
     try {
       const updated = await api.updateNumber(numberId, { agent_id: agentId || null })
       setNumbers(n => n.map(x => x.id === numberId ? { ...x, agent_id: updated.agent_id } : x))
+      setSavedId(numberId)
+      setTimeout(() => setSavedId(null), 2000)
     } catch (err) {
       setError(err.message)
     }
@@ -166,7 +170,7 @@ export default function NumbersPage() {
                     <p className="text-xs text-slate-600 mt-0.5">{num.provider}</p>
                   </div>
 
-                  {/* Agent assign dropdown */}
+                  {/* Agent assign dropdown — auto-saves on change */}
                   <div className="flex items-center gap-2">
                     <select
                       value={num.agent_id || ''}
@@ -175,6 +179,9 @@ export default function NumbersPage() {
                       <option value="">— Unassigned —</option>
                       {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
+                    {savedId === num.id && (
+                      <span className="text-[10px] text-emerald-400 font-medium animate-pulse">Saved</span>
+                    )}
                   </div>
 
                   <span className={`text-[10px] font-medium px-2 py-1 rounded-full shrink-0 ${
