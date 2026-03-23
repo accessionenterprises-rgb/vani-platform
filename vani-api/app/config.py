@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     twilio_twiml_app_sid: str = ""
     twilio_caller_id: str = "+19209209967"
 
+    # Telnyx — set TELNYX_API_KEY on Railway for number search
+    telnyx_api_key: str = ""
+
     # Admin panel — set ADMIN_SECRET on Railway
     admin_secret: str = "vani-admin-change-me"
 

@@ -379,9 +379,42 @@ def _twilio_search(country: str, pattern: str, is_tollfree: bool = False) -> lis
         return []
 
 
+# ── Telnyx search ────────────────────────────────────────────────────────────
+
+def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False) -> list[str]:
+    if not settings.telnyx_api_key:
+        return []
+    try:
+        import httpx
+        params = {
+            "filter[country_code]": country,
+            "filter[phone_number][contains]": pattern,
+            "filter[limit]": 10,
+        }
+        if is_tollfree:
+            params["filter[number_type]"] = "toll-free"
+        r = httpx.get(
+            "https://api.telnyx.com/v2/available_phone_numbers",
+            params=params,
+            headers={"Authorization": f"Bearer {settings.telnyx_api_key}"},
+            timeout=15,
+        )
+        r.raise_for_status()
+        return [n["phone_number"] for n in r.json().get("data", [])]
+    except Exception:
+        return []
+
+
+def _search_numbers(service: str, country: str, pattern: str, is_tollfree: bool = False) -> list[str]:
+    """Route search to the correct provider."""
+    if service == "telnyx":
+        return _telnyx_search(country, pattern, is_tollfree)
+    return _twilio_search(country, pattern, is_tollfree)
+
+
 # ── Core scan logic ───────────────────────────────────────────────────────────
 
-async def scan_country(country: str, npas: list[int], tiers_filter: Optional[list[str]] = None) -> dict:
+async def scan_country(country: str, npas: list[int], tiers_filter: Optional[list[str]] = None, service: str = "twilio") -> dict:
     db = get_db()
     scan_id: Optional[str] = None
 
@@ -402,7 +435,7 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
             raise RuntimeError("Failed to insert scan run row")
         scan_id = _run_resp.data[0]["id"]
 
-        _scan_progress[country] = {"searched": 0, "total": len(patterns), "found": 0, "service": "twilio"}
+        _scan_progress[country] = {"searched": 0, "total": len(patterns), "found": 0, "service": service}
 
         found = 0
         new_count = 0
@@ -417,7 +450,7 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
             async with sem:
                 try:
                     is_tf = p["tier"].startswith("TF-")
-                    nums = await asyncio.to_thread(_twilio_search, country, p["pattern"], is_tf)
+                    nums = await asyncio.to_thread(_search_numbers, service, country, p["pattern"], is_tf)
                     for num in nums:
                         if num in seen:
                             continue
@@ -510,7 +543,7 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
 _COUNTRY_CONCURRENCY = 4   # max simultaneous country scans
 
 
-async def daily_scan(countries: Optional[list[str]] = None, tiers_filter: Optional[list[str]] = None) -> None:
+async def daily_scan(countries: Optional[list[str]] = None, tiers_filter: Optional[list[str]] = None, service: str = "twilio") -> None:
     """Scan all (or specified) NANP countries in parallel, up to _COUNTRY_CONCURRENCY at once."""
     targets = {c: npas for c, npas in NANP_COUNTRIES.items() if not countries or c in countries}
     sem = asyncio.Semaphore(_COUNTRY_CONCURRENCY)
@@ -521,8 +554,8 @@ async def daily_scan(countries: Optional[list[str]] = None, tiers_filter: Option
         async with sem:
             _scan_running[country] = True
             try:
-                logger.info("Scan starting: %s", country)
-                await scan_country(country, npas, tiers_filter=tiers_filter)
+                logger.info("Scan starting: %s (%s)", country, service)
+                await scan_country(country, npas, tiers_filter=tiers_filter, service=service)
                 logger.info("Scan done: %s", country)
                 _scan_running[country] = False
             except Exception as exc:

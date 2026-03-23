@@ -545,6 +545,7 @@ def admin_hunter_status():
 class AdminScanRequest(BaseModel):
     country: Optional[str] = None           # single country (legacy)
     countries: Optional[list] = None        # multiple countries (new)
+    service: str = "twilio"                 # twilio | telnyx
 
 
 @router.post("/hunter/scan", dependencies=[Depends(_verify_token)])
@@ -568,11 +569,13 @@ async def admin_hunter_scan(body: AdminScanRequest):
     # Pre-mark as queued BEFORE create_task so status endpoint shows them immediately
     for c in targets:
         _scan_running[c] = "queued"
-    asyncio.create_task(daily_scan(countries=targets))
+    svc = body.service if body.service in ("twilio", "telnyx") else "twilio"
+    asyncio.create_task(daily_scan(countries=targets, service=svc))
     return {
         "started": True,
         "countries": targets,
         "patterns": total_patterns,
+        "service": svc,
         "parallel": len(targets) > 1,
     }
 

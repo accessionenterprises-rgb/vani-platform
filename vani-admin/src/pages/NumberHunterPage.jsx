@@ -108,6 +108,7 @@ export default function NumberHunterPage() {
   const [scoreFilter, setScoreFilter] = useState('')   // '', '8', '6', 'unscored'
   const [scanning, setScanning]         = useState(false)
   const [scanCountries, setScanCountries] = useState(['US'])  // multi-select
+  const [scanService, setScanService]   = useState('twilio')  // twilio | telnyx
   const [countryPickerOpen, setCountryPickerOpen] = useState(false)
   const [purchasing, setPurchasing]     = useState(null)
   const [toast, setToast]             = useState(null)
@@ -302,10 +303,11 @@ export default function NumberHunterPage() {
     setScanMsg(null)
     setScanning(true)
     try {
-      const r = await adminApi.hunterScan(scanCountries)
+      const r = await adminApi.hunterScan(scanCountries, scanService)
+      const svcLabel = r.service === 'telnyx' ? ' (Telnyx)' : ' (Twilio)'
       const label = r.countries?.length === 1
-        ? `${r.countries[0]} — ${r.patterns?.toLocaleString() || 0} patterns`
-        : `${r.countries?.join(', ')} — ${r.patterns?.toLocaleString() || 0} patterns total (${r.countries?.length} in parallel)`
+        ? `${r.countries[0]} — ${r.patterns?.toLocaleString() || 0} patterns${svcLabel}`
+        : `${r.countries?.join(', ')} — ${r.patterns?.toLocaleString() || 0} patterns total${svcLabel}`
       setScanMsg({ type: 'info', text: `Scanning ${label}` })
       const st = await adminApi.hunterStatus()
       setStatus(st)
@@ -422,6 +424,18 @@ export default function NumberHunterPage() {
                 ))}
               </div>
             )}
+          </div>
+          {/* Provider toggle */}
+          <div className="flex rounded-lg border border-[#2a2d3a] overflow-hidden">
+            {['twilio', 'telnyx'].map(svc => (
+              <button key={svc} onClick={() => setScanService(svc)}
+                className={`px-3 py-2 text-xs font-medium transition-colors ${
+                  scanService === svc
+                    ? 'bg-indigo-500/15 text-indigo-300'
+                    : 'bg-[#12141f] text-slate-500 hover:text-slate-300'
+                }`}
+              >{svc.charAt(0).toUpperCase() + svc.slice(1)}</button>
+            ))}
           </div>
           <button
             onClick={handleScan}
