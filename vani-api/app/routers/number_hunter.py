@@ -191,6 +191,14 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
         for a in range(0, 10):
             s.append({"label": f"{npa}-{a}x4-{npa}", "pattern": f"{npa}{a}{a}{a}{a}{npa}", "tier": "S-bookend-quad"})
 
+    # 14. Bookend SEQ4: NPA + 4-digit sequence + NPA (e.g. 351-1234-351)
+    BOOKEND_SEQS = ["0123", "1234", "2345", "3456", "4567", "5678", "6789",
+                    "9876", "8765", "7654", "6543", "5432", "4321", "3210"]
+    for n in npas:
+        npa = str(n)
+        for seq in BOOKEND_SEQS:
+            s.append({"label": f"{npa}-{seq}-{npa}", "pattern": f"{npa}{seq}{npa}", "tier": "S-bookend-seq"})
+
     # 15. Triple area code: NPA appears 3× in 10 digits (no wildcards)
     for n in npas:
         npa = str(n)

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { adminApi } from '../api/client'
 
 const TIER_GROUPS = {
-  'S · Elite': ['S-bookend-quad', 'S-triple-npa'],
+  'S · Elite': ['S-bookend-quad', 'S-bookend-seq', 'S-triple-npa'],
   'A · Premium': ['A-double-npa', 'A-double-rev', 'A-palindrome', 'A-ascending-pairs', 'A-descending-pairs'],
   'B · Notable': ['B-alt8', 'B-alt10', 'B-xxyy-alt'],
   'P · Pattern': ['P-seq6', 'P-seq7', 'P-identical5', 'P-identical6', 'P-identical7'],
