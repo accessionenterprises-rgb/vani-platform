@@ -143,8 +143,8 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
     """Return all search dicts for the given NPA list, optionally limited to tiers_filter."""
     s: list[dict] = []
 
-    # 0. Long sequential runs (5, 6, 7 digits)
-    for length in (5, 6, 7):
+    # 0. Long sequential runs (6, 7 digits only — 5 is too common)
+    for length in (6, 7):
         tier = f"P-seq{length}"
         max_start = 10 - length
         for i in range(max_start + 1):
@@ -184,64 +184,40 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
         for x in range(0, 10):
             s.append({"label": f"{npa}x2-{rev}-{x}", "pattern": f"{npa}{npa}{rev}{x}", "tier": "A-double-rev"})
 
-    # 6. AAA-BBB-CCCC (three uniform segments)
-    for a in range(2, 10):
-        for b in range(2, 10):
-            for c in range(0, 10):
-                if a == b == c:
+    # 6. NPA + AAA + BBB + X (area code followed by double 3-block)
+    for n in npas:
+        npa = str(n)
+        for a in range(0, 10):
+            for b in range(0, 10):
+                if a == b:
                     continue
-                s.append({
-                    "label": f"{a}x3-{b}x3-{c}x4",
-                    "pattern": str(a) * 3 + str(b) * 3 + str(c) * 4,
-                    "tier": "B-segments",
-                })
+                s.append({"label": f"{npa}-{a}x3-{b}x3", "pattern": f"{npa}{a}{a}{a}{b}{b}{b}", "tier": "A-npa-aaabbb"})
 
-    # 7. AAAAABBBBB (5+5 split)
-    for a in range(2, 10):
-        for b in range(0, 10):
-            if a == b:
-                continue
-            s.append({"label": f"{a}x5-{b}x5", "pattern": str(a) * 5 + str(b) * 5, "tier": "B-fivefive"})
+    # 7. NPA + AAA + BB + CC (area code followed by aaabbcc)
+    for n in npas:
+        npa = str(n)
+        for a in range(0, 10):
+            for b in range(0, 10):
+                if a == b:
+                    continue
+                for c in range(0, 10):
+                    if c == a or c == b:
+                        continue
+                    s.append({"label": f"{npa}-{a}x3-{b}x2-{c}x2", "pattern": f"{npa}{a}{a}{a}{b}{b}{c}{c}", "tier": "A-npa-aaabbcc"})
 
-    # 8. AAABBB (double 3-block)
-    for a in range(2, 10):
-        for b in range(0, 10):
-            if a == b:
-                continue
-            s.append({"label": f"{a}x3-{b}x3-block", "pattern": str(a) * 3 + str(b) * 3, "tier": "B-double-block"})
-
-    # 9. ABABAB (alternating 6-block)
+    # 8. ABABAB (alternating 6-block)
     for a in range(2, 10):
         for b in range(0, 10):
             if a == b:
                 continue
             s.append({"label": f"{a}{b}-alt6", "pattern": f"{a}{b}{a}{b}{a}{b}", "tier": "B-alternating"})
 
-    # 10. ABABABABAB (full 10-digit alternating, b≥2 for NXX)
+    # 9. ABABABABAB (full 10-digit alternating, b≥2 for NXX)
     for a in range(2, 10):
         for b in range(2, 10):
             if a == b:
                 continue
             s.append({"label": f"{a}{b}-alt10", "pattern": f"{a}{b}" * 5, "tier": "B-alt10"})
-
-    # 11. 3-unit repeating triples ×3 + free last digit (9-char prefix)
-    for a in range(2, 10):
-        for b in range(0, 10):
-            if a == b:
-                continue
-            s.append({"label": f"{a}{a}{b}-triple", "pattern": f"{a}{a}{b}" * 3, "tier": "B-aab-triple"})
-            s.append({"label": f"{a}{b}{a}-triple", "pattern": f"{a}{b}{a}" * 3, "tier": "B-aba-triple"})
-            s.append({"label": f"{a}{b}{b}-triple", "pattern": f"{a}{b}{b}" * 3, "tier": "B-abb-triple"})
-
-    # 12. ABC×3 + free (3 distinct digits, 9-char prefix)
-    for a in range(2, 10):
-        for b in range(0, 10):
-            if b == a:
-                continue
-            for c in range(0, 10):
-                if c == a or c == b:
-                    continue
-                s.append({"label": f"{a}{b}{c}-triple", "pattern": f"{a}{b}{c}" * 3, "tier": "B-abc-triple"})
 
     # 13. Bookend AAAA: NPA + aaaa + NPA (e.g. 351-2222-351)
     for n in npas:
