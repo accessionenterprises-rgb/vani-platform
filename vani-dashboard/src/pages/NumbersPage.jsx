@@ -24,7 +24,7 @@ export default function NumbersPage() {
   useEffect(() => {
     Promise.all([api.listNumbers(), api.listAgents()])
       .then(([n, a]) => { setNumbers(n || []); setAgents(a || []) })
-      .catch(console.error)
+      .catch(err => { console.error(err); setError(err.message || 'Failed to load numbers') })
       .finally(() => setLoading(false))
   }, [])
 
