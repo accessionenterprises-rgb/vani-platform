@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from app.config import settings
-from app.routers import admin, agent_builder, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, number_hunter, numbers, outbound, playground_chat, products, team, tools, webhooks, widget
+from app.routers import admin, agent_builder, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, number_hunter, numbers, outbound, playground_chat, products, team, tools, tts_preview, webhooks, widget
 
 logger = structlog.get_logger()
 
@@ -53,6 +53,7 @@ app.include_router(dialer.router)
 app.include_router(team.router)
 app.include_router(widget.router)
 app.include_router(agent_builder.router)
+app.include_router(tts_preview.router)
 
 STATIC_DIR = Path(__file__).parent / "static"
 

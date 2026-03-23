@@ -52,6 +52,7 @@ export const api = {
   getWidgetKey:    (agentId)           => request('GET', `/agents/${agentId}/widget-key`),
   createWidgetKey: (agentId)           => request('POST', `/agents/${agentId}/widget-key`),
   builderChat:     (message, history)  => request('POST', '/builder/chat', { message, history }),
+  ttsPreviewUrl:   (voice)            => `${BASE}/tts/preview?voice=${encodeURIComponent(voice)}`,
 
   // KB
   listKb:      (agentId)          => request('GET', `/agents/${agentId}/kb`),

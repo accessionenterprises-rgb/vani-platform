@@ -527,6 +527,11 @@ function StackStep({ form, set }) {
         selected={form.tts_provider}
         onSelect={v => set('tts_provider', v)}
       />
+
+      {/* Voice preview */}
+      {form.tts_provider?.startsWith('openai-') && (
+        <VoicePreview voice={form.tts_provider} />
+      )}
     </div>
   )
 }
@@ -1001,6 +1006,76 @@ function AdvancedStep({ form, set }) {
 const inputCls = 'w-full bg-[#080a12] border border-[#2a2d3a] focus:border-indigo-500 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors'
 
 // ─── Step: LLM Only (Chatbot) ──────────────────────────────────────────────
+
+// ─── Voice Preview ─────────────────────────────────────────────────────────
+
+function VoicePreview({ voice }) {
+  const [playing, setPlaying] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const audioRef = useRef(null)
+
+  async function handlePlay() {
+    if (playing && audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+      setPlaying(false)
+      return
+    }
+
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('vani_token')
+      const url = api.ttsPreviewUrl(voice) + `&t=${token}`
+
+      if (audioRef.current) {
+        audioRef.current.pause()
+      }
+      const audio = new Audio()
+      audio.src = url
+      // Pass auth via fetch + blob for proper auth
+      const resp = await fetch(api.ttsPreviewUrl(voice), {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!resp.ok) throw new Error('Preview failed')
+      const blob = await resp.blob()
+      audio.src = URL.createObjectURL(blob)
+      audioRef.current = audio
+      audio.onended = () => setPlaying(false)
+      audio.play()
+      setPlaying(true)
+    } catch (err) {
+      console.error('TTS preview failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const voiceName = voice.replace('openai-', '').replace(/^\w/, c => c.toUpperCase())
+
+  return (
+    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 flex items-center gap-4">
+      <button onClick={handlePlay} disabled={loading}
+        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
+          playing
+            ? 'bg-red-500/15 border border-red-500/30 text-red-400'
+            : 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/25'
+        } disabled:opacity-50`}>
+        {loading ? (
+          <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+        ) : playing ? (
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        ) : (
+          <svg className="w-4 h-4 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        )}
+      </button>
+      <div>
+        <p className="text-xs font-medium text-slate-300">Preview {voiceName} voice</p>
+        <p className="text-[10px] text-slate-600 mt-0.5">Hear how your agent will sound on calls</p>
+      </div>
+    </div>
+  )
+}
+
 
 function LLMOnlyStep({ form, set }) {
   return (
