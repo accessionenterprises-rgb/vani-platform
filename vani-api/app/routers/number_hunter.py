@@ -159,11 +159,10 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
         for a in range(0, 10):
             s.append({"label": f"{a}x{length}", "pattern": str(a) * length, "tier": tier})
 
-    # 2. xyzxyz + SEQ4 endings
+    # 2. NPA×2 — area code appears twice (6-char substring, any ending)
     for n in npas:
         npa = str(n)
-        for end in SEQ4:
-            s.append({"label": f"{npa}x2-{end}", "pattern": f"{npa}{npa}{end}", "tier": "A-double-seq"})
+        s.append({"label": f"{npa}x2", "pattern": f"{npa}{npa}", "tier": "A-double-npa"})
 
     # 5. NPA×2·rev(NPA)·X — full x∈{0..9}
     for n in npas:
