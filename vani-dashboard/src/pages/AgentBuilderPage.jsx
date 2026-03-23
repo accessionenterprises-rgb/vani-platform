@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 
 const TEMPLATES = [
-  { id: 'ecommerce',  icon: '🛍️', title: 'E-commerce Support',       desc: 'Returns, refunds & order tracking' },
-  { id: 'realestate', icon: '🏘️', title: 'Real Estate Qualifier',    desc: 'Budget, location & timeline' },
-  { id: 'restaurant', icon: '🍽️', title: 'Restaurant Reservations',  desc: 'Bookings & cancellations' },
-  { id: 'clinic',     icon: '🏥', title: 'Clinic Receptionist',      desc: 'Appointments & FAQs' },
-  { id: 'hotel',      icon: '🏨', title: 'Hotel Front Desk',         desc: 'Check-in, amenities & concierge' },
-  { id: 'custom',     icon: '⚡',  title: 'Custom Agent',             desc: 'Describe your own use case' },
+  { id: 'restaurant', icon: '🍽️', title: 'Restaurant & Food',        desc: 'Reservations, menu & takeout' },
+  { id: 'clinic',     icon: '🏥', title: 'Healthcare & Clinics',     desc: 'Appointments & patient FAQs' },
+  { id: 'realestate', icon: '🏘️', title: 'Real Estate',              desc: 'Lead qualification & viewings' },
+  { id: 'ecommerce',  icon: '🛍️', title: 'E-commerce & Retail',      desc: 'Orders, returns & support' },
+  { id: 'hotel',      icon: '🏨', title: 'Hotels & Hospitality',     desc: 'Check-in, concierge & bookings' },
+  { id: 'custom',     icon: '⚡',  title: 'Something Else',           desc: 'Describe your own use case' },
 ]
 
 export default function AgentBuilderPage() {
@@ -19,6 +19,7 @@ export default function AgentBuilderPage() {
   const [agentConfig, setAgentConfig] = useState(null)
   const [creating, setCreating] = useState(false)
   const [started, setStarted] = useState(false)
+  const [options, setOptions] = useState([])
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -27,23 +28,26 @@ export default function AgentBuilderPage() {
   }, [messages, loading])
 
   useEffect(() => {
-    if (started) inputRef.current?.focus()
-  }, [started])
+    if (started && options.length === 0) inputRef.current?.focus()
+  }, [started, options, loading])
 
   async function send(text) {
     if (!text.trim() || loading) return
     const userMsg = { role: 'user', content: text.trim() }
-    const newMessages = [...messages, userMsg]
-    setMessages(newMessages)
+    const history = [...messages]
+    setMessages(m => [...m, userMsg])
     setInput('')
     setLoading(true)
     setStarted(true)
+    setOptions([])
 
     try {
-      const res = await api.builderChat(text.trim(), messages)
+      const res = await api.builderChat(text.trim(), history)
       setMessages(m => [...m, { role: 'assistant', content: res.reply }])
+      setOptions(res.options || [])
       if (res.agent_config) {
         setAgentConfig(res.agent_config)
+        setOptions([])
       }
     } catch (err) {
       setMessages(m => [...m, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
@@ -53,10 +57,11 @@ export default function AgentBuilderPage() {
   }
 
   function handleTemplate(t) {
-    const msg = t.id === 'custom'
-      ? 'I want to build a custom voice agent.'
-      : `I want to build a voice agent for ${t.title.toLowerCase()}.`
-    send(msg)
+    send(t.title)
+  }
+
+  function handleOption(opt) {
+    send(opt)
   }
 
   async function handleDeploy() {
@@ -120,7 +125,7 @@ export default function AgentBuilderPage() {
                 </div>
                 <h2 className="text-xl font-semibold text-white mb-2">What kind of agent do<br/>you want to build?</h2>
                 <p className="text-sm text-slate-500 max-w-md mx-auto">
-                  I'll guide you through a quick conversation — one question at a time — then generate a production-ready system prompt you can deploy instantly.
+                  I'll guide you through a quick conversation — one question at a time — then generate a production-ready voice agent you can deploy instantly.
                 </p>
               </div>
 
@@ -177,6 +182,18 @@ export default function AgentBuilderPage() {
                 </div>
               )}
 
+              {/* Quick-reply option buttons */}
+              {!loading && options.length > 0 && !agentConfig && (
+                <div className="flex flex-wrap gap-2 pl-2 pt-1">
+                  {options.map((opt, i) => (
+                    <button key={i} onClick={() => handleOption(opt)}
+                      className="px-4 py-2.5 text-sm font-medium text-indigo-300 bg-indigo-500/8 border border-indigo-500/25 rounded-xl hover:bg-indigo-500/15 hover:border-indigo-500/40 transition-all">
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {/* Deploy card */}
               {agentConfig && !creating && (
                 <div className="bg-emerald-500/8 border border-emerald-500/25 rounded-2xl p-5 space-y-4 mt-6">
@@ -227,7 +244,7 @@ export default function AgentBuilderPage() {
                       </svg>
                       Deploy Agent
                     </button>
-                    <button onClick={() => { setAgentConfig(null); send('I want to make some changes.') }}
+                    <button onClick={() => { setAgentConfig(null); send('I want to change something.') }}
                       className="px-4 py-2.5 text-sm text-slate-400 hover:text-white bg-white/5 border border-[#2a2d3a] rounded-xl transition-colors">
                       Edit
                     </button>
@@ -257,7 +274,7 @@ export default function AgentBuilderPage() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input) } }}
-              placeholder="Describe your agent or answer the question above…"
+              placeholder={options.length > 0 ? 'Pick an option above or type your own...' : 'Type your answer...'}
               disabled={loading || creating}
               className="flex-1 bg-[#12141f] border border-[#2a2d3a] focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors disabled:opacity-50"
             />
