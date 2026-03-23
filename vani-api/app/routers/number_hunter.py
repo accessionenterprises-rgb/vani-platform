@@ -171,15 +171,6 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
         for x in range(0, 10):
             s.append({"label": f"{npa}x2-{rev}-{x}", "pattern": f"{npa}{npa}{rev}{x}", "tier": "A-double-rev"})
 
-    # 6. NPA + AAA + BBB + X (area code followed by double 3-block)
-    for n in npas:
-        npa = str(n)
-        for a in range(0, 10):
-            for b in range(0, 10):
-                if a == b:
-                    continue
-                s.append({"label": f"{npa}-{a}x3-{b}x3", "pattern": f"{npa}{a}{a}{a}{b}{b}{b}", "tier": "A-npa-aaabbb"})
-
     # 7. ABABABAB (8-digit alternating)
     for a in range(2, 10):
         for b in range(0, 10):
@@ -199,15 +190,6 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
         npa = str(n)
         for a in range(0, 10):
             s.append({"label": f"{npa}-{a}x4-{npa}", "pattern": f"{npa}{a}{a}{a}{a}{npa}", "tier": "S-bookend-quad"})
-
-    # 14. Bookend AABB: NPA + aabb + NPA (e.g. 205-6622-205)
-    for n in npas:
-        npa = str(n)
-        for a in range(0, 10):
-            for b in range(0, 10):
-                if a == b:
-                    continue
-                s.append({"label": f"{npa}-{a}{a}{b}{b}-{npa}", "pattern": f"{npa}{a}{a}{b}{b}{npa}", "tier": "A-bookend-pair"})
 
     # 15. Triple area code: NPA appears 3× in 10 digits (no wildcards)
     for n in npas:
