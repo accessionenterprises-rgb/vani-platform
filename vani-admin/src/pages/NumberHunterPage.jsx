@@ -5,7 +5,7 @@ const TIER_GROUPS = {
   'S · Elite': ['S-bookend-quad', 'S-bookend-seq', 'S-triple-npa'],
   'A · Premium': ['A-double-npa', 'A-double-rev', 'A-palindrome', 'A-ascending-pairs', 'A-descending-pairs'],
   'B · Notable': ['B-alt8', 'B-alt10', 'B-xxyy-alt'],
-  'P · Pattern': ['P-seq6', 'P-seq7', 'P-identical5', 'P-identical6', 'P-identical7'],
+  'P · Pattern': ['P-seq6', 'P-seq7', 'P-identical6', 'P-identical7'],
   'TF · Toll-Free': ['TF-double-aaaa', 'TF-double-aabb', 'TF-double-seq'],
 }
 const ALL_TIERS = Object.values(TIER_GROUPS).flat()

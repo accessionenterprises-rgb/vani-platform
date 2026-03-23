@@ -153,8 +153,8 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
             s.append({"label": f"seq{length}-asc-{i}",    "pattern": asc,  "tier": tier})
             s.append({"label": f"seq{length}-desc-{9-i}", "pattern": desc, "tier": tier})
 
-    # 1. Identical digit runs anywhere — position-agnostic substring
-    for length in (5, 6, 7):
+    # 1. Identical digit runs anywhere — 6 and 7 only (5 is too common)
+    for length in (6, 7):
         tier = f"P-identical{length}"
         for a in range(0, 10):
             s.append({"label": f"{a}x{length}", "pattern": str(a) * length, "tier": tier})
