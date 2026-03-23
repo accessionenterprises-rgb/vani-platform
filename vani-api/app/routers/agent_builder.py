@@ -133,24 +133,39 @@ class BuilderChatResponse(BaseModel):
 
 
 async def _call_llm(messages: list) -> str:
-    api_key = os.getenv("OPENAI_API_KEY", "")
+    api_key = os.getenv("ANTHROPIC_API_KEY", "")
     if not api_key:
-        raise HTTPException(status_code=500, detail="OpenAI API key not configured")
+        raise HTTPException(status_code=500, detail="Anthropic API key not configured")
+
+    # Convert OpenAI-style messages to Anthropic format
+    system_msg = ""
+    anthropic_messages = []
+    for m in messages:
+        if m["role"] == "system":
+            system_msg = m["content"]
+        else:
+            anthropic_messages.append({"role": m["role"], "content": m["content"]})
 
     try:
         async with httpx.AsyncClient(timeout=45) as client:
             resp = await client.post(
-                "https://api.openai.com/v1/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
                 json={
-                    "model": "gpt-4o",
-                    "messages": messages,
+                    "model": "claude-sonnet-4-20250514",
+                    "system": system_msg,
+                    "messages": anthropic_messages,
                     "max_tokens": 2000,
                     "temperature": 0.7,
                 },
             )
         resp.raise_for_status()
-        return resp.json()["choices"][0]["message"]["content"].strip()
+        data = resp.json()
+        return data["content"][0]["text"].strip()
     except Exception as exc:
         logger.error("builder_llm_failed", error=str(exc))
         raise HTTPException(status_code=502, detail="AI service temporarily unavailable")
