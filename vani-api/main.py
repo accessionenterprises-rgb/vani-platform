@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import admin, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, number_hunter, numbers, outbound, playground_chat, products, team, tools, webhooks
+from app.routers import admin, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, number_hunter, numbers, outbound, playground_chat, products, team, tools, webhooks, widget
 
 logger = structlog.get_logger()
 
@@ -48,6 +48,7 @@ app.include_router(dnc.router)
 app.include_router(playground_chat.router)
 app.include_router(dialer.router)
 app.include_router(team.router)
+app.include_router(widget.router)
 
 
 @app.on_event("startup")

@@ -31,7 +31,7 @@ const TTS_PROVIDERS = [
   { id: 'cartesia',       name: 'Cartesia',   vendor: 'Cartesia',  desc: 'Ultra-low latency synthesis',      badge: 'Speed' },
 ]
 
-const STEPS = [
+const VOICE_STEPS = [
   { id: 'identity',  label: 'Identity',  desc: 'Name, persona & prompt' },
   { id: 'stack',     label: 'AI Stack',  desc: 'STT, LLM, TTS providers' },
   { id: 'behavior',  label: 'Behavior',  desc: 'Tone, objective, escalation' },
@@ -39,8 +39,17 @@ const STEPS = [
   { id: 'advanced',  label: 'Advanced',  desc: 'Extraction, goals & privacy' },
 ]
 
+const CHATBOT_STEPS = [
+  { id: 'identity',  label: 'Identity',  desc: 'Name, persona & prompt' },
+  { id: 'llm',       label: 'AI Model',  desc: 'LLM provider' },
+  { id: 'widget',    label: 'Widget',    desc: 'Appearance & embed code' },
+  { id: 'behavior',  label: 'Behavior',  desc: 'Tone & objective' },
+  { id: 'knowledge', label: 'Knowledge', desc: 'Documents & web pages' },
+]
+
 const EMPTY = {
   name: '', greeting: '', prompt: '', language: 'en',
+  agent_type: 'voice',
   stt_provider: 'deepgram-nova-3',
   llm_provider: 'gpt-4o-mini',
   tts_provider: 'openai-nova',
@@ -50,6 +59,7 @@ const EMPTY = {
   custom_llm_url: '',
   custom_llm_model: '',
   pii_redaction: false,
+  widget_config: { theme_color: '#6366f1', position: 'bottom-right', placeholder: 'Type a message...', powered_by: true },
   escalation_config: {
     enabled: false,
     transfer_number: '',
@@ -75,20 +85,27 @@ export default function AgentFormPage() {
   const [versions, setVersions] = useState([])
   const [showVersions, setShowVersions] = useState(false)
   const [restoring, setRestoring] = useState(false)
+  const [widgetKey, setWidgetKey] = useState(null)
 
   useEffect(() => {
     if (isNew) return
     api.getAgent(id)
-      .then(a => setForm({
-        ...EMPTY, ...a,
-        behavior: { ...EMPTY.behavior, ...a.behavior },
-        escalation_config: { ...EMPTY.escalation_config, ...(a.escalation_config || {}) },
-        extraction_schema: a.extraction_schema || [],
-        success_criteria: a.success_criteria || '',
-        custom_llm_url: a.custom_llm_url || '',
-        custom_llm_model: a.custom_llm_model || '',
-        pii_redaction: a.pii_redaction ?? false,
-      }))
+      .then(a => {
+        setForm({
+          ...EMPTY, ...a,
+          behavior: { ...EMPTY.behavior, ...a.behavior },
+          escalation_config: { ...EMPTY.escalation_config, ...(a.escalation_config || {}) },
+          extraction_schema: a.extraction_schema || [],
+          success_criteria: a.success_criteria || '',
+          custom_llm_url: a.custom_llm_url || '',
+          custom_llm_model: a.custom_llm_model || '',
+          pii_redaction: a.pii_redaction ?? false,
+          widget_config: { ...EMPTY.widget_config, ...(a.widget_config || {}) },
+        })
+        if (a.agent_type === 'chatbot') {
+          api.getWidgetKey(id).then(r => setWidgetKey(r?.widget_key || null)).catch(() => {})
+        }
+      })
       .catch(() => navigate('/agents'))
       .finally(() => setLoading(false))
   }, [id, isNew, navigate])
@@ -102,6 +119,9 @@ export default function AgentFormPage() {
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }))
   const setBeh = (key, val) => setForm(f => ({ ...f, behavior: { ...f.behavior, [key]: val } }))
   const setEsc = (key, val) => setForm(f => ({ ...f, escalation_config: { ...f.escalation_config, [key]: val } }))
+  const setWc = (key, val) => setForm(f => ({ ...f, widget_config: { ...f.widget_config, [key]: val } }))
+
+  const STEPS = form.agent_type === 'chatbot' ? CHATBOT_STEPS : VOICE_STEPS
 
   async function handleSave() {
     setError('')
@@ -110,6 +130,7 @@ export default function AgentFormPage() {
       const payload = {
         name: form.name, greeting: form.greeting, prompt: form.prompt,
         language: form.language, voice: form.tts_provider,
+        agent_type: form.agent_type,
         stack: { stt: form.stt_provider, llm: form.llm_provider, tts: form.tts_provider },
         behavior: form.behavior,
         extraction_schema: form.extraction_schema,
@@ -118,6 +139,7 @@ export default function AgentFormPage() {
         custom_llm_model: form.custom_llm_model || null,
         pii_redaction: form.pii_redaction,
         escalation_config: form.escalation_config,
+        widget_config: form.agent_type === 'chatbot' ? form.widget_config : null,
       }
       if (isNew) await api.createAgent(payload)
       else await api.updateAgent(id, payload)
@@ -216,13 +238,18 @@ export default function AgentFormPage() {
 
           {/* ── Pipeline mini preview ── */}
           <div className="mt-auto p-4 border-t border-[#1a1d2e] mx-3 mb-3">
-            <p className="text-[9px] font-semibold text-slate-600 uppercase tracking-widest mb-3">Pipeline</p>
+            <p className="text-[9px] font-semibold text-slate-600 uppercase tracking-widest mb-3">
+              {form.agent_type === 'chatbot' ? 'Chat Pipeline' : 'Voice Pipeline'}
+            </p>
             <div className="space-y-2">
-              {[
-                { label: 'STT', meta: sttMeta, raw: form.stt_provider },
-                { label: 'LLM', meta: llmMeta, raw: form.llm_provider },
-                { label: 'TTS', meta: ttsMeta, raw: form.tts_provider },
-              ].map((item, i) => (
+              {(form.agent_type === 'chatbot'
+                ? [{ label: 'LLM', meta: llmMeta, raw: form.llm_provider }]
+                : [
+                    { label: 'STT', meta: sttMeta, raw: form.stt_provider },
+                    { label: 'LLM', meta: llmMeta, raw: form.llm_provider },
+                    { label: 'TTS', meta: ttsMeta, raw: form.tts_provider },
+                  ]
+              ).map((item, i, arr) => (
                 <div key={i}>
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-mono text-slate-600 w-6 shrink-0">{item.label}</span>
@@ -235,7 +262,7 @@ export default function AgentFormPage() {
                       )}
                     </div>
                   </div>
-                  {i < 2 && (
+                  {i < arr.length - 1 && (
                     <div className="ml-3 w-px h-2 bg-[#2a2d3a] mt-1" />
                   )}
                 </div>
@@ -248,8 +275,10 @@ export default function AgentFormPage() {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto px-8 py-8">
 
-            {step === 'identity'  && <IdentityStep  form={form} set={set} />}
+            {step === 'identity'  && <IdentityStep  form={form} set={set} isNew={isNew} />}
             {step === 'stack'     && <StackStep     form={form} set={set} />}
+            {step === 'llm'       && <LLMOnlyStep   form={form} set={set} />}
+            {step === 'widget'    && <WidgetStep     form={form} setWc={setWc} widgetKey={widgetKey} agentId={id} isNew={isNew} setWidgetKey={setWidgetKey} />}
             {step === 'behavior'  && <BehaviorStep  form={form} setBeh={setBeh} setEsc={setEsc} />}
             {step === 'knowledge' && (
               isNew
@@ -345,7 +374,7 @@ export default function AgentFormPage() {
 
 // ─── Step: Identity ────────────────────────────────────────────────────────
 
-function IdentityStep({ form, set }) {
+function IdentityStep({ form, set, isNew }) {
   return (
     <div className="space-y-6">
       <StepHeader
@@ -354,6 +383,33 @@ function IdentityStep({ form, set }) {
       />
 
       <div className="space-y-5">
+        {/* Agent Type Selector — only on new agents */}
+        {isNew && (
+          <FormField label="Agent Type" required>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { id: 'voice', label: 'Voice Agent', icon: '🎙️', desc: 'Phone calls — inbound & outbound' },
+                { id: 'chatbot', label: 'Chatbot', icon: '💬', desc: 'Website widget — text chat' },
+              ].map(t => (
+                <button key={t.id} type="button" onClick={() => set('agent_type', t.id)}
+                  className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${
+                    form.agent_type === t.id
+                      ? 'bg-indigo-500/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
+                      : 'bg-[#0d0f18] border-[#2a2d3a] hover:border-[#3a3d4a]'
+                  }`}>
+                  <span className="text-2xl">{t.icon}</span>
+                  <div>
+                    <p className={`text-sm font-semibold ${form.agent_type === t.id ? 'text-indigo-300' : 'text-slate-300'}`}>
+                      {t.label}
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">{t.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </FormField>
+        )}
+
         <FormField label="Agent Name" required>
           <input value={form.name} onChange={e => set('name', e.target.value)}
             placeholder="e.g. Hotel Receptionist, Sales Assistant"
@@ -943,6 +999,144 @@ function AdvancedStep({ form, set }) {
 // ─── Shared Primitives ─────────────────────────────────────────────────────
 
 const inputCls = 'w-full bg-[#080a12] border border-[#2a2d3a] focus:border-indigo-500 rounded-lg px-3 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors'
+
+// ─── Step: LLM Only (Chatbot) ──────────────────────────────────────────────
+
+function LLMOnlyStep({ form, set }) {
+  return (
+    <div className="space-y-6">
+      <StepHeader
+        title="AI Model"
+        desc="Choose the language model that powers your chatbot."
+      />
+      <div className="space-y-3">
+        {LLM_PROVIDERS.map(p => (
+          <ProviderCard key={p.id} provider={p}
+            isSelected={form.llm_provider === p.id}
+            onSelect={() => set('llm_provider', p.id)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+
+// ─── Step: Widget Config (Chatbot) ─────────────────────────────────────────
+
+function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
+  const [copying, setCopying] = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const wc = form.widget_config || {}
+
+  async function handleGenerate() {
+    setGenerating(true)
+    try {
+      const res = await api.createWidgetKey(agentId)
+      setWidgetKey(res.widget_key)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const embedCode = widgetKey
+    ? `<script src="https://api.vani.live/widget/embed.js" data-widget-key="${widgetKey}"></script>`
+    : null
+
+  return (
+    <div className="space-y-6">
+      <StepHeader
+        title="Chat Widget"
+        desc="Customize appearance and get the embed code for your website."
+      />
+
+      <div className="space-y-5">
+        <FormField label="Theme Color">
+          <div className="flex items-center gap-3">
+            <input type="color" value={wc.theme_color || '#6366f1'}
+              onChange={e => setWc('theme_color', e.target.value)}
+              className="w-10 h-10 rounded-lg border border-[#2a2d3a] bg-transparent cursor-pointer" />
+            <input value={wc.theme_color || '#6366f1'}
+              onChange={e => setWc('theme_color', e.target.value)}
+              className="bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white font-mono w-28 focus:outline-none focus:border-indigo-500" />
+          </div>
+        </FormField>
+
+        <FormField label="Position">
+          <div className="flex gap-3">
+            {['bottom-right', 'bottom-left'].map(pos => (
+              <button key={pos} type="button" onClick={() => setWc('position', pos)}
+                className={`flex-1 py-3 px-4 rounded-xl border text-center text-xs font-medium transition-all ${
+                  (wc.position || 'bottom-right') === pos
+                    ? 'bg-indigo-500/10 border-indigo-500/40 text-indigo-300'
+                    : 'bg-[#0d0f18] border-[#2a2d3a] text-slate-400 hover:border-[#3a3d4a]'
+                }`}>
+                {pos === 'bottom-right' ? 'Bottom Right' : 'Bottom Left'}
+              </button>
+            ))}
+          </div>
+        </FormField>
+
+        <FormField label="Input Placeholder">
+          <input value={wc.placeholder || 'Type a message...'}
+            onChange={e => setWc('placeholder', e.target.value)}
+            className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+        </FormField>
+
+        <FormField label="Avatar URL" hint="Optional — shown in chat header">
+          <input value={wc.avatar_url || ''}
+            onChange={e => setWc('avatar_url', e.target.value)}
+            placeholder="https://..."
+            className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+        </FormField>
+
+        {/* Embed Code */}
+        {!isNew && (
+          <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-slate-300">Embed Code</p>
+              {!widgetKey && (
+                <button onClick={handleGenerate} disabled={generating}
+                  className="text-xs bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg disabled:opacity-50">
+                  {generating ? 'Generating...' : 'Generate Widget Key'}
+                </button>
+              )}
+            </div>
+            {widgetKey ? (
+              <>
+                <div className="bg-[#080a12] rounded-lg p-3 font-mono text-[11px] text-emerald-400 break-all select-all leading-relaxed">
+                  {embedCode}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => { navigator.clipboard.writeText(embedCode); setCopying(true); setTimeout(() => setCopying(false), 2000) }}
+                    className="text-xs text-slate-400 hover:text-white bg-white/5 border border-[#2a2d3a] px-3 py-1.5 rounded-lg transition-colors">
+                    {copying ? 'Copied!' : 'Copy Code'}
+                  </button>
+                  <span className="text-[10px] text-slate-600">
+                    Key: {widgetKey.slice(0, 16)}...
+                  </span>
+                </div>
+              </>
+            ) : (
+              <p className="text-xs text-slate-600">
+                Save the agent first, then generate a widget key to get the embed code.
+              </p>
+            )}
+          </div>
+        )}
+
+        {isNew && (
+          <div className="bg-amber-500/8 border border-amber-500/20 rounded-xl px-4 py-3 text-xs text-amber-400">
+            Save the agent first — embed code will be available after creation.
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 
 function StepHeader({ title, desc }) {
   return (

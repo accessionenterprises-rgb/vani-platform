@@ -1,5 +1,6 @@
 """Agents CRUD endpoints — with versioning, extraction schema, custom LLM, escalation."""
 import json
+import secrets
 from typing import Any, Optional
 from uuid import UUID
 
@@ -42,6 +43,7 @@ class CreateAgentRequest(BaseModel):
     prompt: str
     language: str = "en"
     voice: str = "openai-nova"
+    agent_type: str = "voice"  # "voice" | "chatbot"
     behavior: BehaviorConfig = BehaviorConfig()
     stack: StackConfig = StackConfig()
     extraction_schema: list[dict] = []
@@ -49,6 +51,7 @@ class CreateAgentRequest(BaseModel):
     custom_llm_url: Optional[str] = None
     custom_llm_model: Optional[str] = None
     escalation_config: EscalationConfig = EscalationConfig()
+    widget_config: Optional[dict] = None
 
 
 class UpdateAgentRequest(BaseModel):
@@ -57,6 +60,7 @@ class UpdateAgentRequest(BaseModel):
     prompt: Optional[str] = None
     language: Optional[str] = None
     voice: Optional[str] = None
+    agent_type: Optional[str] = None
     behavior: Optional[BehaviorConfig] = None
     stack: Optional[StackConfig] = None
     active: Optional[bool] = None
@@ -65,6 +69,7 @@ class UpdateAgentRequest(BaseModel):
     custom_llm_url: Optional[str] = None
     custom_llm_model: Optional[str] = None
     escalation_config: Optional[EscalationConfig] = None
+    widget_config: Optional[dict] = None
     version_note: Optional[str] = None   # optional note saved with the version snapshot
 
 
@@ -77,6 +82,7 @@ class AgentResponse(BaseModel):
     prompt: str
     language: str
     voice: str
+    agent_type: str
     stt_provider: str
     llm_provider: str
     tts_provider: str
@@ -87,6 +93,7 @@ class AgentResponse(BaseModel):
     custom_llm_url: Optional[str]
     custom_llm_model: Optional[str]
     escalation_config: dict
+    widget_config: Optional[dict]
     created_at: str
 
 
@@ -109,6 +116,7 @@ def _row_to_agent(row: dict) -> AgentResponse:
         prompt=row["prompt"],
         language=row["language"],
         voice=row["voice"],
+        agent_type=row.get("agent_type") or "voice",
         stt_provider=row["stt_provider"],
         llm_provider=row["llm_provider"],
         tts_provider=row["tts_provider"],
@@ -119,6 +127,7 @@ def _row_to_agent(row: dict) -> AgentResponse:
         custom_llm_url=row.get("custom_llm_url"),
         custom_llm_model=row.get("custom_llm_model"),
         escalation_config=row.get("escalation_config") or {},
+        widget_config=row.get("widget_config"),
         created_at=str(row["created_at"]),
     )
 
@@ -186,6 +195,7 @@ async def create_agent(body: CreateAgentRequest, tenant_id: str = Depends(get_te
             "prompt": body.prompt,
             "language": body.language,
             "voice": body.voice,
+            "agent_type": body.agent_type,
             "stt_provider": body.stack.stt,
             "llm_provider": body.stack.llm,
             "tts_provider": body.stack.tts,
@@ -195,11 +205,26 @@ async def create_agent(body: CreateAgentRequest, tenant_id: str = Depends(get_te
             "custom_llm_url": body.custom_llm_url,
             "custom_llm_model": body.custom_llm_model,
             "escalation_config": body.escalation_config.model_dump(),
+            "widget_config": body.widget_config or {},
             "active": True,
         })
         .execute()
     )
-    return _row_to_agent(result.data[0])
+    agent_row = result.data[0]
+
+    # Auto-generate widget key for chatbot agents
+    if body.agent_type == "chatbot":
+        widget_key = f"wk_{secrets.token_urlsafe(24)}"
+        try:
+            db.table("widget_keys").insert({
+                "tenant_id": tenant_id,
+                "agent_id": str(agent_row["id"]),
+                "widget_key": widget_key,
+            }).execute()
+        except Exception:
+            pass  # best-effort — user can regenerate later
+
+    return _row_to_agent(agent_row)
 
 
 @router.get("/{agent_id}", response_model=AgentResponse)
@@ -266,6 +291,10 @@ async def update_agent(agent_id: UUID, body: UpdateAgentRequest, tenant_id: str 
         updates["custom_llm_model"] = body.custom_llm_model
     if body.escalation_config is not None:
         updates["escalation_config"] = body.escalation_config.model_dump()
+    if body.agent_type is not None:
+        updates["agent_type"] = body.agent_type
+    if body.widget_config is not None:
+        updates["widget_config"] = body.widget_config
 
     if not updates:
         raise HTTPException(status_code=400, detail="No fields to update")
@@ -295,6 +324,52 @@ async def delete_agent(agent_id: UUID, tenant_id: str = Depends(get_tenant_id)):
     if existing.data is None:
         raise HTTPException(status_code=404, detail="Agent not found")
     db.table("agents").delete().eq("id", str(agent_id)).execute()
+
+
+# ─── Widget key endpoints ────────────────────────────────────────────────────
+
+@router.get("/{agent_id}/widget-key")
+async def get_widget_key(agent_id: UUID, tenant_id: str = Depends(get_tenant_id)):
+    db = get_db()
+    result = (
+        db.table("widget_keys")
+        .select("widget_key, allowed_origins, active, created_at")
+        .eq("agent_id", str(agent_id))
+        .eq("tenant_id", tenant_id)
+        .maybe_single()
+        .execute()
+    )
+    if not result.data:
+        return {"widget_key": None}
+    return result.data
+
+
+@router.post("/{agent_id}/widget-key")
+async def create_or_regenerate_widget_key(agent_id: UUID, tenant_id: str = Depends(get_tenant_id)):
+    db = get_db()
+    # Verify agent ownership
+    agent = (
+        db.table("agents").select("id")
+        .eq("id", str(agent_id)).eq("tenant_id", tenant_id)
+        .maybe_single().execute()
+    )
+    if not agent.data:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    widget_key = f"wk_{secrets.token_urlsafe(24)}"
+
+    # Delete old key if exists, insert new
+    db.table("widget_keys").delete().eq("agent_id", str(agent_id)).execute()
+    result = (
+        db.table("widget_keys")
+        .insert({
+            "tenant_id": tenant_id,
+            "agent_id": str(agent_id),
+            "widget_key": widget_key,
+        })
+        .execute()
+    )
+    return {"widget_key": widget_key}
 
 
 # ─── Version endpoints ────────────────────────────────────────────────────────

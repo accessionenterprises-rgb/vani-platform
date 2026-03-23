@@ -94,6 +94,13 @@ export default function AgentsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-white">{agent.name}</p>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        agent.agent_type === 'chatbot'
+                          ? 'bg-cyan-500/15 text-cyan-400'
+                          : 'bg-violet-500/15 text-violet-400'
+                      }`}>
+                        {agent.agent_type === 'chatbot' ? '💬 Chatbot' : '🎙️ Voice'}
+                      </span>
                       <span className={`text-xs px-1.5 py-0.5 rounded ${agent.active ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-500/15 text-slate-400'}`}>
                         {agent.active ? 'Active' : 'Inactive'}
                       </span>
@@ -103,9 +110,9 @@ export default function AgentsPage() {
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5 truncate">{agent.greeting}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <Chip>{agent.stt_provider}</Chip>
+                      {agent.agent_type !== 'chatbot' && <Chip>{agent.stt_provider}</Chip>}
                       <Chip>{agent.llm_provider}</Chip>
-                      <Chip>{agent.tts_provider}</Chip>
+                      {agent.agent_type !== 'chatbot' && <Chip>{agent.tts_provider}</Chip>}
                       <Chip>{agent.language?.toUpperCase()}</Chip>
                     </div>
                   </div>

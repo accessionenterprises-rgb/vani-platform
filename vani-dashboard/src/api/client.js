@@ -49,6 +49,8 @@ export const api = {
   deleteAgent:  (id)        => request('DELETE', `/agents/${id}`),
   listAgentVersions: (id)             => request('GET', `/agents/${id}/versions`),
   restoreAgentVersion: (id, versionId) => request('POST', `/agents/${id}/versions/${versionId}/restore`),
+  getWidgetKey:    (agentId)           => request('GET', `/agents/${agentId}/widget-key`),
+  createWidgetKey: (agentId)           => request('POST', `/agents/${agentId}/widget-key`),
 
   // KB
   listKb:      (agentId)          => request('GET', `/agents/${agentId}/kb`),
