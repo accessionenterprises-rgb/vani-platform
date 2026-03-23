@@ -25,10 +25,35 @@ router = APIRouter(prefix="/builder", tags=["builder"])
 # ── Website scraper ──────────────────────────────────────────────────────────
 
 async def _scrape_website(url: str) -> Optional[str]:
-    """Scrape a website and return cleaned text content (max 3000 chars)."""
+    """Scrape a website using Jina Reader (renders JS) and return text content (max 4000 chars)."""
     if not url.startswith("http"):
         url = "https://" + url
 
+    # Use Jina Reader to render JS-heavy sites (SPAs, React, Next.js)
+    jina_url = f"https://r.jina.ai/{url}"
+
+    try:
+        async with httpx.AsyncClient(timeout=25, follow_redirects=True) as client:
+            resp = await client.get(jina_url, headers={
+                "Accept": "text/plain",
+                "User-Agent": "Mozilla/5.0 (compatible; VaniBot/1.0; +https://vani.live)",
+            })
+        if resp.status_code != 200:
+            logger.warning("jina_scrape_failed", url=url, status=resp.status_code)
+            return await _scrape_raw(url)
+
+        text = resp.text.strip()
+        if len(text) < 50:
+            return await _scrape_raw(url)
+
+        return text[:4000] if text else None
+    except Exception as exc:
+        logger.warning("jina_scrape_failed", url=url, error=str(exc))
+        return await _scrape_raw(url)
+
+
+async def _scrape_raw(url: str) -> Optional[str]:
+    """Fallback: raw HTML scraping for simple sites."""
     try:
         async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
             resp = await client.get(url, headers={
@@ -38,20 +63,13 @@ async def _scrape_website(url: str) -> Optional[str]:
             return None
 
         html = resp.text
-
-        # Strip scripts, styles, tags
         html = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.DOTALL | re.IGNORECASE)
         html = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.DOTALL | re.IGNORECASE)
-        html = re.sub(r'<nav[^>]*>.*?</nav>', '', html, flags=re.DOTALL | re.IGNORECASE)
-        html = re.sub(r'<footer[^>]*>.*?</footer>', '', html, flags=re.DOTALL | re.IGNORECASE)
         html = re.sub(r'<[^>]+>', ' ', html)
         html = re.sub(r'&[a-zA-Z]+;', ' ', html)
         html = re.sub(r'\s+', ' ', html).strip()
-
-        # Truncate
-        return html[:3000] if html else None
-    except Exception as exc:
-        logger.warning("website_scrape_failed", url=url, error=str(exc))
+        return html[:4000] if html else None
+    except Exception:
         return None
 
 
