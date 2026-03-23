@@ -209,13 +209,15 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
                     continue
                 s.append({"label": f"{npa}-{a}{a}{b}{b}-{npa}", "pattern": f"{npa}{a}{a}{b}{b}{npa}", "tier": "A-bookend-pair"})
 
-    # 15. Triple area code: NPA appears 3× in 10 digits (4 arrangements, uses * wildcard)
+    # 15. Triple area code: NPA appears 3× in 10 digits (no wildcards)
     for n in npas:
         npa = str(n)
-        s.append({"label": f"{npa}x3-arr1", "pattern": f"{npa}{npa}{npa}*", "tier": "S-triple-npa"})
-        s.append({"label": f"{npa}x3-arr2", "pattern": f"{npa}{npa}*{npa}", "tier": "S-triple-npa"})
-        s.append({"label": f"{npa}x3-arr3", "pattern": f"{npa}*{npa}{npa}", "tier": "S-triple-npa"})
-        s.append({"label": f"{npa}x3-arr4", "pattern": f"*{npa}{npa}{npa}", "tier": "S-triple-npa"})
+        # 9-char substring catches ABCABCABCX and XABCABCABC
+        s.append({"label": f"{npa}x3-sub9", "pattern": f"{npa}{npa}{npa}", "tier": "S-triple-npa"})
+        # Arrangements 2 & 3: expand wildcard to explicit digits 0-9
+        for x in range(0, 10):
+            s.append({"label": f"{npa}x3-arr2-{x}", "pattern": f"{npa}{npa}{x}{npa}", "tier": "S-triple-npa"})
+            s.append({"label": f"{npa}x3-arr3-{x}", "pattern": f"{npa}{x}{npa}{npa}", "tier": "S-triple-npa"})
 
     # 16. XXYY alternating pairs: xxyyxxyyxx (10-digit)
     for a in range(2, 10):
