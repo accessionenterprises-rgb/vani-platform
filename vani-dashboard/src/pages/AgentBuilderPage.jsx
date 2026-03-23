@@ -35,7 +35,8 @@ export default function AgentBuilderPage() {
   async function send(text) {
     if (!text.trim() || loading) return
     const userMsg = { role: 'user', content: text.trim() }
-    const history = [...messages]
+    // Use raw content for assistant messages so LLM sees its own OPTIONS markers
+    const history = messages.map(m => ({ role: m.role, content: m.raw || m.content }))
     setMessages(m => [...m, userMsg])
     setInput('')
     setLoading(true)
@@ -47,7 +48,8 @@ export default function AgentBuilderPage() {
 
     try {
       const res = await api.builderChat(text.trim(), history)
-      setMessages(m => [...m, { role: 'assistant', content: res.reply }])
+      // Save raw reply (with OPTIONS markers) for LLM history, display clean version
+      setMessages(m => [...m, { role: 'assistant', content: res.reply, raw: res.reply_raw || res.reply }])
       setOptions(res.options || [])
       if (res.agent_config) {
         setAgentConfig(res.agent_config)

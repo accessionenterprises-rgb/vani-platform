@@ -206,6 +206,7 @@ class BuilderChatRequest(BaseModel):
 
 class BuilderChatResponse(BaseModel):
     reply: str
+    reply_raw: str = ""  # Full reply with OPTIONS — used for history tracking
     options: list[str] = []
     agent_config: Optional[dict] = None
     scanning: bool = False
@@ -327,11 +328,13 @@ async def builder_chat(body: BuilderChatRequest, tenant_id: str = Depends(get_te
 
     # Extract options and agent config
     agent_config = _extract_agent_config(reply)
-    clean_reply = re.sub(r'```json\s*\{.*?\}\s*```', '', reply, flags=re.DOTALL).strip()
-    clean_reply, options = _extract_options(clean_reply)
+    # Keep raw reply (with OPTIONS) for history so LLM can track its own step
+    raw_for_history = re.sub(r'```json\s*\{.*?\}\s*```', '', reply, flags=re.DOTALL).strip()
+    clean_reply, options = _extract_options(raw_for_history)
 
     return BuilderChatResponse(
         reply=clean_reply,
+        reply_raw=raw_for_history,
         options=options,
         agent_config=agent_config,
     )
