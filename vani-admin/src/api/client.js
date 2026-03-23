@@ -102,6 +102,8 @@ export const adminApi = {
   },
   hunterScanAll:  ()        => request('POST', '/admin/hunter/scan-all'),
   hunterPurchase: (number)  => request('POST', '/admin/hunter/purchase', { number }),
+  hunterClearScans:   ()   => request('DELETE', '/admin/hunter/scans'),
+  hunterClearResults: ()   => request('DELETE', '/admin/hunter/results'),
 
   // Schedules
   listSchedules:   ()         => request('GET',    '/admin/hunter/schedules'),

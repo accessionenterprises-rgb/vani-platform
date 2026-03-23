@@ -695,6 +695,22 @@ def delete_schedule(schedule_id: str):
     return {"deleted": True}
 
 
+@router.delete("/hunter/scans", dependencies=[Depends(_verify_token)])
+def admin_clear_scans():
+    """Delete all scan log entries."""
+    db = get_db()
+    db.table("number_scan_runs").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+    return {"cleared": True}
+
+
+@router.delete("/hunter/results", dependencies=[Depends(_verify_token)])
+def admin_clear_results():
+    """Delete all hunt results (available + gone). Purchased are kept."""
+    db = get_db()
+    db.table("number_hunt_results").delete().in_("status", ["available", "gone"]).execute()
+    return {"cleared": True}
+
+
 class AdminPurchaseRequest(BaseModel):
     number: str
 

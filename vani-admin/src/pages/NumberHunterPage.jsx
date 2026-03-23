@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { adminApi } from '../api/client'
 
 const TIER_GROUPS = {
-  'A · Premium': ['A-double-seq', 'A-double-rev', 'A-seven', 'A-mirror'],
-  'B · Notable': ['B-segments', 'B-fivefive', 'B-double-block', 'B-alternating', 'B-alt10', 'B-aab-triple', 'B-aba-triple', 'B-abb-triple', 'B-abc-triple'],
-  'P · Prefix':  ['P-suffix-quad', 'P-seq5', 'P-seq6', 'P-seq7'],
+  'S · Elite': ['S-bookend-quad', 'S-triple-npa'],
+  'A · Premium': ['A-double-seq', 'A-double-rev', 'A-seven', 'A-mirror', 'A-bookend-pair', 'A-npa-aaabbb', 'A-npa-aaabbcc', 'A-palindrome', 'A-ascending-pairs', 'A-descending-pairs'],
+  'B · Notable': ['B-alt8', 'B-alt10', 'B-xxyy-alt'],
+  'P · Prefix':  ['P-suffix-quad', 'P-seq6', 'P-seq7'],
   'TF · Toll-Free': ['TF-double-aaaa', 'TF-double-aabb', 'TF-double-seq'],
 }
 const ALL_TIERS = Object.values(TIER_GROUPS).flat()
@@ -627,9 +628,41 @@ export default function NumberHunterPage() {
 
       {/* Scan Logs */}
       <div className="mt-8">
-        <div className="flex items-center gap-2 mb-3">
-          <h2 className="text-sm font-semibold text-slate-400">Scan Logs</h2>
-          {scans.length > 0 && <span className="text-xs text-slate-600">{scans.length} runs</span>}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-slate-400">Scan Logs</h2>
+            {scans.length > 0 && <span className="text-xs text-slate-600">{scans.length} runs</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            {results.length > 0 && (
+              <button
+                onClick={async () => {
+                  if (!confirm('Delete all available & gone results? Purchased numbers are kept.')) return
+                  try {
+                    await adminApi.hunterClearResults()
+                    showToast('Results cleared')
+                    load()
+                  } catch (e) { showToast(e.message, 'err') }
+                }}
+                className="text-xs text-red-400/60 hover:text-red-400 bg-red-500/0 hover:bg-red-500/8 px-2.5 py-1.5 rounded-lg transition-colors">
+                Clear Results
+              </button>
+            )}
+            {scans.length > 0 && (
+              <button
+                onClick={async () => {
+                  if (!confirm('Delete all scan logs?')) return
+                  try {
+                    await adminApi.hunterClearScans()
+                    showToast('Scan logs cleared')
+                    load()
+                  } catch (e) { showToast(e.message, 'err') }
+                }}
+                className="text-xs text-red-400/60 hover:text-red-400 bg-red-500/0 hover:bg-red-500/8 px-2.5 py-1.5 rounded-lg transition-colors">
+                Clear Logs
+              </button>
+            )}
+          </div>
         </div>
         {scans.length === 0 ? (
           <div className="text-xs text-slate-600 py-4">No scans yet — trigger a scan to see logs here.</div>
