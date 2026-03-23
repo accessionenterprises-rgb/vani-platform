@@ -1089,47 +1089,90 @@ function VoicePreview({ voice, lang }) {
 // ─── Sarvam Voice Picker ───────────────────────────────────────────────────
 
 const SARVAM_VOICES = [
+  // Female
   { id: 'sarvam-priya',    name: 'Priya',    gender: 'Female', lang: 'Hi · En' },
   { id: 'sarvam-neha',     name: 'Neha',     gender: 'Female', lang: 'Hi · En' },
   { id: 'sarvam-shreya',   name: 'Shreya',   gender: 'Female', lang: 'Hi · En' },
   { id: 'sarvam-kavya',    name: 'Kavya',    gender: 'Female', lang: 'Hi · En' },
   { id: 'sarvam-simran',   name: 'Simran',   gender: 'Female', lang: 'Hi · En' },
   { id: 'sarvam-ritu',     name: 'Ritu',     gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-pooja',    name: 'Pooja',    gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-ishita',   name: 'Ishita',   gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-roopa',    name: 'Roopa',    gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-tanya',    name: 'Tanya',    gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-shruti',   name: 'Shruti',   gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-suhani',   name: 'Suhani',   gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-rupali',   name: 'Rupali',   gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-kavitha',  name: 'Kavitha',  gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-amelia',   name: 'Amelia',   gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-sophia',   name: 'Sophia',   gender: 'Female', lang: 'Hi · En' },
+  // Male
   { id: 'sarvam-rahul',    name: 'Rahul',    gender: 'Male',   lang: 'Hi · En' },
   { id: 'sarvam-amit',     name: 'Amit',     gender: 'Male',   lang: 'Hi · En' },
   { id: 'sarvam-dev',      name: 'Dev',      gender: 'Male',   lang: 'Hi · En' },
   { id: 'sarvam-rohan',    name: 'Rohan',    gender: 'Male',   lang: 'Hi · En' },
   { id: 'sarvam-kabir',    name: 'Kabir',    gender: 'Male',   lang: 'Hi · En' },
   { id: 'sarvam-aditya',   name: 'Aditya',   gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-ashutosh', name: 'Ashutosh', gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-ratan',    name: 'Ratan',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-varun',    name: 'Varun',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-manan',    name: 'Manan',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-sumit',    name: 'Sumit',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-aayan',    name: 'Aayan',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-shubh',    name: 'Shubh',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-advait',   name: 'Advait',   gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-anand',    name: 'Anand',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-tarun',    name: 'Tarun',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-sunny',    name: 'Sunny',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-mani',     name: 'Mani',     gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-gokul',    name: 'Gokul',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-vijay',    name: 'Vijay',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-mohit',    name: 'Mohit',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-rehan',    name: 'Rehan',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-soham',    name: 'Soham',    gender: 'Male',   lang: 'Hi · En' },
 ]
 
 function SarvamVoicePicker({ selected, onSelect }) {
   const [previewLang, setPreviewLang] = useState('en')
+  const [genderFilter, setGenderFilter] = useState('All')
+  const filtered = genderFilter === 'All' ? SARVAM_VOICES : SARVAM_VOICES.filter(v => v.gender === genderFilter)
   return (
     <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold text-slate-400">Choose Sarvam Voice</p>
-        <div className="flex rounded-lg border border-[#2a2d3a] overflow-hidden">
-          {[{ id: 'en', label: 'English' }, { id: 'hi', label: 'हिन्दी' }].map(l => (
-            <button key={l.id} type="button" onClick={() => setPreviewLang(l.id)}
-              className={`px-3 py-1.5 text-[10px] font-medium transition-colors ${
-                previewLang === l.id
-                  ? 'bg-indigo-500/15 text-indigo-300'
-                  : 'bg-[#080a12] text-slate-500 hover:text-slate-300'
-              }`}>{l.label}</button>
-          ))}
+        <div className="flex gap-2">
+          <div className="flex rounded-lg border border-[#2a2d3a] overflow-hidden">
+            {['All', 'Female', 'Male'].map(g => (
+              <button key={g} type="button" onClick={() => setGenderFilter(g)}
+                className={`px-2.5 py-1.5 text-[10px] font-medium transition-colors ${
+                  genderFilter === g
+                    ? 'bg-indigo-500/15 text-indigo-300'
+                    : 'bg-[#080a12] text-slate-500 hover:text-slate-300'
+                }`}>{g}</button>
+            ))}
+          </div>
+          <div className="flex rounded-lg border border-[#2a2d3a] overflow-hidden">
+            {[{ id: 'en', label: 'EN' }, { id: 'hi', label: 'हि' }].map(l => (
+              <button key={l.id} type="button" onClick={() => setPreviewLang(l.id)}
+                className={`px-2.5 py-1.5 text-[10px] font-medium transition-colors ${
+                  previewLang === l.id
+                    ? 'bg-indigo-500/15 text-indigo-300'
+                    : 'bg-[#080a12] text-slate-500 hover:text-slate-300'
+                }`}>{l.label}</button>
+            ))}
+          </div>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        {SARVAM_VOICES.map(v => (
+      <div className="grid grid-cols-4 gap-2 max-h-60 overflow-y-auto pr-1">
+        {filtered.map(v => (
           <button key={v.id} type="button" onClick={() => onSelect(v.id)}
-            className={`p-3 rounded-xl border text-left transition-all ${
+            className={`p-2.5 rounded-xl border text-left transition-all ${
               selected === v.id
                 ? 'bg-indigo-500/10 border-indigo-500/40'
                 : 'bg-[#080a12] border-[#2a2d3a] hover:border-[#3a3d4a]'
             }`}>
             <p className={`text-xs font-semibold ${selected === v.id ? 'text-indigo-300' : 'text-slate-300'}`}>{v.name}</p>
-            <p className="text-[10px] text-slate-600 mt-0.5">{v.gender} · {v.lang}</p>
+            <p className="text-[10px] text-slate-600 mt-0.5">{v.gender === 'Female' ? '♀' : '♂'}</p>
           </button>
         ))}
       </div>

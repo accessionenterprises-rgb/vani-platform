@@ -35,21 +35,14 @@ OPENAI_VOICES = {
     "openai-onyx": "onyx",
 }
 
-# Sarvam voices (bulbul:v3 — Mar 2026)
-SARVAM_VOICES = {
-    "sarvam-priya":    {"speaker": "priya",    "label": "Priya (F)"},
-    "sarvam-neha":     {"speaker": "neha",     "label": "Neha (F)"},
-    "sarvam-shreya":   {"speaker": "shreya",   "label": "Shreya (F)"},
-    "sarvam-kavya":    {"speaker": "kavya",    "label": "Kavya (F)"},
-    "sarvam-simran":   {"speaker": "simran",   "label": "Simran (F)"},
-    "sarvam-ritu":     {"speaker": "ritu",     "label": "Ritu (F)"},
-    "sarvam-rahul":    {"speaker": "rahul",    "label": "Rahul (M)"},
-    "sarvam-amit":     {"speaker": "amit",     "label": "Amit (M)"},
-    "sarvam-dev":      {"speaker": "dev",      "label": "Dev (M)"},
-    "sarvam-rohan":    {"speaker": "rohan",    "label": "Rohan (M)"},
-    "sarvam-kabir":    {"speaker": "kabir",    "label": "Kabir (M)"},
-    "sarvam-aditya":   {"speaker": "aditya",   "label": "Aditya (M)"},
-}
+# Sarvam voices (bulbul:v3 — all 39 voices)
+SARVAM_VOICES = {f"sarvam-{v}": {"speaker": v} for v in [
+    "priya","neha","shreya","kavya","simran","ritu","pooja","ishita","roopa",
+    "tanya","shruti","suhani","rupali","kavitha","amelia","sophia",
+    "rahul","amit","dev","rohan","kabir","aditya","ashutosh","ratan","varun",
+    "manan","sumit","aayan","shubh","advait","anand","tarun","sunny","mani",
+    "gokul","vijay","mohit","rehan","soham",
+]}
 
 
 @router.get("/voices")
