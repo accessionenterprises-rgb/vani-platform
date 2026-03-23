@@ -165,14 +165,6 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
         for a in range(2, 10):
             s.append({"label": f"{npa}-{a}x7", "pattern": npa + str(a) * 7, "tier": "A-seven"})
 
-    # 4. NPA·rev(NPA) open — 6-char substring, no wildcards
-    for n in npas:
-        npa = str(n)
-        rev = npa[::-1]
-        if int(rev[0]) < 2:
-            continue
-        s.append({"label": f"{npa}-{rev}-open", "pattern": f"{npa}{rev}", "tier": "A-mirror"})
-
     # 5. NPA×2·rev(NPA)·X — full x∈{0..9}
     for n in npas:
         npa = str(n)
