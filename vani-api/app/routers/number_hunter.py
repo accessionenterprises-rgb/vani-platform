@@ -243,6 +243,56 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
                     continue
                 s.append({"label": f"{a}{b}{c}-triple", "pattern": f"{a}{b}{c}" * 3, "tier": "B-abc-triple"})
 
+    # 13. Bookend AAAA: NPA + aaaa + NPA (e.g. 351-2222-351)
+    for n in npas:
+        npa = str(n)
+        for a in range(0, 10):
+            s.append({"label": f"{npa}-{a}x4-{npa}", "pattern": f"{npa}{a}{a}{a}{a}{npa}", "tier": "S-bookend-quad"})
+
+    # 14. Bookend AABB: NPA + aabb + NPA (e.g. 205-6622-205)
+    for n in npas:
+        npa = str(n)
+        for a in range(0, 10):
+            for b in range(0, 10):
+                if a == b:
+                    continue
+                s.append({"label": f"{npa}-{a}{a}{b}{b}-{npa}", "pattern": f"{npa}{a}{a}{b}{b}{npa}", "tier": "A-bookend-pair"})
+
+    # 15. Triple area code: NPA appears 3× in 10 digits (4 arrangements, uses * wildcard)
+    for n in npas:
+        npa = str(n)
+        s.append({"label": f"{npa}x3-arr1", "pattern": f"{npa}{npa}{npa}*", "tier": "S-triple-npa"})
+        s.append({"label": f"{npa}x3-arr2", "pattern": f"{npa}{npa}*{npa}", "tier": "S-triple-npa"})
+        s.append({"label": f"{npa}x3-arr3", "pattern": f"{npa}*{npa}{npa}", "tier": "S-triple-npa"})
+        s.append({"label": f"{npa}x3-arr4", "pattern": f"*{npa}{npa}{npa}", "tier": "S-triple-npa"})
+
+    # 16. XXYY alternating pairs: xxyyxxyyxx (10-digit)
+    for a in range(2, 10):
+        for b in range(0, 10):
+            if a == b:
+                continue
+            aa, bb = str(a) * 2, str(b) * 2
+            s.append({"label": f"{a}{a}{b}{b}-xxyy", "pattern": f"{aa}{bb}{aa}{bb}{aa}", "tier": "B-xxyy-alt"})
+
+    # 17. Ascending pairs: 1122334455, 2233445566, etc
+    for start in range(1, 6):
+        p = "".join(str(start + i) * 2 for i in range(5))
+        s.append({"label": f"asc-pairs-{start}", "pattern": p, "tier": "A-ascending-pairs"})
+
+    # 18. Descending pairs: 9988776655, 8877665544, etc
+    for start in range(9, 4, -1):
+        p = "".join(str(start - i) * 2 for i in range(5))
+        s.append({"label": f"desc-pairs-{start}", "pattern": p, "tier": "A-descending-pairs"})
+
+    # 19. Palindromes: abcde-edcba (first digit 2-9, limit to strong center patterns)
+    for a in range(2, 10):
+        for b in range(0, 10):
+            for c in range(0, 10):
+                # Strong palindromes: center is quad (d==e) or sequential
+                for d in range(0, 10):
+                    p = f"{a}{b}{c}{d}{d}{d}{c}{b}{a}"  # 9-digit palindrome (substring match)
+                    s.append({"label": f"palindrome-{a}{b}{c}{d}", "pattern": p, "tier": "A-palindrome"})
+
     if tiers_filter:
         s = [p for p in s if p["tier"] in tiers_filter]
     return s
