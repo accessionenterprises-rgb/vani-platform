@@ -529,8 +529,13 @@ function StackStep({ form, set }) {
       />
 
       {/* Voice preview */}
-      {form.tts_provider?.startsWith('openai-') && (
+      {(form.tts_provider?.startsWith('openai-') || form.tts_provider === 'sarvam') && (
         <VoicePreview voice={form.tts_provider} />
+      )}
+
+      {/* Sarvam voice picker — show when sarvam is selected */}
+      {form.tts_provider === 'sarvam' && (
+        <SarvamVoicePicker selected={form.sarvam_voice || 'sarvam-meera'} onSelect={v => set('sarvam_voice', v)} />
       )}
     </div>
   )
@@ -1050,7 +1055,10 @@ function VoicePreview({ voice }) {
     }
   }
 
-  const voiceName = voice.replace('openai-', '').replace(/^\w/, c => c.toUpperCase())
+  const voiceName = voice.startsWith('sarvam-')
+    ? voice.replace('sarvam-', '').replace(/^\w/, c => c.toUpperCase())
+    : voice === 'sarvam' ? 'Meera'
+    : voice.replace('openai-', '').replace(/^\w/, c => c.toUpperCase())
 
   return (
     <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 flex items-center gap-4">
@@ -1072,6 +1080,41 @@ function VoicePreview({ voice }) {
         <p className="text-xs font-medium text-slate-300">Preview {voiceName} voice</p>
         <p className="text-[10px] text-slate-600 mt-0.5">Hear how your agent will sound on calls</p>
       </div>
+    </div>
+  )
+}
+
+
+// ─── Sarvam Voice Picker ───────────────────────────────────────────────────
+
+const SARVAM_VOICES = [
+  { id: 'sarvam-meera',    name: 'Meera',    gender: 'Female', lang: 'Hindi' },
+  { id: 'sarvam-pavithra', name: 'Pavithra', gender: 'Female', lang: 'Hindi' },
+  { id: 'sarvam-maitreyi', name: 'Maitreyi', gender: 'Female', lang: 'Hindi' },
+  { id: 'sarvam-arvind',   name: 'Arvind',   gender: 'Male',   lang: 'Hindi' },
+  { id: 'sarvam-amol',     name: 'Amol',     gender: 'Male',   lang: 'Hindi' },
+  { id: 'sarvam-amartya',  name: 'Amartya',  gender: 'Male',   lang: 'Hindi' },
+]
+
+function SarvamVoicePicker({ selected, onSelect }) {
+  return (
+    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
+      <p className="text-xs font-semibold text-slate-400">Choose Sarvam Voice</p>
+      <div className="grid grid-cols-3 gap-2">
+        {SARVAM_VOICES.map(v => (
+          <button key={v.id} type="button" onClick={() => onSelect(v.id)}
+            className={`p-3 rounded-xl border text-left transition-all ${
+              selected === v.id
+                ? 'bg-indigo-500/10 border-indigo-500/40'
+                : 'bg-[#080a12] border-[#2a2d3a] hover:border-[#3a3d4a]'
+            }`}>
+            <p className={`text-xs font-semibold ${selected === v.id ? 'text-indigo-300' : 'text-slate-300'}`}>{v.name}</p>
+            <p className="text-[10px] text-slate-600 mt-0.5">{v.gender} · {v.lang}</p>
+          </button>
+        ))}
+      </div>
+      {/* Preview selected sarvam voice */}
+      <VoicePreview voice={selected} />
     </div>
   )
 }
