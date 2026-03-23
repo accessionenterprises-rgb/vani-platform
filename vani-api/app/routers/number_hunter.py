@@ -349,12 +349,14 @@ def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False, prefix
         import httpx
         params = {
             "filter[country_code]": country,
-            "filter[limit]": 10,
+            "filter[limit]": 20,
         }
         if prefix:
             params["filter[phone_number][starts_with]"] = f"+1{pattern}"
         else:
-            params["filter[phone_number][contains]"] = pattern
+            # Telnyx contains limit is 6 chars — truncate and filter client-side
+            search_pat = pattern[:6]
+            params["filter[phone_number][contains]"] = search_pat
         if is_tollfree:
             params["filter[number_type]"] = "toll-free"
         r = httpx.get(
@@ -364,7 +366,11 @@ def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False, prefix
             timeout=15,
         )
         r.raise_for_status()
-        return [n["phone_number"] for n in r.json().get("data", [])]
+        numbers = [n["phone_number"] for n in r.json().get("data", [])]
+        # Client-side filter: full pattern must appear in the number
+        if len(pattern) > 6:
+            numbers = [n for n in numbers if pattern in n.replace("+", "").replace("1", "", 1)]
+        return numbers[:10]
     except Exception as exc:
         logger.debug("Telnyx search failed for %s: %s", pattern, exc)
         return []

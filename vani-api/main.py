@@ -202,11 +202,15 @@ def debug_telnyx_test(pattern: str = "999999", country: str = "US"):
     if not s.telnyx_api_key:
         return {"error": "TELNYX_API_KEY not set"}
     try:
+        mode = "starts_with" if len(pattern) > 6 else "contains"
         params = {
             "filter[country_code]": country,
-            "filter[phone_number][contains]": pattern,
             "filter[limit]": 5,
         }
+        if mode == "starts_with":
+            params["filter[phone_number][starts_with]"] = f"+1{pattern}"
+        else:
+            params["filter[phone_number][contains]"] = pattern
         r = httpx.get(
             "https://api.telnyx.com/v2/available_phone_numbers",
             params=params,
