@@ -176,5 +176,23 @@ def health():
     return {"ok": True, "service": "vani-api", "version": "2.0.0"}
 
 
+@app.get("/debug/hunter")
+def debug_hunter():
+    """Temporary debug endpoint — remove after scan is working."""
+    from app.routers.number_hunter import _scan_running, _scan_progress, NANP_COUNTRIES
+    from app.config import settings as s
+    db = get_db()
+    recent = db.table("number_scan_runs").select("*").order("started_at", desc=True).limit(5).execute().data or []
+    return {
+        "in_memory": {
+            "running": dict(_scan_running),
+            "progress": dict(_scan_progress),
+        },
+        "db_scans": recent,
+        "twilio_configured": bool(s.twilio_account_sid and s.twilio_auth_token),
+        "anthropic_configured": bool(s.anthropic_api_key),
+    }
+
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=settings.port, reload=True)
