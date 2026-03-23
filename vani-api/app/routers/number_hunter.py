@@ -165,6 +165,12 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
         for a in range(2, 10):
             s.append({"label": f"{npa}-{a}x7", "pattern": npa + str(a) * 7, "tier": "A-seven"})
 
+    # 3b. NPA + a×6 (e.g. 919-222-222X) — 9-char substring match
+    for n in npas:
+        npa = str(n)
+        for a in range(2, 10):
+            s.append({"label": f"{npa}-{a}x6", "pattern": npa + str(a) * 6, "tier": "A-six"})
+
     # 5. NPA×2·rev(NPA)·X — full x∈{0..9}
     for n in npas:
         npa = str(n)
