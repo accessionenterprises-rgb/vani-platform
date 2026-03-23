@@ -20,6 +20,7 @@ export default function AgentBuilderPage() {
   const [creating, setCreating] = useState(false)
   const [started, setStarted] = useState(false)
   const [options, setOptions] = useState([])
+  const [scanning, setScanning] = useState(false)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -40,6 +41,9 @@ export default function AgentBuilderPage() {
     setLoading(true)
     setStarted(true)
     setOptions([])
+    // Detect if message contains a URL
+    const hasUrl = /https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.(com|co|in|io|org|net|live|ai)\b/.test(text.trim())
+    setScanning(hasUrl)
 
     try {
       const res = await api.builderChat(text.trim(), history)
@@ -53,6 +57,7 @@ export default function AgentBuilderPage() {
       setMessages(m => [...m, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
     } finally {
       setLoading(false)
+      setScanning(false)
     }
   }
 
@@ -169,15 +174,22 @@ export default function AgentBuilderPage() {
                 </div>
               ))}
 
-              {/* Typing indicator */}
+              {/* Typing / scanning indicator */}
               {loading && (
                 <div className="flex justify-start">
                   <div className="bg-[#12141f] border border-[#1f2235] rounded-2xl rounded-bl-md px-5 py-4">
-                    <div className="flex gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-indigo-400/50 animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-indigo-400/50 animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 rounded-full bg-indigo-400/50 animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
+                    {scanning ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs text-indigo-300">Scanning your website...</span>
+                      </div>
+                    ) : (
+                      <div className="flex gap-1.5">
+                        <div className="w-2 h-2 rounded-full bg-indigo-400/50 animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 rounded-full bg-indigo-400/50 animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 rounded-full bg-indigo-400/50 animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
