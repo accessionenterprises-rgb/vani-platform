@@ -5,7 +5,7 @@ API: POST https://api.sarvam.ai/text-to-speech
 Auth: API-Subscription-Key header
 Response: { "audios": ["<base64_wav>"] }
 
-Voices: meera (F), pavithra (F), maitreyi (F), arvind (M), amol (M), amartya (M)
+Voices: anushka, manisha, priya, neha, shreya, kavya (F) | abhilash, rahul, amit, dev, rohan, kabir (M)
 Languages: en-IN, hi-IN, bn-IN, kn-IN, ml-IN, mr-IN, od-IN, pa-IN, ta-IN, te-IN, gu-IN
 """
 import base64
@@ -26,12 +26,18 @@ except ImportError:
 SARVAM_API_URL = "https://api.sarvam.ai/text-to-speech"
 
 VOICE_MAP = {
-    "meera":    "meera",
-    "pavithra": "pavithra",
-    "maitreyi": "maitreyi",
-    "arvind":   "arvind",
-    "amol":     "amol",
-    "amartya":  "amartya",
+    "anushka":  "anushka",
+    "manisha":  "manisha",
+    "priya":    "priya",
+    "neha":     "neha",
+    "shreya":   "shreya",
+    "kavya":    "kavya",
+    "abhilash": "abhilash",
+    "rahul":    "rahul",
+    "amit":     "amit",
+    "dev":      "dev",
+    "rohan":    "rohan",
+    "kabir":    "kabir",
 }
 
 LANG_MAP = {

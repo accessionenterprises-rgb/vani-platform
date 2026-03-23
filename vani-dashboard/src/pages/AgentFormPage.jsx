@@ -528,14 +528,17 @@ function StackStep({ form, set }) {
         onSelect={v => set('tts_provider', v)}
       />
 
-      {/* Voice preview */}
-      {(form.tts_provider?.startsWith('openai-') || form.tts_provider === 'sarvam') && (
+      {/* Voice preview — OpenAI voices */}
+      {form.tts_provider?.startsWith('openai-') && (
         <VoicePreview voice={form.tts_provider} />
       )}
 
-      {/* Sarvam voice picker — show when sarvam is selected */}
-      {form.tts_provider === 'sarvam' && (
-        <SarvamVoicePicker selected={form.sarvam_voice || 'sarvam-meera'} onSelect={v => set('sarvam_voice', v)} />
+      {/* Sarvam voice picker — show when any sarvam voice is selected */}
+      {(form.tts_provider === 'sarvam' || form.tts_provider?.startsWith('sarvam-')) && (
+        <SarvamVoicePicker
+          selected={form.tts_provider?.startsWith('sarvam-') ? form.tts_provider : 'sarvam-anushka'}
+          onSelect={v => set('tts_provider', v)}
+        />
       )}
     </div>
   )
@@ -1088,12 +1091,18 @@ function VoicePreview({ voice }) {
 // ─── Sarvam Voice Picker ───────────────────────────────────────────────────
 
 const SARVAM_VOICES = [
-  { id: 'sarvam-meera',    name: 'Meera',    gender: 'Female', lang: 'Hindi' },
-  { id: 'sarvam-pavithra', name: 'Pavithra', gender: 'Female', lang: 'Hindi' },
-  { id: 'sarvam-maitreyi', name: 'Maitreyi', gender: 'Female', lang: 'Hindi' },
-  { id: 'sarvam-arvind',   name: 'Arvind',   gender: 'Male',   lang: 'Hindi' },
-  { id: 'sarvam-amol',     name: 'Amol',     gender: 'Male',   lang: 'Hindi' },
-  { id: 'sarvam-amartya',  name: 'Amartya',  gender: 'Male',   lang: 'Hindi' },
+  { id: 'sarvam-anushka',  name: 'Anushka',  gender: 'Female', lang: 'Hindi' },
+  { id: 'sarvam-manisha',  name: 'Manisha',  gender: 'Female', lang: 'Hindi' },
+  { id: 'sarvam-priya',    name: 'Priya',    gender: 'Female', lang: 'Hindi' },
+  { id: 'sarvam-neha',     name: 'Neha',     gender: 'Female', lang: 'Hindi' },
+  { id: 'sarvam-shreya',   name: 'Shreya',   gender: 'Female', lang: 'Hindi' },
+  { id: 'sarvam-kavya',    name: 'Kavya',    gender: 'Female', lang: 'Hindi' },
+  { id: 'sarvam-abhilash', name: 'Abhilash', gender: 'Male',   lang: 'Hindi' },
+  { id: 'sarvam-rahul',    name: 'Rahul',    gender: 'Male',   lang: 'Hindi' },
+  { id: 'sarvam-amit',     name: 'Amit',     gender: 'Male',   lang: 'Hindi' },
+  { id: 'sarvam-dev',      name: 'Dev',      gender: 'Male',   lang: 'Hindi' },
+  { id: 'sarvam-rohan',    name: 'Rohan',    gender: 'Male',   lang: 'Hindi' },
+  { id: 'sarvam-kabir',    name: 'Kabir',    gender: 'Male',   lang: 'Hindi' },
 ]
 
 function SarvamVoicePicker({ selected, onSelect }) {

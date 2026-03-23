@@ -32,14 +32,20 @@ OPENAI_VOICES = {
     "openai-onyx": "onyx",
 }
 
-# Sarvam voices
+# Sarvam voices (bulbul:v1 — updated speaker names Mar 2026)
 SARVAM_VOICES = {
-    "sarvam-meera": {"speaker": "meera", "lang": "hi-IN", "label": "Meera (F, Hindi)"},
-    "sarvam-pavithra": {"speaker": "pavithra", "lang": "hi-IN", "label": "Pavithra (F, Hindi)"},
-    "sarvam-maitreyi": {"speaker": "maitreyi", "lang": "hi-IN", "label": "Maitreyi (F, Hindi)"},
-    "sarvam-arvind": {"speaker": "arvind", "lang": "hi-IN", "label": "Arvind (M, Hindi)"},
-    "sarvam-amol": {"speaker": "amol", "lang": "hi-IN", "label": "Amol (M, Hindi)"},
-    "sarvam-amartya": {"speaker": "amartya", "lang": "hi-IN", "label": "Amartya (M, Hindi)"},
+    "sarvam-anushka":  {"speaker": "anushka",  "lang": "hi-IN", "label": "Anushka (F)"},
+    "sarvam-manisha":  {"speaker": "manisha",  "lang": "hi-IN", "label": "Manisha (F)"},
+    "sarvam-priya":    {"speaker": "priya",    "lang": "hi-IN", "label": "Priya (F)"},
+    "sarvam-neha":     {"speaker": "neha",     "lang": "hi-IN", "label": "Neha (F)"},
+    "sarvam-shreya":   {"speaker": "shreya",   "lang": "hi-IN", "label": "Shreya (F)"},
+    "sarvam-kavya":    {"speaker": "kavya",    "lang": "hi-IN", "label": "Kavya (F)"},
+    "sarvam-abhilash": {"speaker": "abhilash", "lang": "hi-IN", "label": "Abhilash (M)"},
+    "sarvam-rahul":    {"speaker": "rahul",    "lang": "hi-IN", "label": "Rahul (M)"},
+    "sarvam-amit":     {"speaker": "amit",     "lang": "hi-IN", "label": "Amit (M)"},
+    "sarvam-dev":      {"speaker": "dev",      "lang": "hi-IN", "label": "Dev (M)"},
+    "sarvam-rohan":    {"speaker": "rohan",    "lang": "hi-IN", "label": "Rohan (M)"},
+    "sarvam-kabir":    {"speaker": "kabir",    "lang": "hi-IN", "label": "Kabir (M)"},
 }
 
 # All previewable voices
@@ -71,7 +77,7 @@ async def preview_voice(voice: str, tenant_id: str = Depends(get_tenant_id)):
 
     # Also handle bare sarvam provider ID
     if voice == "sarvam":
-        return await _preview_sarvam(SARVAM_VOICES["sarvam-meera"])
+        return await _preview_sarvam(SARVAM_VOICES["sarvam-anushka"])
 
     raise HTTPException(status_code=400, detail=f"Preview not available for '{voice}'.")
 
