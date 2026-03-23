@@ -1,8 +1,10 @@
 """Phone number management — with Twilio search, buy, and sync."""
+import os
 from typing import Optional
 from uuid import UUID
 
 import anyio
+import structlog
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
@@ -10,6 +12,12 @@ from pydantic import BaseModel
 from app.config import settings
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
+
+logger = structlog.get_logger()
+
+ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_PUBLIC_URL", "https://orchestrator.vani.live")
+INBOUND_WEBHOOK = f"{ORCHESTRATOR_URL}/telephony/inbound"
+STATUS_WEBHOOK = f"{ORCHESTRATOR_URL}/telephony/status"
 
 router = APIRouter(prefix="/numbers", tags=["numbers"])
 
@@ -49,6 +57,20 @@ def _twilio_client():
         )
     from twilio.rest import Client
     return Client(settings.twilio_account_sid, settings.twilio_auth_token)
+
+
+def _configure_webhook(client, phone_sid: str):
+    """Set inbound voice webhook on a Twilio number so calls route to the orchestrator."""
+    try:
+        client.incoming_phone_numbers(phone_sid).update(
+            voice_url=INBOUND_WEBHOOK,
+            voice_method="POST",
+            status_callback=STATUS_WEBHOOK,
+            status_callback_method="POST",
+        )
+        logger.info("twilio_webhook_configured", sid=phone_sid, url=INBOUND_WEBHOOK)
+    except Exception as exc:
+        logger.error("twilio_webhook_failed", sid=phone_sid, error=str(exc))
 
 
 def _row(r: dict) -> PhoneNumberResponse:
@@ -232,6 +254,9 @@ async def buy_twilio_number(
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Twilio purchase failed: {exc}")
 
+    # Auto-configure webhook so inbound calls route to orchestrator
+    await anyio.to_thread.run_sync(lambda: _configure_webhook(client, purchased.sid))
+
     result = (
         db.table("phone_numbers")
         .insert({
@@ -239,6 +264,7 @@ async def buy_twilio_number(
             "agent_id": body.agent_id,
             "number": purchased.phone_number,
             "provider": "twilio",
+            "twilio_sid": purchased.sid,
             "sip_uri": None,
             "status": "active",
         })
@@ -269,8 +295,12 @@ async def sync_twilio_numbers(tenant_id: str = Depends(get_tenant_id)):
     skipped = 0
     for num in twilio_numbers:
         if num.phone_number in existing_set:
+            # Still configure webhook on existing numbers in case it's missing
+            await anyio.to_thread.run_sync(lambda sid=num.sid: _configure_webhook(client, sid))
             skipped += 1
             continue
+        # Configure webhook on newly synced number
+        await anyio.to_thread.run_sync(lambda sid=num.sid: _configure_webhook(client, sid))
         result = (
             db.table("phone_numbers")
             .insert({
@@ -278,6 +308,7 @@ async def sync_twilio_numbers(tenant_id: str = Depends(get_tenant_id)):
                 "agent_id": None,
                 "number": num.phone_number,
                 "provider": "twilio",
+                "twilio_sid": num.sid,
                 "sip_uri": None,
                 "status": "active",
             })
