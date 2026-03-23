@@ -28,13 +28,15 @@ export default function NumbersPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  async function handleSync() {
+  async function handleSync(provider = 'twilio') {
     setSyncing(true)
     setSyncResult(null)
     setError('')
     try {
-      const res = await api.syncTwilioNumbers()
-      setSyncResult(res)
+      const res = provider === 'telnyx'
+        ? await api.syncTelnyxNumbers()
+        : await api.syncTwilioNumbers()
+      setSyncResult({ ...res, provider })
       if (res.numbers?.length > 0) {
         const fresh = res.numbers.map(n => ({ ...n }))
         setNumbers(prev => [...fresh, ...prev])
@@ -78,17 +80,28 @@ export default function NumbersPage() {
             <p className="text-sm text-slate-500 mt-0.5">Manage numbers and connect them to your agents</p>
           </div>
           <div className="flex items-center gap-2.5">
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className="flex items-center gap-2 text-sm text-slate-300 hover:text-white bg-white/5 hover:bg-white/8 border border-[#2a2d3a] hover:border-[#3a3d4a] px-4 py-2 rounded-lg transition-all disabled:opacity-50">
-              <svg className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="23 4 23 10 17 10"/>
-                <polyline points="1 20 1 14 7 14"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-              </svg>
-              {syncing ? 'Syncing…' : 'Sync from Twilio'}
-            </button>
+            <div className="flex rounded-lg border border-[#2a2d3a] overflow-hidden">
+              <button
+                onClick={() => handleSync('twilio')}
+                disabled={syncing}
+                className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-white/5 hover:bg-white/8 px-3 py-2 transition-all disabled:opacity-50 border-r border-[#2a2d3a]">
+                <svg className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+                {syncing ? 'Syncing…' : 'Sync Twilio'}
+              </button>
+              <button
+                onClick={() => handleSync('telnyx')}
+                disabled={syncing}
+                className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-white/5 hover:bg-white/8 px-3 py-2 transition-all disabled:opacity-50">
+                <svg className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+                {syncing ? 'Syncing…' : 'Sync Telnyx'}
+              </button>
+            </div>
             <button
               onClick={() => { setModal('manual'); setError('') }}
               className="flex items-center gap-2 text-sm text-slate-300 hover:text-white bg-white/5 hover:bg-white/8 border border-[#2a2d3a] px-4 py-2 rounded-lg transition-colors">
@@ -116,8 +129,8 @@ export default function NumbersPage() {
           }`}>
             <span>
               {syncResult.synced > 0
-                ? `${syncResult.synced} number${syncResult.synced > 1 ? 's' : ''} imported from Twilio.${syncResult.skipped > 0 ? ` ${syncResult.skipped} already existed.` : ''}`
-                : `All Twilio numbers already synced (${syncResult.skipped} found).`}
+                ? `${syncResult.synced} number${syncResult.synced > 1 ? 's' : ''} imported from ${syncResult.provider === 'telnyx' ? 'Telnyx' : 'Twilio'}.${syncResult.skipped > 0 ? ` ${syncResult.skipped} already existed.` : ''}`
+                : `All ${syncResult.provider === 'telnyx' ? 'Telnyx' : 'Twilio'} numbers already synced (${syncResult.skipped} found).`}
             </span>
             <button onClick={() => setSyncResult(null)} className="text-slate-500 hover:text-slate-300 ml-4">✕</button>
           </div>
@@ -141,7 +154,7 @@ export default function NumbersPage() {
               </svg>
             </div>
             <p className="text-slate-300 font-medium text-sm">No numbers yet</p>
-            <p className="text-xs text-slate-600 mt-1.5 mb-5">Buy a new number or sync your existing Twilio numbers</p>
+            <p className="text-xs text-slate-600 mt-1.5 mb-5">Buy a new number or sync from Twilio / Telnyx</p>
             <div className="flex items-center justify-center gap-3">
               <button onClick={() => setModal('buy')}
                 className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
@@ -233,6 +246,7 @@ export default function NumbersPage() {
 // ─── Buy Modal ────────────────────────────────────────────────────────────────
 
 function BuyModal({ agents, onBought, onClose }) {
+  const [provider, setProvider]     = useState('twilio')
   const [country, setCountry]       = useState('US')
   const [type, setType]             = useState('local')
   const [areaCode, setAreaCode]     = useState('')
@@ -253,7 +267,9 @@ function BuyModal({ agents, onBought, onClose }) {
       const params = { country, number_type: type, limit: 20 }
       if (type === 'local' && areaCode.trim()) params.area_code = areaCode.trim()
       if (contains.trim()) params.contains = contains.trim()
-      const res = await api.searchTwilioNumbers(params)
+      const res = provider === 'telnyx'
+        ? await api.searchTelnyxNumbers(params)
+        : await api.searchTwilioNumbers(params)
       setResults(res || [])
       setSearched(true)
     } catch (err) {
@@ -272,7 +288,9 @@ function BuyModal({ agents, onBought, onClose }) {
     setError('')
     setBuying(true)
     try {
-      const num = await api.buyTwilioNumber({ phone_number: selected.phone_number, agent_id: agentId || null })
+      const num = provider === 'telnyx'
+        ? await api.buyTelnyxNumber({ phone_number: selected.phone_number, agent_id: agentId || null })
+        : await api.buyTwilioNumber({ phone_number: selected.phone_number, agent_id: agentId || null })
       onBought(num)
     } catch (err) {
       setError(err.message)
@@ -289,9 +307,30 @@ function BuyModal({ agents, onBought, onClose }) {
         <div className="flex items-center justify-between px-6 py-5 border-b border-[#1f2235] shrink-0">
           <div>
             <h2 className="text-base font-semibold text-white">Buy a Phone Number</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Search and purchase from Twilio's inventory</p>
+            <p className="text-xs text-slate-500 mt-0.5">Search and purchase from available providers</p>
           </div>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-300 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors">✕</button>
+        </div>
+
+        {/* Provider toggle */}
+        <div className="px-6 pt-4 shrink-0">
+          <div className="flex rounded-xl border border-[#2a2d3a] overflow-hidden">
+            {[
+              { id: 'twilio',  label: 'Twilio',  desc: '$1.15/mo · 60+ countries' },
+              { id: 'telnyx',  label: 'Telnyx',  desc: '$1.00/mo · cheaper rates' },
+            ].map(p => (
+              <button key={p.id} type="button"
+                onClick={() => { setProvider(p.id); setResults([]); setSelected(null); setSearched(false) }}
+                className={`flex-1 py-3 px-4 text-left transition-colors ${
+                  provider === p.id
+                    ? 'bg-indigo-500/10 border-r border-[#2a2d3a]'
+                    : 'bg-[#080a12] border-r border-[#2a2d3a] hover:bg-[#12141f]'
+                }`}>
+                <p className={`text-xs font-semibold ${provider === p.id ? 'text-indigo-300' : 'text-slate-300'}`}>{p.label}</p>
+                <p className="text-[10px] text-slate-600 mt-0.5">{p.desc}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
@@ -354,9 +393,9 @@ function BuyModal({ agents, onBought, onClose }) {
           <button onClick={search} disabled={searching}
             className="w-full flex items-center justify-center gap-2 bg-[#12141f] hover:bg-[#1a1d2e] border border-[#2a2d3a] hover:border-[#3a3d4a] text-slate-200 text-sm font-medium py-2.5 rounded-xl transition-colors disabled:opacity-50">
             {searching ? (
-              <><div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />Searching Twilio…</>
+              <><div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />Searching {provider === 'telnyx' ? 'Telnyx' : 'Twilio'}…</>
             ) : (
-              <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search Available Numbers</>
+              <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search {provider === 'telnyx' ? 'Telnyx' : 'Twilio'} Numbers</>
             )}
           </button>
 
@@ -428,7 +467,7 @@ function BuyModal({ agents, onBought, onClose }) {
                   <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
                 <p className="text-xs text-amber-400">
-                  This will charge your Twilio account — typically ~$1.15/month for US local numbers.
+                  This will charge your {provider === 'telnyx' ? 'Telnyx' : 'Twilio'} account — typically ~${provider === 'telnyx' ? '1.00' : '1.15'}/month for US local numbers.
                 </p>
               </div>
             </div>

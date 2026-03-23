@@ -161,6 +161,9 @@ export const api = {
   searchTwilioNumbers:(params) => request('GET', `/numbers/available?${new URLSearchParams(params)}`),
   buyTwilioNumber:    (data)   => request('POST', '/numbers/buy', data),
   syncTwilioNumbers:  ()       => request('POST', '/numbers/sync'),
+  searchTelnyxNumbers:(params) => request('GET', `/numbers/telnyx/available?${new URLSearchParams(params)}`),
+  buyTelnyxNumber:    (data)   => request('POST', '/numbers/telnyx/buy', data),
+  syncTelnyxNumbers:  ()       => request('POST', '/numbers/telnyx/sync'),
 
   // API Keys
   listKeys:  ()     => request('GET', '/api-keys'),
