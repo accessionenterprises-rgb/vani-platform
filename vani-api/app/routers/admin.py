@@ -516,6 +516,43 @@ def admin_hunter_scans(country: Optional[str] = None):
 def admin_hunter_status():
     from app.routers.number_hunter import _scan_running, _scan_progress, NANP_COUNTRIES
     running = {c: _scan_progress.get(c, {}) for c in _scan_running if _scan_running[c]}
+
+    # DB fallback: if no in-memory state, check for DB scans stuck as 'running'
+    # (survives Railway redeploys that wipe in-memory state)
+    if not running:
+        try:
+            db = get_db()
+            db_running = (
+                db.table("number_scan_runs")
+                .select("id,country,total_patterns,started_at")
+                .eq("status", "running")
+                .execute()
+                .data or []
+            )
+            from datetime import datetime, timezone, timedelta
+            now = datetime.now(timezone.utc)
+            for row in db_running:
+                started = datetime.fromisoformat(row["started_at"].replace("Z", "+00:00"))
+                age = (now - started).total_seconds()
+                if age > 7200:
+                    # Stale — mark as failed (container died mid-scan)
+                    db.table("number_scan_runs").update({
+                        "status": "failed",
+                        "completed_at": now.isoformat(),
+                        "error": "Scan interrupted by server restart",
+                    }).eq("id", row["id"]).execute()
+                else:
+                    # Likely still running or just died — show to frontend
+                    running[row["country"]] = {
+                        "searched": 0,
+                        "total": row["total_patterns"],
+                        "found": 0,
+                        "service": "twilio",
+                        "note": "Resumed from DB — progress unknown",
+                    }
+        except Exception:
+            pass
+
     return {"running": running, "countries": list(NANP_COUNTRIES.keys())}
 
 

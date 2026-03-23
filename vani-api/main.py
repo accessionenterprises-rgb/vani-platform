@@ -52,7 +52,24 @@ app.include_router(team.router)
 
 @app.on_event("startup")
 async def start_number_hunter_scheduler() -> None:
-    """Launch the daily number hunter scan and schedule checker as background tasks."""
+    """Clean up stale scans and launch background schedulers."""
+    # Mark any 'running' scans as failed — container restarted mid-scan
+    try:
+        from app.db import get_db as _get_db
+        from datetime import datetime, timezone
+        db = _get_db()
+        stale = db.table("number_scan_runs").select("id").eq("status", "running").execute().data or []
+        if stale:
+            for row in stale:
+                db.table("number_scan_runs").update({
+                    "status": "failed",
+                    "completed_at": datetime.now(timezone.utc).isoformat(),
+                    "error": "Scan interrupted by server restart",
+                }).eq("id", row["id"]).execute()
+            logger.info("Marked %d stale scan(s) as failed on startup", len(stale))
+    except Exception as exc:
+        logger.warning("Stale scan cleanup failed: %s", exc)
+
     asyncio.create_task(_hunter_scheduler())
     asyncio.create_task(_schedule_checker())
 
