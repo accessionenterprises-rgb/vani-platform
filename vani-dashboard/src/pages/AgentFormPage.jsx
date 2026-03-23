@@ -1017,7 +1017,7 @@ const inputCls = 'w-full bg-[#080a12] border border-[#2a2d3a] focus:border-indig
 
 // ─── Voice Preview ─────────────────────────────────────────────────────────
 
-function VoicePreview({ voice }) {
+function VoicePreview({ voice, lang }) {
   const [playing, setPlaying] = useState(false)
   const [loading, setLoading] = useState(false)
   const audioRef = useRef(null)
@@ -1033,15 +1033,13 @@ function VoicePreview({ voice }) {
     setLoading(true)
     try {
       const token = localStorage.getItem('vani_token')
-      const url = api.ttsPreviewUrl(voice) + `&t=${token}`
+      const langParam = lang ? `&lang=${lang}` : ''
 
       if (audioRef.current) {
         audioRef.current.pause()
       }
       const audio = new Audio()
-      audio.src = url
-      // Pass auth via fetch + blob for proper auth
-      const resp = await fetch(api.ttsPreviewUrl(voice), {
+      const resp = await fetch(api.ttsPreviewUrl(voice) + langParam, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!resp.ok) throw new Error('Preview failed')
@@ -1091,24 +1089,37 @@ function VoicePreview({ voice }) {
 // ─── Sarvam Voice Picker ───────────────────────────────────────────────────
 
 const SARVAM_VOICES = [
-  { id: 'sarvam-priya',    name: 'Priya',    gender: 'Female', lang: 'Hindi' },
-  { id: 'sarvam-neha',     name: 'Neha',     gender: 'Female', lang: 'Hindi' },
-  { id: 'sarvam-shreya',   name: 'Shreya',   gender: 'Female', lang: 'Hindi' },
-  { id: 'sarvam-kavya',    name: 'Kavya',    gender: 'Female', lang: 'Hindi' },
-  { id: 'sarvam-simran',   name: 'Simran',   gender: 'Female', lang: 'Hindi' },
-  { id: 'sarvam-ritu',     name: 'Ritu',     gender: 'Female', lang: 'Hindi' },
-  { id: 'sarvam-rahul',    name: 'Rahul',    gender: 'Male',   lang: 'Hindi' },
-  { id: 'sarvam-amit',     name: 'Amit',     gender: 'Male',   lang: 'Hindi' },
-  { id: 'sarvam-dev',      name: 'Dev',      gender: 'Male',   lang: 'Hindi' },
-  { id: 'sarvam-rohan',    name: 'Rohan',    gender: 'Male',   lang: 'Hindi' },
-  { id: 'sarvam-kabir',    name: 'Kabir',    gender: 'Male',   lang: 'Hindi' },
-  { id: 'sarvam-aditya',   name: 'Aditya',   gender: 'Male',   lang: 'Hindi' },
+  { id: 'sarvam-priya',    name: 'Priya',    gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-neha',     name: 'Neha',     gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-shreya',   name: 'Shreya',   gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-kavya',    name: 'Kavya',    gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-simran',   name: 'Simran',   gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-ritu',     name: 'Ritu',     gender: 'Female', lang: 'Hi · En' },
+  { id: 'sarvam-rahul',    name: 'Rahul',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-amit',     name: 'Amit',     gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-dev',      name: 'Dev',      gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-rohan',    name: 'Rohan',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-kabir',    name: 'Kabir',    gender: 'Male',   lang: 'Hi · En' },
+  { id: 'sarvam-aditya',   name: 'Aditya',   gender: 'Male',   lang: 'Hi · En' },
 ]
 
 function SarvamVoicePicker({ selected, onSelect }) {
+  const [previewLang, setPreviewLang] = useState('en')
   return (
     <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
-      <p className="text-xs font-semibold text-slate-400">Choose Sarvam Voice</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-slate-400">Choose Sarvam Voice</p>
+        <div className="flex rounded-lg border border-[#2a2d3a] overflow-hidden">
+          {[{ id: 'en', label: 'English' }, { id: 'hi', label: 'हिन्दी' }].map(l => (
+            <button key={l.id} type="button" onClick={() => setPreviewLang(l.id)}
+              className={`px-3 py-1.5 text-[10px] font-medium transition-colors ${
+                previewLang === l.id
+                  ? 'bg-indigo-500/15 text-indigo-300'
+                  : 'bg-[#080a12] text-slate-500 hover:text-slate-300'
+              }`}>{l.label}</button>
+          ))}
+        </div>
+      </div>
       <div className="grid grid-cols-3 gap-2">
         {SARVAM_VOICES.map(v => (
           <button key={v.id} type="button" onClick={() => onSelect(v.id)}
@@ -1123,7 +1134,7 @@ function SarvamVoicePicker({ selected, onSelect }) {
         ))}
       </div>
       {/* Preview selected sarvam voice */}
-      <VoicePreview voice={selected} />
+      <VoicePreview voice={selected} lang={previewLang} />
     </div>
   )
 }

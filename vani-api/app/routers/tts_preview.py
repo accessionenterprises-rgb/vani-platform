@@ -64,8 +64,8 @@ async def list_previewable_voices(tenant_id: str = Depends(get_tenant_id)):
 
 
 @router.get("/preview")
-async def preview_voice(voice: str, tenant_id: str = Depends(get_tenant_id)):
-    """Generate a short TTS audio sample for the given voice."""
+async def preview_voice(voice: str, lang: str = "hi", tenant_id: str = Depends(get_tenant_id)):
+    """Generate a short TTS audio sample for the given voice. lang=en or lang=hi."""
 
     # OpenAI voices
     if voice in OPENAI_VOICES:
@@ -73,11 +73,11 @@ async def preview_voice(voice: str, tenant_id: str = Depends(get_tenant_id)):
 
     # Sarvam voices
     if voice in SARVAM_VOICES:
-        return await _preview_sarvam(SARVAM_VOICES[voice])
+        return await _preview_sarvam(SARVAM_VOICES[voice], lang)
 
     # Also handle bare sarvam provider ID
     if voice == "sarvam":
-        return await _preview_sarvam(SARVAM_VOICES["sarvam-priya"])
+        return await _preview_sarvam(SARVAM_VOICES["sarvam-priya"], lang)
 
     raise HTTPException(status_code=400, detail=f"Preview not available for '{voice}'.")
 
@@ -113,10 +113,13 @@ async def _preview_openai(openai_voice: str) -> Response:
         raise HTTPException(status_code=502, detail="TTS preview failed")
 
 
-async def _preview_sarvam(voice_meta: dict) -> Response:
+async def _preview_sarvam(voice_meta: dict, lang: str = "hi") -> Response:
     api_key = os.getenv("SARVAM_API_KEY", "")
     if not api_key:
         raise HTTPException(status_code=500, detail="Sarvam API key not configured. Set SARVAM_API_KEY.")
+
+    preview_text = PREVIEW_TEXT_EN if lang == "en" else PREVIEW_TEXT_HI
+    lang_code = "en-IN" if lang == "en" else "hi-IN"
 
     try:
         async with httpx.AsyncClient(timeout=30) as client:
@@ -127,8 +130,8 @@ async def _preview_sarvam(voice_meta: dict) -> Response:
                     "Content-Type": "application/json",
                 },
                 json={
-                    "inputs": [PREVIEW_TEXT_HI],
-                    "target_language_code": voice_meta["lang"],
+                    "inputs": [preview_text],
+                    "target_language_code": lang_code,
                     "speaker": voice_meta["speaker"],
                     "model": "bulbul:v3",
                     "pace": 1.0,
