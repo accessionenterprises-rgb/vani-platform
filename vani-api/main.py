@@ -200,12 +200,16 @@ def debug_hunter():
     from app.db import get_db as _gdb
     db = _gdb()
     recent = db.table("number_scan_runs").select("*").order("started_at", desc=True).limit(5).execute().data or []
+    avail = db.table("number_hunt_results").select("id", count="exact").eq("status", "available").execute()
+    sample = db.table("number_hunt_results").select("number,country,tier,ai_score").eq("status", "available").order("first_seen", desc=True).limit(5).execute().data or []
     return {
         "in_memory": {
             "running": dict(_scan_running),
             "progress": dict(_scan_progress),
         },
         "db_scans": recent,
+        "results_count": avail.count if avail else 0,
+        "sample_results": sample,
         "twilio_configured": bool(s.twilio_account_sid and s.twilio_auth_token),
         "anthropic_configured": bool(s.anthropic_api_key),
     }
