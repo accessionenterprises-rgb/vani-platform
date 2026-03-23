@@ -60,12 +60,20 @@ async def serve_embed_js():
 @app.on_event("startup")
 async def start_number_hunter_scheduler() -> None:
     """Clean up stale scans and launch background schedulers."""
-    # Mark any 'running' scans as failed — container restarted mid-scan
+    # Mark old 'running' scans as failed — but only if started >10 min ago
+    # (recent ones might have been started just before this deploy)
     try:
         from app.db import get_db as _get_db
-        from datetime import datetime, timezone
+        from datetime import datetime, timezone, timedelta
         db = _get_db()
-        stale = db.table("number_scan_runs").select("id").eq("status", "running").execute().data or []
+        cutoff = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+        stale = (
+            db.table("number_scan_runs")
+            .select("id")
+            .eq("status", "running")
+            .lt("started_at", cutoff)
+            .execute().data or []
+        )
         if stale:
             for row in stale:
                 db.table("number_scan_runs").update({
