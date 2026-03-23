@@ -202,6 +202,8 @@ def debug_hunter():
     recent = db.table("number_scan_runs").select("*").order("started_at", desc=True).limit(5).execute().data or []
     avail = db.table("number_hunt_results").select("id", count="exact").eq("status", "available").execute()
     sample = db.table("number_hunt_results").select("number,country,tier,ai_score").eq("status", "available").order("first_seen", desc=True).limit(5).execute().data or []
+    # Best numbers: seq6, seq7, A-tier
+    best = db.table("number_hunt_results").select("number,tier,ai_score").eq("status", "available").in_("tier", ["P-seq6","P-seq7","A-seven","A-double-seq","A-mirror","A-double-rev"]).order("tier").limit(30).execute().data or []
     # Tier breakdown
     all_results = db.table("number_hunt_results").select("tier").eq("status", "available").execute().data or []
     tier_counts = {}
@@ -216,6 +218,7 @@ def debug_hunter():
         "db_scans": recent,
         "results_count": avail.count if avail else 0,
         "sample_results": sample,
+        "best_numbers": best,
         "tier_breakdown": dict(sorted(tier_counts.items(), key=lambda x: -x[1])),
         "twilio_configured": bool(s.twilio_account_sid and s.twilio_auth_token),
         "anthropic_configured": bool(s.anthropic_api_key),
