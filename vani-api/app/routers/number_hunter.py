@@ -338,13 +338,16 @@ async def score_numbers_with_ai(numbers: list[str]) -> dict[str, dict]:
 
 # ── Twilio search ─────────────────────────────────────────────────────────────
 
-def _twilio_search(country: str, pattern: str) -> list[str]:
+def _twilio_search(country: str, pattern: str, is_tollfree: bool = False) -> list[str]:
     if not settings.twilio_account_sid or not settings.twilio_auth_token:
         return []
     try:
         from twilio.rest import Client
         client = Client(settings.twilio_account_sid, settings.twilio_auth_token)
-        results = client.available_phone_numbers(country).local.list(contains=pattern, limit=10)
+        if is_tollfree:
+            results = client.available_phone_numbers("US").toll_free.list(contains=pattern, limit=10)
+        else:
+            results = client.available_phone_numbers(country).local.list(contains=pattern, limit=10)
         return [n.phone_number for n in results]
     except Exception:
         return []
@@ -364,12 +367,14 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
                 tf_patterns = [p for p in tf_patterns if p["tier"] in tiers_filter]
             patterns += tf_patterns
 
-        run = db.table("number_scan_runs").insert({
+        _run_resp = db.table("number_scan_runs").insert({
             "country": country,
             "total_patterns": len(patterns),
             "status": "running",
-        }).execute().data[0]
-        scan_id = run["id"]
+        }).execute()
+        if _run_resp is None or not _run_resp.data:
+            raise RuntimeError("Failed to insert scan run row")
+        scan_id = _run_resp.data[0]["id"]
 
         _scan_progress[country] = {"searched": 0, "total": len(patterns), "found": 0, "service": "twilio"}
 
@@ -384,40 +389,44 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
         async def do_one(p: dict) -> None:
             nonlocal found, new_count
             async with sem:
-                nums = await asyncio.to_thread(_twilio_search, country, p["pattern"])
-                for num in nums:
-                    if num in seen:
-                        continue
-                    seen.add(num)
-                    found += 1
+                try:
+                    is_tf = p["tier"].startswith("TF-")
+                    nums = await asyncio.to_thread(_twilio_search, country, p["pattern"], is_tf)
+                    for num in nums:
+                        if num in seen:
+                            continue
+                        seen.add(num)
+                        found += 1
 
-                    _resp = (
-                        db.table("number_hunt_results")
-                        .select("id,status")
-                        .eq("number", num)
-                        .eq("country", country)
-                        .maybe_single()
-                        .execute()
-                    )
-                    existing = _resp.data if _resp is not None else None
-                    now = datetime.now(timezone.utc).isoformat()
-                    if existing:
-                        update: dict = {"last_seen": now}
-                        if existing["status"] == "gone":
-                            update["status"] = "available"
+                        _resp = (
+                            db.table("number_hunt_results")
+                            .select("id,status")
+                            .eq("number", num)
+                            .eq("country", country)
+                            .maybe_single()
+                            .execute()
+                        )
+                        existing = _resp.data if _resp is not None else None
+                        now = datetime.now(timezone.utc).isoformat()
+                        if existing:
+                            update: dict = {"last_seen": now}
+                            if existing["status"] == "gone":
+                                update["status"] = "available"
+                                new_count += 1
+                            db.table("number_hunt_results").update(update).eq("id", existing["id"]).execute()
+                        else:
+                            db.table("number_hunt_results").insert({
+                                "number": num,
+                                "country": country,
+                                "tier": p["tier"],
+                                "label": p["label"],
+                                "pattern": p["pattern"],
+                                "status": "available",
+                            }).execute()
                             new_count += 1
-                        db.table("number_hunt_results").update(update).eq("id", existing["id"]).execute()
-                    else:
-                        db.table("number_hunt_results").insert({
-                            "number": num,
-                            "country": country,
-                            "tier": p["tier"],
-                            "label": p["label"],
-                            "pattern": p["pattern"],
-                            "status": "available",
-                        }).execute()
-                        new_count += 1
-                        newly_inserted.append(num)
+                            newly_inserted.append(num)
+                except Exception as exc:
+                    logger.warning("Pattern %s failed: %s", p.get("label", "?"), exc)
 
                 _scan_progress[country]["searched"] += 1
                 _scan_progress[country]["found"] = found
@@ -425,14 +434,14 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
         await asyncio.gather(*[do_one(p) for p in patterns])
 
         # Mark numbers not seen this run as gone (bulk update)
-        all_avail = (
+        _avail_resp = (
             db.table("number_hunt_results")
             .select("number,id")
             .eq("country", country)
             .eq("status", "available")
             .execute()
-            .data
         )
+        all_avail = _avail_resp.data if _avail_resp is not None and _avail_resp.data else []
         gone_ids = [row["id"] for row in all_avail if row["number"] not in seen]
         gone_count = len(gone_ids)
         if gone_ids:
@@ -461,7 +470,7 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
         return {"country": country, "found": found, "new": new_count, "gone": gone_count}
 
     except Exception as exc:
-        logger.error("Scan failed for %s: %s", country, exc)
+        logger.error("Scan failed for %s: %s\n%s", country, exc, traceback.format_exc())
         if scan_id:
             db.table("number_scan_runs").update({
                 "status": "failed",
@@ -491,10 +500,12 @@ async def daily_scan(countries: Optional[list[str]] = None, tiers_filter: Option
                 logger.info("Scan done: %s", country)
                 _scan_running[country] = False
             except Exception as exc:
-                logger.error("Scan error for %s: %s", country, exc)
-                # Keep _scan_running as "error" (truthy) so status endpoint returns it
+                logger.error("Scan error for %s: %s\n%s", country, exc, traceback.format_exc())
                 _scan_running[country] = "error"
-                _scan_progress[country] = {"searched": 0, "total": 0, "found": 0, "error": str(exc), "service": "twilio"}
+                # Preserve existing progress counts, just add the error field
+                prog = _scan_progress.get(country, {})
+                prog["error"] = str(exc)
+                _scan_progress[country] = prog
 
     await asyncio.gather(*[_run_one(c, npas) for c, npas in targets.items()])
 
@@ -595,5 +606,21 @@ async def purchase_number(
         "status": "purchased",
         "purchased_at": datetime.now(timezone.utc).isoformat(),
     }).eq("number", body.number).execute()
+
+    # Also insert into phone_numbers so it appears on the Numbers page
+    existing_pn = (
+        db.table("phone_numbers").select("id")
+        .eq("number", purchased.phone_number)
+        .maybe_single().execute()
+    )
+    if not (existing_pn and existing_pn.data):
+        db.table("phone_numbers").insert({
+            "tenant_id": tenant_id,
+            "agent_id": None,
+            "number": purchased.phone_number,
+            "provider": "twilio",
+            "sip_uri": None,
+            "status": "active",
+        }).execute()
 
     return {"purchased": True, "number": purchased.phone_number, "sid": purchased.sid}
