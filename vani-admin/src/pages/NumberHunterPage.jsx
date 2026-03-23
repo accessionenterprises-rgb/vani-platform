@@ -106,6 +106,8 @@ export default function NumberHunterPage() {
   const [country, setCountry]         = useState('')
   const [tierFilter, setTierFilter]   = useState('')
   const [scoreFilter, setScoreFilter] = useState('')   // '', '8', '6', 'unscored'
+  const [areaCodeFilter, setAreaCodeFilter] = useState('')
+  const [sortBy, setSortBy] = useState('score')       // score, date, number
   const [scanning, setScanning]         = useState(false)
   const [scanCountries, setScanCountries] = useState(['US'])  // multi-select
   const [scanService, setScanService]   = useState('twilio')  // twilio | telnyx
@@ -355,19 +357,27 @@ export default function NumberHunterPage() {
   const isRunning = runningCountries.length > 0
   const lastScan = scans[0]
 
-  // Client-side score filter
+  // Client-side filters
   const filtered = results.filter(r => {
-    if (!scoreFilter) return true
-    if (scoreFilter === '8') return r.ai_score >= 8
-    if (scoreFilter === '6') return r.ai_score >= 6 && r.ai_score < 8
-    if (scoreFilter === 'unscored') return r.ai_score == null
+    if (scoreFilter === '8' && !(r.ai_score >= 8)) return false
+    if (scoreFilter === '6' && !(r.ai_score >= 6 && r.ai_score < 8)) return false
+    if (scoreFilter === 'unscored' && r.ai_score != null) return false
+    if (areaCodeFilter && !r.number?.replace('+1', '').startsWith(areaCodeFilter)) return false
     return true
+  }).sort((a, b) => {
+    if (sortBy === 'score') return (b.ai_score ?? -1) - (a.ai_score ?? -1)
+    if (sortBy === 'date') return new Date(b.first_seen || 0) - new Date(a.first_seen || 0)
+    if (sortBy === 'number') return (a.number || '').localeCompare(b.number || '')
+    return 0
   })
 
   const tierCounts = results.reduce((acc, r) => {
     acc[r.tier] = (acc[r.tier] || 0) + 1
     return acc
   }, {})
+
+  // Unique area codes for filter dropdown
+  const areaCodes = [...new Set(results.map(r => r.number?.replace('+1', '').slice(0, 3)).filter(Boolean))].sort()
 
   return (
     <div className="p-8 max-w-7xl">
@@ -562,6 +572,36 @@ export default function NumberHunterPage() {
         </select>
 
         <span className="text-xs text-slate-600 ml-auto">{filtered.length} numbers</span>
+      </div>
+
+      {/* Extra filters row */}
+      <div className="flex items-center gap-3 mb-4">
+        {/* Area code */}
+        <select value={areaCodeFilter} onChange={e => setAreaCodeFilter(e.target.value)}
+          className="bg-[#12141f] border border-[#2a2d3a] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+        >
+          <option value="">All area codes</option>
+          {areaCodes.map(ac => (
+            <option key={ac} value={ac}>{ac}</option>
+          ))}
+        </select>
+
+        {/* Sort */}
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+          className="bg-[#12141f] border border-[#2a2d3a] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+        >
+          <option value="score">Sort: AI Score</option>
+          <option value="date">Sort: Newest first</option>
+          <option value="number">Sort: Number</option>
+        </select>
+
+        {/* Reset filters */}
+        {(scoreFilter || areaCodeFilter || tierFilter || country) && (
+          <button
+            onClick={() => { setScoreFilter(''); setAreaCodeFilter(''); setTierFilter(''); setCountry('') }}
+            className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+          >Reset filters</button>
+        )}
       </div>
 
       {/* Tier pills */}
