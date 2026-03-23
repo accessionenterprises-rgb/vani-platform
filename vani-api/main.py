@@ -1,9 +1,12 @@
 """Vani API — entrypoint."""
 import asyncio
+from pathlib import Path
+
 import structlog
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from app.config import settings
 from app.routers import admin, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, number_hunter, numbers, outbound, playground_chat, products, team, tools, webhooks, widget
@@ -19,12 +22,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.environment == "development" else [
-        "https://vani.live",
-        "https://app.vani.live",
-        "https://dashboard.vani.live",
-        "https://admin.vani.live",
-    ],
+    allow_origins=["*"],  # Widget endpoints need cross-origin access from customer sites
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,6 +47,14 @@ app.include_router(playground_chat.router)
 app.include_router(dialer.router)
 app.include_router(team.router)
 app.include_router(widget.router)
+
+STATIC_DIR = Path(__file__).parent / "static"
+
+
+@app.get("/widget/embed.js", include_in_schema=False)
+async def serve_embed_js():
+    return FileResponse(STATIC_DIR / "embed.js", media_type="application/javascript",
+                        headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.on_event("startup")
