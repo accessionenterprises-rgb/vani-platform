@@ -194,6 +194,36 @@ def health():
     return {"ok": True, "service": "vani-api", "version": "2.0.0"}
 
 
+@app.get("/debug/telnyx-test")
+def debug_telnyx_test(pattern: str = "999999", country: str = "US"):
+    """Test a single Telnyx search and return raw response."""
+    import httpx
+    from app.config import settings as s
+    if not s.telnyx_api_key:
+        return {"error": "TELNYX_API_KEY not set"}
+    try:
+        params = {
+            "filter[country_code]": country,
+            "filter[phone_number][contains]": pattern,
+            "filter[limit]": 5,
+        }
+        r = httpx.get(
+            "https://api.telnyx.com/v2/available_phone_numbers",
+            params=params,
+            headers={"Authorization": f"Bearer {s.telnyx_api_key}"},
+            timeout=15,
+        )
+        return {
+            "status": r.status_code,
+            "pattern": pattern,
+            "results": len(r.json().get("data", [])),
+            "numbers": [n.get("phone_number") for n in r.json().get("data", [])],
+            "raw_keys": list(r.json().keys()),
+        }
+    except Exception as exc:
+        return {"error": str(exc), "pattern": pattern}
+
+
 @app.delete("/debug/hunter/clear")
 def debug_clear():
     """Temporary — clear all results and scan logs."""

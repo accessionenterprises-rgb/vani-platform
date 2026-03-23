@@ -365,8 +365,14 @@ def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False, prefix
         )
         r.raise_for_status()
         return [n["phone_number"] for n in r.json().get("data", [])]
-    except Exception:
+    except Exception as exc:
+        logger.debug("Telnyx search failed for %s: %s", pattern, exc)
         return []
+
+
+# Track Telnyx errors for debugging
+_telnyx_error_count = 0
+_telnyx_last_error = ""
 
 
 def _search_numbers(service: str, country: str, pattern: str, is_tollfree: bool = False, prefix: bool = False) -> list[str]:
