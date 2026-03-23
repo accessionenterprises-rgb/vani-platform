@@ -159,10 +159,10 @@ def build_patterns(npas: list[int], tiers_filter: Optional[list[str]] = None) ->
         for a in range(0, 10):
             s.append({"label": f"{a}x{length}", "pattern": str(a) * length, "tier": tier})
 
-    # 2. NPA×2 — area code appears twice (6-char substring, any ending)
+    # 2. NPA×2 — area code appears twice, must start with it
     for n in npas:
         npa = str(n)
-        s.append({"label": f"{npa}x2", "pattern": f"{npa}{npa}", "tier": "A-double-npa"})
+        s.append({"label": f"{npa}x2", "pattern": f"{npa}{npa}", "tier": "A-double-npa", "prefix": True})
 
     # 5. NPA×2·rev(NPA)·X — full x∈{0..9}
     for n in npas:
@@ -322,16 +322,19 @@ async def score_numbers_with_ai(numbers: list[str]) -> dict[str, dict]:
 
 # ── Twilio search ─────────────────────────────────────────────────────────────
 
-def _twilio_search(country: str, pattern: str, is_tollfree: bool = False) -> list[str]:
+def _twilio_search(country: str, pattern: str, is_tollfree: bool = False, prefix: bool = False) -> list[str]:
     if not settings.twilio_account_sid or not settings.twilio_auth_token:
         return []
     try:
         from twilio.rest import Client
         client = Client(settings.twilio_account_sid, settings.twilio_auth_token)
+        kwargs: dict = {"contains": pattern, "limit": 10}
+        if prefix and len(pattern) >= 3:
+            kwargs["area_code"] = pattern[:3]
         if is_tollfree:
-            results = client.available_phone_numbers("US").toll_free.list(contains=pattern, limit=10)
+            results = client.available_phone_numbers("US").toll_free.list(**kwargs)
         else:
-            results = client.available_phone_numbers(country).local.list(contains=pattern, limit=10)
+            results = client.available_phone_numbers(country).local.list(**kwargs)
         return [n.phone_number for n in results]
     except Exception:
         return []
@@ -339,16 +342,19 @@ def _twilio_search(country: str, pattern: str, is_tollfree: bool = False) -> lis
 
 # ── Telnyx search ────────────────────────────────────────────────────────────
 
-def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False) -> list[str]:
+def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False, prefix: bool = False) -> list[str]:
     if not settings.telnyx_api_key:
         return []
     try:
         import httpx
         params = {
             "filter[country_code]": country,
-            "filter[phone_number][contains]": pattern,
             "filter[limit]": 10,
         }
+        if prefix:
+            params["filter[phone_number][starts_with]"] = f"+1{pattern}"
+        else:
+            params["filter[phone_number][contains]"] = pattern
         if is_tollfree:
             params["filter[number_type]"] = "toll-free"
         r = httpx.get(
@@ -363,11 +369,11 @@ def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False) -> lis
         return []
 
 
-def _search_numbers(service: str, country: str, pattern: str, is_tollfree: bool = False) -> list[str]:
+def _search_numbers(service: str, country: str, pattern: str, is_tollfree: bool = False, prefix: bool = False) -> list[str]:
     """Route search to the correct provider."""
     if service == "telnyx":
-        return _telnyx_search(country, pattern, is_tollfree)
-    return _twilio_search(country, pattern, is_tollfree)
+        return _telnyx_search(country, pattern, is_tollfree, prefix)
+    return _twilio_search(country, pattern, is_tollfree, prefix)
 
 
 # ── Core scan logic ───────────────────────────────────────────────────────────
@@ -408,7 +414,8 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
             async with sem:
                 try:
                     is_tf = p["tier"].startswith("TF-")
-                    nums = await asyncio.to_thread(_search_numbers, service, country, p["pattern"], is_tf)
+                    is_prefix = p.get("prefix", False)
+                    nums = await asyncio.to_thread(_search_numbers, service, country, p["pattern"], is_tf, is_prefix)
                     for num in nums:
                         if num in seen:
                             continue
