@@ -524,7 +524,7 @@ async def list_results(
         db.table("number_hunt_results")
         .select("*")
         .eq("status", status)
-        .order("ai_score", desc=True, nulls_last=True)
+        .order("ai_score", desc=True)
     )
     if country:
         q = q.eq("country", country.upper())

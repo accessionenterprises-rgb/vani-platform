@@ -499,7 +499,7 @@ def admin_hunter_results(
         q = q.eq("country", country)
     if tier:
         q = q.eq("tier", tier)
-    q = q.order("ai_score", desc=True, nulls_last=True).order("first_seen", desc=True).limit(2000)
+    q = q.order("ai_score", desc=True).order("first_seen", desc=True).limit(2000)
     return q.execute().data or []
 
 
