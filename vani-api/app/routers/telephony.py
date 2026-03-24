@@ -11,6 +11,8 @@ from fastapi.responses import Response
 router = APIRouter(prefix="/telephony", tags=["telephony"])
 
 SIP_HOST = os.getenv("LIVEKIT_SIP_HOST", "vaani-voice-s42m8zzi.sip.livekit.cloud")
+SIP_USER = os.getenv("LIVEKIT_SIP_USER", "vanisip")
+SIP_PASS = os.getenv("LIVEKIT_SIP_PASS", "Vani2026Sip!")
 
 
 @router.post("/twiml")
@@ -20,13 +22,13 @@ async def twiml_webhook(
     From: str = Form(default=""),
     CallSid: str = Form(default=""),
 ):
-    """Return TwiML that dials LiveKit SIP endpoint."""
+    """Return TwiML that dials LiveKit SIP endpoint with auth."""
     to_number = To if To else "+19209209967"
 
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Dial>
-    <Sip>sip:{to_number}@{SIP_HOST};transport=tcp</Sip>
+    <Sip username="{SIP_USER}" password="{SIP_PASS}">sip:{to_number}@{SIP_HOST};transport=tcp</Sip>
   </Dial>
 </Response>"""
 
