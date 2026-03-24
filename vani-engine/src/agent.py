@@ -587,6 +587,32 @@ async def vani_agent(ctx: JobContext):
     transcript_lines = []
     language_locked = [language in ("en", "hi")]
 
+    # ── Usage tracking (exact tokens/chars/duration for cost calculation) ────
+    usage = {
+        "llm_input_tokens": 0, "llm_output_tokens": 0, "llm_cached_tokens": 0,
+        "tts_characters": 0, "tts_audio_sec": 0.0,
+        "stt_audio_sec": 0.0,
+        "llm_ttft_ms": [],  # time-to-first-token per turn
+        "tts_ttfb_ms": [],  # time-to-first-byte per turn
+    }
+
+    @session.on("metrics_collected")
+    def on_metrics(metrics):
+        from livekit.agents.metrics import LLMMetrics, TTSMetrics, STTMetrics
+        if isinstance(metrics, LLMMetrics):
+            usage["llm_input_tokens"] += metrics.prompt_tokens
+            usage["llm_output_tokens"] += metrics.completion_tokens
+            usage["llm_cached_tokens"] += metrics.prompt_cached_tokens
+            if metrics.ttft > 0:
+                usage["llm_ttft_ms"].append(int(metrics.ttft * 1000))
+        elif isinstance(metrics, TTSMetrics):
+            usage["tts_characters"] += metrics.characters_count
+            usage["tts_audio_sec"] += metrics.audio_duration
+            if metrics.ttfb > 0:
+                usage["tts_ttfb_ms"].append(int(metrics.ttfb * 1000))
+        elif isinstance(metrics, STTMetrics):
+            usage["stt_audio_sec"] += metrics.audio_duration
+
     # ── Latency tracking ─────────────────────────────────────────────────────
     last_user_ts = [0.0]      # timestamp of last user_speech_committed
     turn_latencies = []       # list of ms from user_speech_committed → agent_speech_started
@@ -695,6 +721,19 @@ async def vani_agent(ctx: JobContext):
     llm_provider_str = cfg.get("llm", "gpt-4o-mini")
     tts_provider_str = cfg.get("tts", "openai-nova")
 
+    # Build usage summary for exact cost calculation
+    usage_summary = {
+        "llm_input_tokens":  usage["llm_input_tokens"],
+        "llm_output_tokens": usage["llm_output_tokens"],
+        "llm_cached_tokens": usage["llm_cached_tokens"],
+        "tts_characters":    usage["tts_characters"],
+        "tts_audio_sec":     round(usage["tts_audio_sec"], 2),
+        "stt_audio_sec":     round(usage["stt_audio_sec"], 2),
+        "llm_avg_ttft_ms":   int(sum(usage["llm_ttft_ms"]) / len(usage["llm_ttft_ms"])) if usage["llm_ttft_ms"] else 0,
+        "tts_avg_ttfb_ms":   int(sum(usage["tts_ttfb_ms"]) / len(usage["tts_ttfb_ms"])) if usage["tts_ttfb_ms"] else 0,
+    }
+    print(f">>> USAGE | llm_in={usage_summary['llm_input_tokens']} llm_out={usage_summary['llm_output_tokens']} tts_chars={usage_summary['tts_characters']} stt_sec={usage_summary['stt_audio_sec']} llm_ttft={usage_summary['llm_avg_ttft_ms']}ms tts_ttfb={usage_summary['tts_avg_ttfb_ms']}ms", flush=True)
+
     await _notify_orchestrator(call_id, "CALL_ENDED", {
         "duration_sec":    duration_sec,
         "transcript":      "\n".join(transcript_lines),
@@ -705,6 +744,7 @@ async def vani_agent(ctx: JobContext):
         "tts_provider":    tts_provider_str,
         "direction":       direction,
         "latency_profile": latency_profile,
+        "usage":           usage_summary,
     })
 
 
