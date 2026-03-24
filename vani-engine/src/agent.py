@@ -333,11 +333,11 @@ def _build_tts(tts_provider: str, voice: str, language: str):
         try:
             from livekit.plugins import elevenlabs
             el_key = os.getenv("ELEVENLABS_API_KEY", "")
-            el_voice = os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL")
             if el_key:
-                return elevenlabs.TTS(api_key=el_key, voice_id=el_voice)
-        except ImportError:
-            pass
+                return elevenlabs.TTS(api_key=el_key, voice_id=voice or "EXAVITQu4vr4xnSDxMaL")
+            print(">>> ELEVENLABS_API_KEY not set, falling back to OpenAI TTS", flush=True)
+        except Exception as e:
+            print(f">>> ElevenLabs init failed: {e}", flush=True)
 
     # Default: OpenAI TTS
     return openai.TTS(voice=tts_voice)
