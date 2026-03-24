@@ -1,24 +1,25 @@
 """
-Sarvam AI TTS — LiveKit Agents TTS plugin.
+Sarvam AI TTS — LiveKit Agents TTS plugin (SDK v1.5+).
 
 API: POST https://api.sarvam.ai/text-to-speech
 Auth: API-Subscription-Key header
 Response: { "audios": ["<base64_wav>"] }
-
-Voices: anushka, manisha, priya, neha, shreya, kavya (F) | abhilash, rahul, amit, dev, rohan, kabir (M)
-Languages: en-IN, hi-IN, bn-IN, kn-IN, ml-IN, mr-IN, od-IN, pa-IN, ta-IN, te-IN, gu-IN
 """
 import base64
 import io
 import wave
-from typing import AsyncIterator
 
 import httpx
 
-# Try to import from LiveKit Agents SDK
 try:
-    from livekit.agents import tts
-    from livekit.agents.tts import TTS, TTSCapabilities, SynthesizedAudio, SynthesizeStream
+    from livekit.agents import tts, utils
+    from livekit.agents.tts import (
+        TTS,
+        TTSCapabilities,
+        ChunkedStream,
+        SynthesizedAudio,
+    )
+    from livekit.agents.types import DEFAULT_API_CONNECT_OPTIONS, APIConnectOptions
     _SDK_AVAILABLE = True
 except ImportError:
     _SDK_AVAILABLE = False
@@ -26,52 +27,35 @@ except ImportError:
 SARVAM_API_URL = "https://api.sarvam.ai/text-to-speech"
 
 VOICE_MAP = {
-    "priya":    "priya",
-    "neha":     "neha",
-    "shreya":   "shreya",
-    "kavya":    "kavya",
-    "simran":   "simran",
-    "ritu":     "ritu",
-    "rahul":    "rahul",
-    "amit":     "amit",
-    "dev":      "dev",
-    "rohan":    "rohan",
-    "kabir":    "kabir",
-    "aditya":   "aditya",
+    "priya": "priya", "neha": "neha", "shreya": "shreya", "kavya": "kavya",
+    "simran": "simran", "ritu": "ritu", "pooja": "pooja", "ishita": "ishita",
+    "roopa": "roopa", "tanya": "tanya", "shruti": "shruti", "suhani": "suhani",
+    "rupali": "rupali", "kavitha": "kavitha", "amelia": "amelia", "sophia": "sophia",
+    "niharika": "niharika",
+    "rahul": "rahul", "amit": "amit", "dev": "dev", "rohan": "rohan",
+    "kabir": "kabir", "aditya": "aditya", "ashutosh": "ashutosh", "ratan": "ratan",
+    "varun": "varun", "manan": "manan", "sumit": "sumit", "aayan": "aayan",
+    "shubh": "shubh", "advait": "advait", "anand": "anand", "tarun": "tarun",
+    "sunny": "sunny", "mani": "mani", "gokul": "gokul", "vijay": "vijay",
+    "mohit": "mohit", "rehan": "rehan", "soham": "soham",
 }
 
 LANG_MAP = {
-    "en":    "en-IN",
-    "hi":    "hi-IN",
-    "multi": "hi-IN",   # default for multi — Sarvam handles Hinglish well
-    "bn":    "bn-IN",
-    "ta":    "ta-IN",
-    "te":    "te-IN",
+    "en": "en-IN", "hi": "hi-IN", "multi": "hi-IN",
+    "bn": "bn-IN", "ta": "ta-IN", "te": "te-IN",
 }
-
-
-def _wav_bytes_to_pcm(wav_bytes: bytes) -> tuple[bytes, int, int]:
-    """Extract raw PCM from WAV bytes. Returns (pcm_data, sample_rate, num_channels)."""
-    with wave.open(io.BytesIO(wav_bytes), "rb") as wf:
-        sample_rate = wf.getframerate()
-        num_channels = wf.getnchannels()
-        pcm_data = wf.readframes(wf.getnframes())
-    return pcm_data, sample_rate, num_channels
 
 
 async def _call_sarvam(text: str, voice: str, language: str, api_key: str) -> bytes:
     """Call Sarvam TTS API and return raw WAV bytes."""
     lang_code = LANG_MAP.get(language, "en-IN")
-    speaker = VOICE_MAP.get(voice, "priya")
+    speaker = VOICE_MAP.get(voice, voice)
 
     payload = {
         "inputs": [text],
         "target_language_code": lang_code,
         "speaker": speaker,
         "model": "bulbul:v3",
-        "pace": 1.0,
-        "speech_sample_rate": 22050,
-        "enable_preprocessing": True,
     }
 
     async with httpx.AsyncClient(timeout=30) as client:
@@ -86,51 +70,55 @@ async def _call_sarvam(text: str, voice: str, language: str, api_key: str) -> by
         r.raise_for_status()
         data = r.json()
 
-    audio_b64 = data["audios"][0]
-    return base64.b64decode(audio_b64)
+    return base64.b64decode(data["audios"][0])
 
 
 if _SDK_AVAILABLE:
-    import asyncio
-    from livekit.agents.tts import ChunkedStream
-    import livekit.agents.utils as agent_utils
 
-    class SarvamTTSStream(SynthesizeStream):
-        def __init__(self, tts_instance, text: str, *, conn_options=None):
-            # SDK v1.5+ requires conn_options; use default if not provided
-            init_kwargs = {"tts": tts_instance}
-            if conn_options is not None:
-                init_kwargs["conn_options"] = conn_options
-            else:
-                try:
-                    from livekit.agents.tts import DEFAULT_API_CONNECT_OPTIONS
-                    init_kwargs["conn_options"] = DEFAULT_API_CONNECT_OPTIONS
-                except ImportError:
-                    pass
-            super().__init__(**init_kwargs)
-            self._text = text
+    class _SarvamChunkedStream(ChunkedStream):
+        """Non-streaming TTS: calls Sarvam API, returns full audio as one chunk."""
 
-        async def _run(self) -> None:
+        def __init__(
+            self,
+            *,
+            tts_instance: "SarvamTTS",
+            input_text: str,
+            conn_options: APIConnectOptions,
+        ):
+            super().__init__(
+                tts=tts_instance,
+                input_text=input_text,
+                conn_options=conn_options,
+            )
+
+        async def _run(self, output_emitter: tts.AudioEmitter) -> None:
             wav_bytes = await _call_sarvam(
-                self._text,
+                self._input_text,
                 self._tts._voice,
                 self._tts._language,
                 self._tts._api_key,
             )
-            pcm, sample_rate, channels = _wav_bytes_to_pcm(wav_bytes)
-            frame = tts.SynthesizedAudio(
-                request_id=self._request_id,
-                frame=agent_utils.AudioFrame(
-                    data=pcm,
-                    sample_rate=sample_rate,
-                    num_channels=channels,
-                    samples_per_channel=len(pcm) // (2 * channels),
-                ),
+
+            # Parse WAV to get PCM data
+            with wave.open(io.BytesIO(wav_bytes), "rb") as wf:
+                sample_rate = wf.getframerate()
+                num_channels = wf.getnchannels()
+                pcm_data = wf.readframes(wf.getnframes())
+
+            request_id = utils.shortuuid()
+
+            output_emitter.initialize(
+                request_id=request_id,
+                sample_rate=sample_rate,
+                num_channels=num_channels,
+                mime_type="audio/pcm",
             )
-            self._event_ch.send_nowait(frame)
+            output_emitter.push(pcm_data)
+            output_emitter.flush()
+            output_emitter.end_input()
 
     class SarvamTTS(TTS):
-        """Sarvam AI TTS plugin for LiveKit Agents."""
+        """Sarvam AI TTS plugin for LiveKit Agents v1.5+."""
 
         def __init__(
             self,
@@ -148,13 +136,21 @@ if _SDK_AVAILABLE:
             self._voice = VOICE_MAP.get(voice, voice)
             self._language = language
 
-        def synthesize(self, text: str, *, conn_options=None) -> SarvamTTSStream:
-            return SarvamTTSStream(self, text, conn_options=conn_options)
+        def synthesize(
+            self,
+            text: str,
+            *,
+            conn_options: APIConnectOptions = DEFAULT_API_CONNECT_OPTIONS,
+        ) -> _SarvamChunkedStream:
+            return _SarvamChunkedStream(
+                tts_instance=self,
+                input_text=text,
+                conn_options=conn_options,
+            )
 
 else:
-    # Fallback stub when SDK not installed
     class SarvamTTS:  # type: ignore
-        def __init__(self, *, api_key: str, voice: str = "meera", language: str = "en"):
+        def __init__(self, *, api_key: str, voice: str = "priya", language: str = "en"):
             self._api_key = api_key
             self._voice = voice
             self._language = language
