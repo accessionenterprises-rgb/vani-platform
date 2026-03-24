@@ -587,31 +587,7 @@ async def vani_agent(ctx: JobContext):
     transcript_lines = []
     language_locked = [language in ("en", "hi")]
 
-    # ── Usage tracking (exact tokens/chars/duration for cost calculation) ────
-    usage = {
-        "llm_input_tokens": 0, "llm_output_tokens": 0, "llm_cached_tokens": 0,
-        "tts_characters": 0, "tts_audio_sec": 0.0,
-        "stt_audio_sec": 0.0,
-        "llm_ttft_ms": [],  # time-to-first-token per turn
-        "tts_ttfb_ms": [],  # time-to-first-byte per turn
-    }
-
-    @session.on("metrics_collected")
-    def on_metrics(metrics):
-        from livekit.agents.metrics import LLMMetrics, TTSMetrics, STTMetrics
-        if isinstance(metrics, LLMMetrics):
-            usage["llm_input_tokens"] += metrics.prompt_tokens
-            usage["llm_output_tokens"] += metrics.completion_tokens
-            usage["llm_cached_tokens"] += metrics.prompt_cached_tokens
-            if metrics.ttft > 0:
-                usage["llm_ttft_ms"].append(int(metrics.ttft * 1000))
-        elif isinstance(metrics, TTSMetrics):
-            usage["tts_characters"] += metrics.characters_count
-            usage["tts_audio_sec"] += metrics.audio_duration
-            if metrics.ttfb > 0:
-                usage["tts_ttfb_ms"].append(int(metrics.ttfb * 1000))
-        elif isinstance(metrics, STTMetrics):
-            usage["stt_audio_sec"] += metrics.audio_duration
+    # ── Usage tracking — read from session.usage at end (SDK v1.5+) ────
 
     # ── Latency tracking ─────────────────────────────────────────────────────
     last_user_ts = [0.0]      # timestamp of last user_speech_committed
@@ -721,18 +697,28 @@ async def vani_agent(ctx: JobContext):
     llm_provider_str = cfg.get("llm", "gpt-4o-mini")
     tts_provider_str = cfg.get("tts", "openai-nova")
 
-    # Build usage summary for exact cost calculation
-    usage_summary = {
-        "llm_input_tokens":  usage["llm_input_tokens"],
-        "llm_output_tokens": usage["llm_output_tokens"],
-        "llm_cached_tokens": usage["llm_cached_tokens"],
-        "tts_characters":    usage["tts_characters"],
-        "tts_audio_sec":     round(usage["tts_audio_sec"], 2),
-        "stt_audio_sec":     round(usage["stt_audio_sec"], 2),
-        "llm_avg_ttft_ms":   int(sum(usage["llm_ttft_ms"]) / len(usage["llm_ttft_ms"])) if usage["llm_ttft_ms"] else 0,
-        "tts_avg_ttfb_ms":   int(sum(usage["tts_ttfb_ms"]) / len(usage["tts_ttfb_ms"])) if usage["tts_ttfb_ms"] else 0,
-    }
-    print(f">>> USAGE | llm_in={usage_summary['llm_input_tokens']} llm_out={usage_summary['llm_output_tokens']} tts_chars={usage_summary['tts_characters']} stt_sec={usage_summary['stt_audio_sec']} llm_ttft={usage_summary['llm_avg_ttft_ms']}ms tts_ttfb={usage_summary['tts_avg_ttfb_ms']}ms", flush=True)
+    # Build usage summary from session.usage (SDK v1.5+ — exact provider-reported numbers)
+    usage_summary = {"llm_input_tokens": 0, "llm_output_tokens": 0, "llm_cached_tokens": 0,
+                     "tts_characters": 0, "tts_audio_sec": 0.0, "stt_audio_sec": 0.0}
+    try:
+        su = session.usage
+        for mu in su.model_usage:
+            t = mu.type
+            if t == "llm_usage":
+                usage_summary["llm_input_tokens"] += mu.input_tokens
+                usage_summary["llm_output_tokens"] += mu.output_tokens
+                usage_summary["llm_cached_tokens"] += mu.input_cached_tokens
+                print(f">>> LLM_USAGE | provider={mu.provider} model={mu.model} in={mu.input_tokens} out={mu.output_tokens} cached={mu.input_cached_tokens}", flush=True)
+            elif t == "tts_usage":
+                usage_summary["tts_characters"] += mu.characters_count
+                usage_summary["tts_audio_sec"] += mu.audio_duration
+                print(f">>> TTS_USAGE | provider={mu.provider} model={mu.model} chars={mu.characters_count} audio_sec={mu.audio_duration:.1f}", flush=True)
+            elif t == "stt_usage":
+                usage_summary["stt_audio_sec"] += mu.audio_duration
+                print(f">>> STT_USAGE | provider={mu.provider} model={mu.model} audio_sec={mu.audio_duration:.1f}", flush=True)
+    except Exception as e:
+        print(f">>> USAGE_ERROR | {e}", flush=True)
+    print(f">>> USAGE | llm_in={usage_summary['llm_input_tokens']} llm_out={usage_summary['llm_output_tokens']} llm_cached={usage_summary['llm_cached_tokens']} tts_chars={usage_summary['tts_characters']} tts_sec={usage_summary['tts_audio_sec']:.1f} stt_sec={usage_summary['stt_audio_sec']:.1f}", flush=True)
 
     await _notify_orchestrator(call_id, "CALL_ENDED", {
         "duration_sec":    duration_sec,
