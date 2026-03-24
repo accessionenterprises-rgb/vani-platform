@@ -324,7 +324,7 @@ def _build_tts(tts_provider: str, voice: str, language: str):
             from providers.tts.sarvam import SarvamTTS
             sarvam_key = os.getenv("SARVAM_API_KEY", "")
             if sarvam_key:
-                return SarvamTTS(api_key=sarvam_key, voice=os.getenv("SARVAM_VOICE", "meera"), language=language)
+                return SarvamTTS(api_key=sarvam_key, voice=voice or "priya", language=language)
             print(">>> SARVAM_API_KEY not set, falling back to OpenAI TTS", flush=True)
         except Exception as e:
             print(f">>> Sarvam init failed: {e}", flush=True)
