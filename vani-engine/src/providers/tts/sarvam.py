@@ -67,6 +67,8 @@ async def _call_sarvam(text: str, voice: str, language: str, api_key: str) -> by
                 "Content-Type": "application/json",
             },
         )
+        if r.status_code != 200:
+            print(f">>> Sarvam TTS error: {r.status_code} | voice={speaker} | lang={lang_code} | text_len={len(text)} | response={r.text[:300]}", flush=True)
         r.raise_for_status()
         data = r.json()
 
