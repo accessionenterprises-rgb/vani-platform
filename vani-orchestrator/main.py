@@ -66,12 +66,26 @@ async def startup() -> None:
 
 @app.get("/health")
 def health():
+    from workers.sip_bridge import _active_rooms
     return {
         "ok": True,
         "service": "vani-orchestrator",
-        "version": "2.0.0",
+        "version": "2.0.1",
         "workers": settings.worker_count,
+        "sip_bridge": True,
+        "sip_active_rooms": dict(_active_rooms),
     }
+
+
+@app.get("/sip-bridge/test")
+async def sip_bridge_test():
+    """Test that the SIP bridge can list rooms."""
+    from workers.sip_bridge import _list_rooms
+    try:
+        rooms = await _list_rooms()
+        return {"ok": True, "rooms": rooms}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 
 if __name__ == "__main__":
