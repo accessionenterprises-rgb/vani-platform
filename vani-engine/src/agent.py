@@ -55,6 +55,57 @@ ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_URL", "http://localhost:8001")
 MAX_CALL_DURATION = 900
 
 
+async def _lookup_agent_by_phone(called_number: str) -> dict:
+    """Look up agent config from Supabase by the called phone number."""
+    if not SUPABASE_URL or not SUPABASE_KEY or not called_number:
+        return {}
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            # phone_numbers → agent → full config
+            resp = await client.get(
+                f"{SUPABASE_URL}/rest/v1/phone_numbers",
+                params={
+                    "select": "tenant_id,agent_id,agents(id,name,greeting,prompt,language,voice,stt_provider,llm_provider,tts_provider,behavior,active)",
+                    "number": f"eq.{called_number}",
+                    "status": "eq.active",
+                    "limit": "1",
+                },
+                headers={
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_KEY}",
+                },
+            )
+            resp.raise_for_status()
+            rows = resp.json()
+            if not rows:
+                print(f">>> No phone_number mapping for {called_number}", flush=True)
+                return {}
+            row = rows[0]
+            agent = row.get("agents") or {}
+            if not agent.get("active"):
+                print(f">>> Agent inactive for {called_number}", flush=True)
+                return {}
+            print(f">>> Loaded agent '{agent.get('name')}' for {called_number}", flush=True)
+            return {
+                "agent_config": {
+                    "name": agent.get("name", ""),
+                    "greeting": agent.get("greeting", ""),
+                    "prompt": agent.get("prompt", ""),
+                    "language": agent.get("language", "en"),
+                    "voice": agent.get("voice", "nova"),
+                    "stt": agent.get("stt_provider", "deepgram-nova-3"),
+                    "llm": agent.get("llm_provider", "gpt-4o-mini"),
+                    "tts": agent.get("tts_provider", "openai-nova"),
+                    "behavior": agent.get("behavior") or {},
+                },
+                "agent_id": agent.get("id", ""),
+                "tenant_id": row.get("tenant_id", ""),
+            }
+    except Exception as e:
+        print(f">>> Phone lookup failed: {e}", flush=True)
+        return {}
+
+
 def _parse_metadata(raw):
     if not raw:
         return {}
@@ -395,6 +446,23 @@ async def vani_agent(ctx: JobContext):
     started_at = time.time()
 
     metadata = _parse_metadata(getattr(ctx.job, "metadata", None))
+
+    # If no metadata (direct SIP dispatch), look up agent by called number
+    if not metadata.get("agent_config"):
+        # Find the SIP participant to get the called number
+        for p in ctx.room.remote_participants.values():
+            attrs = p.attributes or {}
+            called_number = attrs.get("sip.trunkPhoneNumber", "")
+            caller_number = attrs.get("sip.phoneNumber", "")
+            if called_number:
+                print(f">>> SIP call: {caller_number} → {called_number}", flush=True)
+                db_config = await _lookup_agent_by_phone(called_number)
+                if db_config:
+                    metadata.update(db_config)
+                    metadata["phone"] = caller_number
+                    metadata["direction"] = "inbound"
+                break
+
     cfg       = metadata.get("agent_config", {})
     call_id   = metadata.get("call_id", "unknown")
     agent_id  = metadata.get("agent_id", "")
