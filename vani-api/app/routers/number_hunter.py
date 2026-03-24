@@ -373,7 +373,11 @@ def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False, prefix
                 time.sleep(2 * (attempt + 1))  # backoff: 2s, 4s, 6s
                 continue
             r.raise_for_status()
-            return [n["phone_number"] for n in r.json().get("data", [])]
+            nums = [n["phone_number"] for n in r.json().get("data", [])]
+            if prefix:
+                expected = f"+1{pattern}"
+                nums = [n for n in nums if n.startswith(expected)]
+            return nums
         return []  # all retries exhausted
     except Exception as exc:
         _search_errors["count"] = _search_errors.get("count", 0) + 1
