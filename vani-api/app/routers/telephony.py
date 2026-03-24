@@ -24,8 +24,8 @@ async def twiml_webhook(
 ):
     """Return TwiML that dials LiveKit SIP endpoint with auth."""
     to_number = To if To else "+19209209967"
-    # URL-encode the + as %2B — Twilio rejects raw + in SIP URIs (error 13243)
-    sip_number = to_number.replace("+", "%2B")
+    # Strip the + for SIP URI — use raw digits only
+    sip_number = to_number.lstrip("+")
 
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
