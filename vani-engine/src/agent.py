@@ -322,7 +322,7 @@ def _build_tts(tts_provider: str, voice: str, language: str):
                 try:
                     from livekit.plugins import cartesia as cartesia_plugin
                     vid = clean_voice or "f786b574-daa5-4673-aa0c-cbe3e8534c02"  # Katie default
-                    model = "sonic-2"
+                    model = "sonic-3"
                     print(f">>> Using official Cartesia plugin: voice={vid} model={model}", flush=True)
                     return cartesia_plugin.TTS(model=model, voice=vid, api_key=cartesia_key, language="en", speed=0.9)
                 except ImportError:
