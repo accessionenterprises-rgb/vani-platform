@@ -304,12 +304,17 @@ def _build_tts(tts_provider: str, voice: str, language: str):
     # Circuit breaker: auto-fallback if primary TTS provider is OPEN
     tts_provider = circuit_breaker.resolve(tts_provider)
 
-    # Normalize voice — strip provider prefix (e.g. "openai-nova" → "nova", "sarvam-priya" → "priya")
+    # Normalize voice — strip provider prefix and handle cases where voice = provider name
     clean_voice = voice
+    # Strip provider prefix (e.g. "openai-nova" → "nova", "sarvam-priya" → "priya")
     for prefix in ("openai-", "sarvam-", "elevenlabs-", "cartesia-"):
         if voice and voice.startswith(prefix):
             clean_voice = voice[len(prefix):]
             break
+    # If voice IS a provider name (not a real voice), reset to None so defaults kick in
+    PROVIDER_NAMES = ("openai", "sarvam", "elevenlabs", "cartesia", "google-wavenet", "azure")
+    if clean_voice in PROVIDER_NAMES:
+        clean_voice = None
 
     valid_openai_voices = ("alloy", "echo", "fable", "onyx", "nova", "shimmer", "ash", "ballad", "cedar", "coral", "marin", "sage", "verse")
     tts_voice = clean_voice if clean_voice in valid_openai_voices else "nova"
