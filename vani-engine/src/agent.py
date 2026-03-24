@@ -304,18 +304,24 @@ def _build_tts(tts_provider: str, voice: str, language: str):
     # Circuit breaker: auto-fallback if primary TTS provider is OPEN
     tts_provider = circuit_breaker.resolve(tts_provider)
 
-    valid_openai_voices = ("alloy", "echo", "fable", "onyx", "nova", "shimmer")
-    tts_voice = voice if voice in valid_openai_voices else "nova"
+    # Normalize voice — strip provider prefix (e.g. "openai-nova" → "nova", "sarvam-priya" → "priya")
+    clean_voice = voice
+    for prefix in ("openai-", "sarvam-", "elevenlabs-", "cartesia-"):
+        if voice and voice.startswith(prefix):
+            clean_voice = voice[len(prefix):]
+            break
+
+    valid_openai_voices = ("alloy", "echo", "fable", "onyx", "nova", "shimmer", "ash", "ballad", "cedar", "coral", "marin", "sage", "verse")
+    tts_voice = clean_voice if clean_voice in valid_openai_voices else "nova"
 
     if tts_provider.startswith("cartesia"):
         try:
             cartesia_key = os.getenv("CARTESIA_API_KEY", "")
-            print(f">>> Cartesia check: key={'SET' if cartesia_key else 'EMPTY'} len={len(cartesia_key)} provider={tts_provider} voice={voice}", flush=True)
+            print(f">>> Cartesia check: key={'SET' if cartesia_key else 'EMPTY'} len={len(cartesia_key)} provider={tts_provider} voice={clean_voice}", flush=True)
             if cartesia_key:
-                # Prefer official livekit-plugins-cartesia (streaming WebSocket, lowest latency)
                 try:
                     from livekit.plugins import cartesia as cartesia_plugin
-                    vid = voice or "f786b574-daa5-4673-aa0c-cbe3e8534c02"  # Katie default
+                    vid = clean_voice or "f786b574-daa5-4673-aa0c-cbe3e8534c02"  # Katie default
                     model = "sonic-2"
                     print(f">>> Using official Cartesia plugin: voice={vid} model={model}", flush=True)
                     return cartesia_plugin.TTS(model=model, voice=vid, api_key=cartesia_key, language="en")
@@ -334,7 +340,7 @@ def _build_tts(tts_provider: str, voice: str, language: str):
             from providers.tts.sarvam import SarvamTTS
             sarvam_key = os.getenv("SARVAM_API_KEY", "")
             if sarvam_key:
-                return SarvamTTS(api_key=sarvam_key, voice=voice or "priya", language=language)
+                return SarvamTTS(api_key=sarvam_key, voice=clean_voice or "priya", language=language)
             print(">>> SARVAM_API_KEY not set, falling back to OpenAI TTS", flush=True)
         except Exception as e:
             print(f">>> Sarvam init failed: {e}", flush=True)
@@ -344,7 +350,7 @@ def _build_tts(tts_provider: str, voice: str, language: str):
             from livekit.plugins import elevenlabs
             el_key = os.getenv("ELEVENLABS_API_KEY", "")
             if el_key:
-                return elevenlabs.TTS(api_key=el_key, voice_id=voice or "EXAVITQu4vr4xnSDxMaL")
+                return elevenlabs.TTS(api_key=el_key, voice_id=clean_voice or "EXAVITQu4vr4xnSDxMaL")
             print(">>> ELEVENLABS_API_KEY not set, falling back to OpenAI TTS", flush=True)
         except Exception as e:
             print(f">>> ElevenLabs init failed: {e}", flush=True)
