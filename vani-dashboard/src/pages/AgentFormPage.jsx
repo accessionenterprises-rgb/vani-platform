@@ -14,17 +14,17 @@ const STT_PROVIDERS = [
 ]
 
 const LLM_PROVIDERS = [
-  { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',      vendor: 'OpenAI',    desc: 'Fast, cost-efficient, reliable',    badge: 'Recommended', latency: '~300ms', cost: '~$0.09/hr' },
-  { id: 'gemini-3.0-flash',           name: 'Gemini 3.0 Flash', vendor: 'Google',    desc: 'Latest — fastest & smartest',       badge: 'Best Value',  latency: '~200ms', cost: '~$0.06/hr' },
-  { id: 'gemini-2.0-flash',           name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast',        latency: '~250ms', cost: '~$0.06/hr' },
-  { id: 'gemini-flash-lite',          name: 'Flash Lite',       vendor: 'Google',    desc: 'Ultra-fast, lowest cost',           badge: null,          latency: '~150ms', cost: '~$0.04/hr' },
-  { id: 'claude-haiku-4-5-20251001',  name: 'Claude Haiku',     vendor: 'Anthropic', desc: 'Nuanced instruction-following',     badge: null,          latency: '~400ms', cost: '~$0.48/hr' },
-  { id: 'gpt-4o',                     name: 'GPT-4o',           vendor: 'OpenAI',    desc: 'Most capable, higher cost',         badge: 'Premium',     latency: '~500ms', cost: '~$1.50/hr' },
-  { id: 'gpt-4o-mini-realtime',      name: 'GPT-4o Mini RT',   vendor: 'OpenAI',    desc: 'Speech-to-speech, low latency',     badge: 'Realtime',    latency: '~150ms', cost: '~$1.80/hr' },
-  { id: 'gpt-4o-realtime',           name: 'GPT-4o Realtime',  vendor: 'OpenAI',    desc: 'Speech-to-speech, most capable',    badge: 'Realtime',    latency: '~150ms', cost: '~$3.60/hr' },
-  { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',    vendor: 'Meta',      desc: 'Open-source, self-hostable',        badge: null,          latency: '~400ms', cost: '~$0.36/hr' },
-  { id: 'mistral-large',             name: 'Mistral Large',    vendor: 'Mistral',   desc: 'EU data-resident option',           badge: null,          latency: '~350ms', cost: '~$1.20/hr' },
-  { id: 'deepseek-chat',             name: 'DeepSeek Chat',    vendor: 'DeepSeek',  desc: 'Cost-effective, fast responses',    badge: null,          latency: '~300ms', cost: '~$0.08/hr' },
+  { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',      vendor: 'OpenAI',    desc: 'Fast, cost-efficient, reliable',    badge: 'Recommended', latency: '~300ms', cost: '~$0.01/hr' },
+  { id: 'gemini-3.0-flash',           name: 'Gemini 3.0 Flash', vendor: 'Google',    desc: 'Latest — fastest & smartest',       badge: 'Best Value',  latency: '~200ms', cost: '~$0.01/hr' },
+  { id: 'gemini-2.0-flash',           name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast',        latency: '~250ms', cost: '~$0.01/hr' },
+  { id: 'gemini-flash-lite',          name: 'Flash Lite',       vendor: 'Google',    desc: 'Ultra-fast, lowest cost',           badge: null,          latency: '~150ms', cost: '~$0.005/hr' },
+  { id: 'claude-haiku-4-5-20251001',  name: 'Claude Haiku',     vendor: 'Anthropic', desc: 'Nuanced instruction-following',     badge: null,          latency: '~400ms', cost: '~$0.06/hr' },
+  { id: 'gpt-4o',                     name: 'GPT-4o',           vendor: 'OpenAI',    desc: 'Most capable, higher cost',         badge: 'Premium',     latency: '~500ms', cost: '~$0.19/hr' },
+  { id: 'gpt-4o-mini-realtime',      name: 'GPT-4o Mini RT',   vendor: 'OpenAI',    desc: 'Speech-to-speech, low latency',     badge: 'Realtime',    latency: '~150ms', cost: '~$3.60/hr' },
+  { id: 'gpt-4o-realtime',           name: 'GPT-4o Realtime',  vendor: 'OpenAI',    desc: 'Speech-to-speech, most capable',    badge: 'Realtime',    latency: '~150ms', cost: '~$6.00/hr' },
+  { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',    vendor: 'Meta',      desc: 'Open-source, self-hostable',        badge: null,          latency: '~400ms', cost: '~$0.04/hr' },
+  { id: 'mistral-large',             name: 'Mistral Large',    vendor: 'Mistral',   desc: 'EU data-resident option',           badge: null,          latency: '~350ms', cost: '~$0.15/hr' },
+  { id: 'deepseek-chat',             name: 'DeepSeek Chat',    vendor: 'DeepSeek',  desc: 'Cost-effective, fast responses',    badge: null,          latency: '~300ms', cost: '~$0.01/hr' },
 ]
 
 const TTS_PROVIDERS = [
