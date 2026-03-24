@@ -55,6 +55,9 @@ app.include_router(playground_voice.router)
 
 STATIC_DIR = Path(__file__).parent / "static"
 
+from fastapi.staticfiles import StaticFiles
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
 
 @app.get("/widget/embed.js", include_in_schema=False)
 async def serve_embed_js():
