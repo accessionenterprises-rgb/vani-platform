@@ -362,14 +362,19 @@ def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False, prefix
         if is_tollfree:
             params["filter[number_type]"] = "toll-free"
         params["filter[limit]"] = 10
-        r = httpx.get(
-            "https://api.telnyx.com/v2/available_phone_numbers",
-            params=params,
-            headers={"Authorization": f"Bearer {settings.telnyx_api_key}"},
-            timeout=15,
-        )
-        r.raise_for_status()
-        return [n["phone_number"] for n in r.json().get("data", [])]
+        headers = {"Authorization": f"Bearer {settings.telnyx_api_key}"}
+        import time
+        for attempt in range(3):
+            r = httpx.get(
+                "https://api.telnyx.com/v2/available_phone_numbers",
+                params=params, headers=headers, timeout=15,
+            )
+            if r.status_code == 429:
+                time.sleep(2 * (attempt + 1))  # backoff: 2s, 4s, 6s
+                continue
+            r.raise_for_status()
+            return [n["phone_number"] for n in r.json().get("data", [])]
+        return []  # all retries exhausted
     except Exception as exc:
         _search_errors["count"] = _search_errors.get("count", 0) + 1
         _search_errors["last"] = f"{pattern}: {exc}"
@@ -420,13 +425,15 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
         seen: set[str] = set()
         newly_inserted: list[str] = []
 
-        CONCURRENCY = 15
+        CONCURRENCY = 5 if service == "telnyx" else 15
         sem = asyncio.Semaphore(CONCURRENCY)
 
         async def do_one(p: dict) -> None:
             nonlocal found, new_count
             async with sem:
                 try:
+                    if service == "telnyx":
+                        await asyncio.sleep(0.3)  # rate limit protection
                     is_tf = p["tier"].startswith("TF-")
                     is_prefix = p.get("prefix", False)
                     nums = await asyncio.to_thread(_search_numbers, service, country, p["pattern"], is_tf, is_prefix)
