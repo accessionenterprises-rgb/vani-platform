@@ -14,6 +14,7 @@ from services.worker import connecting_watchdog, worker
 from workers.post_processor import post_processor
 from workers.outbound_caller import outbound_caller
 from workers.campaign_worker import campaign_worker
+from workers.sip_bridge import sip_bridge
 
 logger = structlog.get_logger()
 
@@ -58,6 +59,7 @@ async def startup() -> None:
         asyncio.create_task(outbound_caller(i))
 
     asyncio.create_task(campaign_worker())
+    asyncio.create_task(sip_bridge())
 
     logger.info("orchestrator_ready")
 
