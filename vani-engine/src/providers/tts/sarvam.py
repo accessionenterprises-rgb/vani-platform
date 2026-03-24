@@ -96,8 +96,18 @@ if _SDK_AVAILABLE:
     import livekit.agents.utils as agent_utils
 
     class SarvamTTSStream(SynthesizeStream):
-        def __init__(self, tts_instance, text: str):
-            super().__init__(tts=tts_instance)
+        def __init__(self, tts_instance, text: str, *, conn_options=None):
+            # SDK v1.5+ requires conn_options; use default if not provided
+            init_kwargs = {"tts": tts_instance}
+            if conn_options is not None:
+                init_kwargs["conn_options"] = conn_options
+            else:
+                try:
+                    from livekit.agents.tts import DEFAULT_API_CONNECT_OPTIONS
+                    init_kwargs["conn_options"] = DEFAULT_API_CONNECT_OPTIONS
+                except ImportError:
+                    pass
+            super().__init__(**init_kwargs)
             self._text = text
 
         async def _run(self) -> None:
@@ -108,7 +118,6 @@ if _SDK_AVAILABLE:
                 self._tts._api_key,
             )
             pcm, sample_rate, channels = _wav_bytes_to_pcm(wav_bytes)
-            # Emit a single audio event with the full PCM
             frame = tts.SynthesizedAudio(
                 request_id=self._request_id,
                 frame=agent_utils.AudioFrame(
@@ -127,7 +136,7 @@ if _SDK_AVAILABLE:
             self,
             *,
             api_key: str,
-            voice: str = "meera",
+            voice: str = "priya",
             language: str = "en",
         ):
             super().__init__(
@@ -136,11 +145,11 @@ if _SDK_AVAILABLE:
                 num_channels=1,
             )
             self._api_key = api_key
-            self._voice = VOICE_MAP.get(voice, "meera")
+            self._voice = VOICE_MAP.get(voice, voice)
             self._language = language
 
         def synthesize(self, text: str, *, conn_options=None) -> SarvamTTSStream:
-            return SarvamTTSStream(self, text)
+            return SarvamTTSStream(self, text, conn_options=conn_options)
 
 else:
     # Fallback stub when SDK not installed
