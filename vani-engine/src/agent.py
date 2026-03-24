@@ -496,24 +496,34 @@ async def vani_agent(ctx: JobContext):
     memory_context = ""
     if agent_id:
         retriever = KBRetriever(agent_id)
-        await retriever.load()
-        tools_config = await load_agent_tools(agent_id)
-        kb_context   = await retriever.get_context(max_chars=4000)
+        phone_number = metadata.get("phone", "")
 
-        # Products can come from the job metadata (Fairshift injection) or from Vaani's own DB.
-        # Prefer metadata products when present — they're already resolved by the Fairshift API.
-        injected_products = metadata.get("products")
-        if isinstance(injected_products, list) and injected_products:
-            products = injected_products
-        else:
-            products = await load_agent_products(agent_id)
+        # Parallelize all I/O — these are independent DB/API calls
+        async def _load_kb():
+            await retriever.load()
+            return await retriever.get_context(max_chars=4000)
 
-    # Long-term memory: fetch caller history for personalisation
-    phone_number = metadata.get("phone", "")
-    if phone_number and tenant_id:
-        memory_context = await _fetch_caller_memory(phone_number, tenant_id)
+        async def _load_products():
+            injected = metadata.get("products")
+            if isinstance(injected, list) and injected:
+                return injected
+            return await load_agent_products(agent_id)
+
+        async def _load_memory():
+            if phone_number and tenant_id:
+                return await _fetch_caller_memory(phone_number, tenant_id)
+            return ""
+
+        kb_context, tools_config, products, memory_context = await asyncio.gather(
+            _load_kb(),
+            load_agent_tools(agent_id),
+            _load_products(),
+            _load_memory(),
+        )
         if memory_context:
             print(f">>> memory loaded for {phone_number[:6]}***", flush=True)
+    else:
+        phone_number = metadata.get("phone", "")
 
     # Add escalation tool if configured
     if escalation_enabled and transfer_number:
@@ -565,13 +575,14 @@ async def vani_agent(ctx: JobContext):
             language=dg_language,
             smart_format=True,
             filler_words=False,
-            endpointing_ms=300,
+            endpointing_ms=25,
         ),
         llm=llm,
         tts=tts,
+        preemptive_generation=True,
     )
 
-    filler = FillerSystem(session, language=language)
+    filler = FillerSystem(session, language=language, delay_ms=100)
     limits = CallLimits(session, language=language)
     transcript_lines = []
     language_locked = [language in ("en", "hi")]
