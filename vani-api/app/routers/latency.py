@@ -7,7 +7,7 @@ GET /latency/providers — per-provider average latency
 from fastapi import APIRouter, Depends
 
 from app.db import get_db
-from app.auth import get_tenant_id
+from app.middleware.auth import get_tenant_id
 
 router = APIRouter(prefix="/latency", tags=["latency"])
 
