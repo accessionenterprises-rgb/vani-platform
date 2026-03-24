@@ -425,7 +425,7 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
         seen: set[str] = set()
         newly_inserted: list[str] = []
 
-        CONCURRENCY = 5 if service == "telnyx" else 15
+        CONCURRENCY = 2 if service == "telnyx" else 15  # Telnyx: 5 req/s limit
         sem = asyncio.Semaphore(CONCURRENCY)
 
         async def do_one(p: dict) -> None:
@@ -433,7 +433,7 @@ async def scan_country(country: str, npas: list[int], tiers_filter: Optional[lis
             async with sem:
                 try:
                     if service == "telnyx":
-                        await asyncio.sleep(0.3)  # rate limit protection
+                        await asyncio.sleep(0.5)  # stay under 5 req/s
                     is_tf = p["tier"].startswith("TF-")
                     is_prefix = p.get("prefix", False)
                     nums = await asyncio.to_thread(_search_numbers, service, country, p["pattern"], is_tf, is_prefix)
