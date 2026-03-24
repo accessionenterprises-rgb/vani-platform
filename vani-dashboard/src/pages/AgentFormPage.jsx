@@ -5,34 +5,34 @@ import { api } from '../api/client'
 // ─── Provider Catalogue ────────────────────────────────────────────────────
 
 const STT_PROVIDERS = [
-  { id: 'deepgram-nova-3', name: 'Nova-3',        vendor: 'Deepgram', desc: 'Best accuracy, real-time streaming',   badge: 'Recommended', latency: '~200ms', cost: '$0.0043/min' },
-  { id: 'deepgram-nova-2', name: 'Nova-2',        vendor: 'Deepgram', desc: 'Faster, slightly lower accuracy',      badge: null,          latency: '~150ms', cost: '$0.0043/min' },
-  { id: 'sarvam-saaras',   name: 'Saaras v2',     vendor: 'Sarvam AI',desc: 'Best Hindi & Hinglish, lowest cost',   badge: 'India',       latency: '~250ms', cost: '$0.0012/min' },
-  { id: 'openai-whisper',  name: 'Whisper',       vendor: 'OpenAI',   desc: 'Accurate, 50+ languages',             badge: null,          latency: '~500ms', cost: '$0.006/min' },
-  { id: 'google',          name: 'Speech-to-Text',vendor: 'Google',   desc: 'Strong multilingual support',          badge: null,          latency: '~300ms', cost: '$0.006/min' },
-  { id: 'azure',           name: 'Speech',        vendor: 'Azure',    desc: 'Enterprise-grade reliability',         badge: 'Enterprise',  latency: '~300ms', cost: '$0.006/min' },
+  { id: 'deepgram-nova-3', name: 'Nova-3',        vendor: 'Deepgram', desc: 'Best accuracy, real-time streaming',   badge: 'Recommended', latency: '~200ms', cost: '~$0.26/hr' },
+  { id: 'deepgram-nova-2', name: 'Nova-2',        vendor: 'Deepgram', desc: 'Faster, slightly lower accuracy',      badge: null,          latency: '~150ms', cost: '~$0.26/hr' },
+  { id: 'sarvam-saaras',   name: 'Saaras v2',     vendor: 'Sarvam AI',desc: 'Best Hindi & Hinglish, lowest cost',   badge: 'India',       latency: '~250ms', cost: '~$0.07/hr' },
+  { id: 'openai-whisper',  name: 'Whisper',       vendor: 'OpenAI',   desc: 'Accurate, 50+ languages',             badge: null,          latency: '~500ms', cost: '~$0.36/hr' },
+  { id: 'google',          name: 'Speech-to-Text',vendor: 'Google',   desc: 'Strong multilingual support',          badge: null,          latency: '~300ms', cost: '~$0.36/hr' },
+  { id: 'azure',           name: 'Speech',        vendor: 'Azure',    desc: 'Enterprise-grade reliability',         badge: 'Enterprise',  latency: '~300ms', cost: '~$0.36/hr' },
 ]
 
 const LLM_PROVIDERS = [
-  { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',      vendor: 'OpenAI',    desc: 'Fast, cost-efficient, reliable',    badge: 'Recommended', latency: '~300ms', cost: '$0.15/1M in' },
-  { id: 'gemini-3.0-flash',           name: 'Gemini 3.0 Flash', vendor: 'Google',    desc: 'Latest — fastest & smartest',       badge: 'Best Value',  latency: '~200ms', cost: '$0.10/1M in' },
-  { id: 'gemini-2.0-flash',           name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast',        latency: '~250ms', cost: '$0.10/1M in' },
-  { id: 'gemini-flash-lite',          name: 'Flash Lite',       vendor: 'Google',    desc: 'Ultra-fast, lowest cost',           badge: null,          latency: '~150ms', cost: '$0.075/1M in' },
-  { id: 'claude-haiku-4-5-20251001',  name: 'Claude Haiku',     vendor: 'Anthropic', desc: 'Nuanced instruction-following',     badge: null,          latency: '~400ms', cost: '$0.80/1M in' },
-  { id: 'gpt-4o',                     name: 'GPT-4o',           vendor: 'OpenAI',    desc: 'Most capable, higher cost',         badge: 'Premium',     latency: '~500ms', cost: '$2.50/1M in' },
-  { id: 'gpt-4o-mini-realtime',      name: 'GPT-4o Mini RT',   vendor: 'OpenAI',    desc: 'Speech-to-speech, low latency',     badge: 'Realtime',    latency: '~150ms', cost: '$2.55/min' },
-  { id: 'gpt-4o-realtime',           name: 'GPT-4o Realtime',  vendor: 'OpenAI',    desc: 'Speech-to-speech, most capable',    badge: 'Realtime',    latency: '~150ms', cost: '$5.10/min' },
-  { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',    vendor: 'Meta',      desc: 'Open-source, self-hostable',        badge: null,          latency: '~400ms', cost: '$0.60/1M in' },
-  { id: 'mistral-large',             name: 'Mistral Large',    vendor: 'Mistral',   desc: 'EU data-resident option',           badge: null,          latency: '~350ms', cost: '$2.00/1M in' },
-  { id: 'deepseek-chat',             name: 'DeepSeek Chat',    vendor: 'DeepSeek',  desc: 'Cost-effective, fast responses',    badge: null,          latency: '~300ms', cost: '$0.14/1M in' },
+  { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',      vendor: 'OpenAI',    desc: 'Fast, cost-efficient, reliable',    badge: 'Recommended', latency: '~300ms', cost: '~$0.09/hr' },
+  { id: 'gemini-3.0-flash',           name: 'Gemini 3.0 Flash', vendor: 'Google',    desc: 'Latest — fastest & smartest',       badge: 'Best Value',  latency: '~200ms', cost: '~$0.06/hr' },
+  { id: 'gemini-2.0-flash',           name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast',        latency: '~250ms', cost: '~$0.06/hr' },
+  { id: 'gemini-flash-lite',          name: 'Flash Lite',       vendor: 'Google',    desc: 'Ultra-fast, lowest cost',           badge: null,          latency: '~150ms', cost: '~$0.04/hr' },
+  { id: 'claude-haiku-4-5-20251001',  name: 'Claude Haiku',     vendor: 'Anthropic', desc: 'Nuanced instruction-following',     badge: null,          latency: '~400ms', cost: '~$0.48/hr' },
+  { id: 'gpt-4o',                     name: 'GPT-4o',           vendor: 'OpenAI',    desc: 'Most capable, higher cost',         badge: 'Premium',     latency: '~500ms', cost: '~$1.50/hr' },
+  { id: 'gpt-4o-mini-realtime',      name: 'GPT-4o Mini RT',   vendor: 'OpenAI',    desc: 'Speech-to-speech, low latency',     badge: 'Realtime',    latency: '~150ms', cost: '~$1.80/hr' },
+  { id: 'gpt-4o-realtime',           name: 'GPT-4o Realtime',  vendor: 'OpenAI',    desc: 'Speech-to-speech, most capable',    badge: 'Realtime',    latency: '~150ms', cost: '~$3.60/hr' },
+  { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',    vendor: 'Meta',      desc: 'Open-source, self-hostable',        badge: null,          latency: '~400ms', cost: '~$0.36/hr' },
+  { id: 'mistral-large',             name: 'Mistral Large',    vendor: 'Mistral',   desc: 'EU data-resident option',           badge: null,          latency: '~350ms', cost: '~$1.20/hr' },
+  { id: 'deepseek-chat',             name: 'DeepSeek Chat',    vendor: 'DeepSeek',  desc: 'Cost-effective, fast responses',    badge: null,          latency: '~300ms', cost: '~$0.08/hr' },
 ]
 
 const TTS_PROVIDERS = [
-  { id: 'openai',         name: 'OpenAI',     vendor: 'OpenAI',    desc: '6 voices — warm, crisp, natural',  badge: 'Recommended', latency: '~300ms', cost: '$15/1M chars' },
-  { id: 'sarvam',         name: 'Sarvam',     vendor: 'Sarvam AI', desc: '39 Indian voices — Hi & En',       badge: 'India',       latency: '~400ms', cost: '$6/1M chars' },
-  { id: 'elevenlabs',     name: 'ElevenLabs', vendor: 'ElevenLabs',desc: 'Most expressive, ultra-realistic', badge: 'Expressive',  latency: '~400ms', cost: '$30/1M chars' },
-  { id: 'google-wavenet', name: 'WaveNet',    vendor: 'Google',    desc: 'Natural, multilingual support',    badge: null,          latency: '~350ms', cost: '$16/1M chars' },
-  { id: 'cartesia',       name: 'Cartesia',   vendor: 'Cartesia',  desc: 'Ultra-low latency synthesis',      badge: 'Speed',       latency: '~100ms', cost: '$15/1M chars' },
+  { id: 'openai',         name: 'OpenAI',     vendor: 'OpenAI',    desc: '6 voices — warm, crisp, natural',  badge: 'Recommended', latency: '~300ms', cost: '~$0.90/hr' },
+  { id: 'sarvam',         name: 'Sarvam',     vendor: 'Sarvam AI', desc: '39 Indian voices — Hi & En',       badge: 'India',       latency: '~400ms', cost: '~$0.36/hr' },
+  { id: 'elevenlabs',     name: 'ElevenLabs', vendor: 'ElevenLabs',desc: 'Most expressive, ultra-realistic', badge: 'Expressive',  latency: '~400ms', cost: '~$1.80/hr' },
+  { id: 'google-wavenet', name: 'WaveNet',    vendor: 'Google',    desc: 'Natural, multilingual support',    badge: null,          latency: '~350ms', cost: '~$0.96/hr' },
+  { id: 'cartesia',       name: 'Cartesia',   vendor: 'Cartesia',  desc: 'Ultra-low latency synthesis',      badge: 'Speed',       latency: '~100ms', cost: '~$0.90/hr' },
 ]
 
 const OPENAI_VOICES = [
@@ -600,7 +600,7 @@ function ProviderSection({ title, stepTag, subtitle, providers, selected, onSele
       </div>
       <div className="grid grid-cols-2 gap-2.5">
         {providers.map(p => (
-          <ProviderCard key={p.id} provider={p} isSelected={selected === p.id || selected?.startsWith(p.id + '-')} onSelect={() => onSelect(p.id)} />
+          <ProviderCard key={p.id} provider={p} isSelected={selected === p.id} onSelect={() => onSelect(p.id)} />
         ))}
       </div>
     </div>
@@ -609,15 +609,28 @@ function ProviderSection({ title, stepTag, subtitle, providers, selected, onSele
 
 function LatencyEstimator({ stt, llm, tts }) {
   const getMs = (providers, id) => {
-    const p = providers.find(x => id?.startsWith(x.id))
+    const p = providers.find(x => id === x.id)
     if (!p?.latency) return 0
     const match = p.latency.match(/(\d+)/)
     return match ? parseInt(match[1]) : 0
   }
+  const getCostPerHr = (providers, id) => {
+    const p = providers.find(x => id === x.id)
+    if (!p?.cost) return 0
+    const match = p.cost.match(/\$([\d.]+)/)
+    return match ? parseFloat(match[1]) : 0
+  }
+
   const sttMs = getMs(STT_PROVIDERS, stt)
   const llmMs = getMs(LLM_PROVIDERS, llm)
   const ttsMs = getMs(TTS_PROVIDERS, tts)
   const total = sttMs + llmMs + ttsMs
+
+  const sttCost = getCostPerHr(STT_PROVIDERS, stt)
+  const llmCost = getCostPerHr(LLM_PROVIDERS, llm)
+  const ttsCost = getCostPerHr(TTS_PROVIDERS, tts)
+  const totalCostHr = sttCost + llmCost + ttsCost
+  const totalCostMin = (totalCostHr / 60).toFixed(3)
 
   if (!total) return null
 
@@ -627,7 +640,7 @@ function LatencyEstimator({ stt, llm, tts }) {
   const barWidth = Math.min(100, Math.max(10, (total / 2000) * 100))
 
   return (
-    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-2.5">
+    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold text-slate-300">Estimated Response Latency</p>
         <div className="flex items-center gap-2">
@@ -644,6 +657,22 @@ function LatencyEstimator({ stt, llm, tts }) {
         <span>STT {sttMs}ms + LLM {llmMs}ms + TTS {ttsMs}ms</span>
         <span>Target: &lt;800ms</span>
       </div>
+
+      {totalCostHr > 0 && (
+        <div className="flex items-center justify-between pt-2 border-t border-[#1f2235]">
+          <p className="text-[11px] font-semibold text-slate-300">Estimated AI Cost</p>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <span className="text-sm font-bold font-mono text-white">${totalCostMin}</span>
+              <span className="text-[9px] text-slate-500 ml-1">/min</span>
+            </div>
+            <div className="text-right">
+              <span className="text-xs font-semibold font-mono text-slate-400">${totalCostHr.toFixed(2)}</span>
+              <span className="text-[9px] text-slate-500 ml-1">/hr</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
