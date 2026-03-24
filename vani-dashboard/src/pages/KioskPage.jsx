@@ -133,7 +133,7 @@ export default function KioskPage() {
   const isActive = state === STATE.ACTIVE
 
   return (
-    <div className="fixed inset-0 bg-[#080a12] flex flex-col overflow-hidden select-none">
+    <div className="fixed inset-0 bg-[#FAFAF9] flex flex-col overflow-hidden select-none">
 
       {/* ── Idle screen ───────────────────────────────────────────────────── */}
       {state === STATE.IDLE && (
@@ -144,7 +144,7 @@ export default function KioskPage() {
       {state === STATE.CONNECTING && (
         <div className="flex-1 flex flex-col items-center justify-center gap-6">
           <div className="w-16 h-16 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
-          <p className="text-white text-lg font-medium">Connecting…</p>
+          <p className="text-[#1A1816] text-lg font-medium">Connecting…</p>
         </div>
       )}
 
@@ -170,16 +170,16 @@ function IdleScreen({ onStart, error, hasConfig }) {
     <div className="flex-1 flex flex-col items-center justify-center gap-8 px-8">
       {/* Avatar */}
       <div className="relative">
-        <div className="w-48 h-48 rounded-full bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center shadow-2xl shadow-indigo-900/50">
-          <span className="text-7xl font-bold text-white">E</span>
+        <div className="w-48 h-48 rounded-full bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center shadow-2xl shadow-blue-300/50">
+          <span className="text-7xl font-bold text-[#1A1816]">E</span>
         </div>
         {/* Idle pulse ring */}
         <div className="absolute inset-0 rounded-full border-2 border-indigo-400/30 animate-ping" />
       </div>
 
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white mb-2">Hi, I'm Emma</h1>
-        <p className="text-slate-400 text-lg">Your AI product guide. Tap to start a conversation.</p>
+        <h1 className="text-3xl font-bold text-[#1A1816] mb-2">Hi, I'm Emma</h1>
+        <p className="text-[#78716C] text-lg">Your AI product guide. Tap to start a conversation.</p>
       </div>
 
       {error && (
@@ -191,13 +191,13 @@ function IdleScreen({ onStart, error, hasConfig }) {
       <button
         onClick={onStart}
         disabled={!hasConfig}
-        className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white font-semibold text-lg px-12 py-4 rounded-2xl transition-all active:scale-95 shadow-lg shadow-indigo-900/40"
+        className="bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-40 text-white font-semibold text-lg px-12 py-4 rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-300/40"
       >
         Start Conversation
       </button>
 
       {!hasConfig && (
-        <p className="text-slate-600 text-xs">Configure via URL: /kiosk?agent=ID&key=API_KEY</p>
+        <p className="text-[#A8A29E] text-xs">Configure via URL: /kiosk?agent=ID&key=API_KEY</p>
       )}
     </div>
   )
@@ -218,11 +218,11 @@ function ActiveSession({ product, transcript, txScrollRef, onEnd, ending }) {
         {/* Avatar — full screen when no product, pip when product shown */}
         <div className={`transition-all duration-500 ease-in-out flex items-center justify-center ${
           showProduct
-            ? 'absolute bottom-6 left-6 w-44 h-44 z-20 rounded-2xl overflow-hidden shadow-2xl border border-white/10'
+            ? 'absolute bottom-6 left-6 w-44 h-44 z-20 rounded-2xl overflow-hidden shadow-2xl border border-[#E8E5E2]'
             : 'flex-1'
         }`}>
           <div className={`bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center ${
-            showProduct ? 'w-full h-full' : 'w-64 h-64 rounded-full shadow-2xl shadow-indigo-900/60'
+            showProduct ? 'w-full h-full' : 'w-64 h-64 rounded-full shadow-2xl shadow-blue-300/60'
           }`}>
             <span className={`font-bold text-white ${showProduct ? 'text-4xl' : 'text-8xl'}`}>E</span>
           </div>
@@ -244,11 +244,11 @@ function ActiveSession({ product, transcript, txScrollRef, onEnd, ending }) {
       {transcript.length > 0 && (
         <div
           ref={txScrollRef}
-          className="h-28 px-6 py-3 bg-black/40 backdrop-blur border-t border-white/5 overflow-y-auto space-y-1"
+          className="h-28 px-6 py-3 bg-white/80 backdrop-blur border-t border-[#F0EDEA] overflow-y-auto space-y-1"
         >
           {transcript.map((line, i) => (
-            <p key={i} className={`text-sm ${line.speaker === 'agent' ? 'text-indigo-300' : 'text-slate-300'}`}>
-              <span className="text-slate-600 text-xs mr-2">{line.speaker === 'agent' ? 'Emma' : 'You'}</span>
+            <p key={i} className={`text-sm ${line.speaker === 'agent' ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>
+              <span className="text-[#A8A29E] text-xs mr-2">{line.speaker === 'agent' ? 'Emma' : 'You'}</span>
               {line.text}
             </p>
           ))}
@@ -279,16 +279,16 @@ function ProductCard({ product }) {
         <img
           src={product.image_url}
           alt={product.name}
-          className="w-full max-h-72 object-contain rounded-2xl mb-6 bg-white/5"
+          className="w-full max-h-72 object-contain rounded-2xl mb-6 bg-[#F5F5F4]"
         />
       ) : (
         <div className="w-full h-56 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center mb-6">
           <span className="text-6xl">📦</span>
         </div>
       )}
-      <h2 className="text-3xl font-bold text-white mb-3">{product.name}</h2>
+      <h2 className="text-3xl font-bold text-[#1A1816] mb-3">{product.name}</h2>
       {product.description && (
-        <p className="text-slate-300 text-lg leading-relaxed">{product.description}</p>
+        <p className="text-[#44403C] text-lg leading-relaxed">{product.description}</p>
       )}
     </div>
   )

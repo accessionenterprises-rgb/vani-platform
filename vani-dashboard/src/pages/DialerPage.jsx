@@ -120,21 +120,21 @@ export default function DialerPage() {
   const isCalling = status === 'calling'
 
   return (
-    <div className="flex-1 p-8 bg-[#0d0f18] flex items-start justify-center">
+    <div className="flex-1 p-8 bg-[#FAFAF9] flex items-start justify-center">
       <div className="w-full max-w-sm">
-        <h1 className="text-white text-xl font-semibold mb-6">Dialer</h1>
+        <h1 className="text-[#1A1816] text-2xl font-semibold mb-6">Dialer</h1>
 
         {/* From number picker */}
         <div className="mb-4">
-          <label className="text-xs text-slate-500 uppercase tracking-wide mb-1.5 block">Call from</label>
+          <label className="text-sm text-[#A8A29E] uppercase tracking-wide mb-1.5 block">Call from</label>
           {numbers.length === 0 ? (
-            <p className="text-slate-500 text-sm">No Twilio numbers configured. Add one in Numbers.</p>
+            <p className="text-[#A8A29E] text-base">No Twilio numbers configured. Add one in Numbers.</p>
           ) : (
             <select
               value={fromNumber}
               onChange={e => setFrom(e.target.value)}
               disabled={isActive || isCalling}
-              className="w-full bg-[#12141f] border border-[#1f2235] text-white text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-indigo-500 disabled:opacity-50"
+              className="w-full bg-white border border-[#E8E5E2] text-[#1A1816] text-base rounded-lg px-3 py-2 focus:outline-none focus:border-[#2563EB] disabled:opacity-50"
             >
               {numbers.map(n => (
                 <option key={n.id} value={n.number}>{n.number}</option>
@@ -144,12 +144,12 @@ export default function DialerPage() {
         </div>
 
         {/* Main dialer card */}
-        <div className="bg-[#12141f] border border-[#1f2235] rounded-2xl p-5">
+        <div className="bg-white border border-[#E8E5E2] rounded-2xl p-5">
           {/* Status indicator */}
           <div className="flex items-center justify-between mb-4">
             <StatusDot status={status} />
             {isActive && (
-              <span className="text-indigo-400 font-mono text-sm tabular-nums">
+              <span className="text-[#2563EB] font-mono text-base tabular-nums">
                 {formatDuration(duration)}
               </span>
             )}
@@ -163,12 +163,12 @@ export default function DialerPage() {
               onChange={e => setInput(e.target.value)}
               placeholder="+1 (555) 000-0000"
               disabled={isActive || isCalling}
-              className="w-full bg-[#0d0f18] border border-[#1f2235] text-white text-lg text-center rounded-lg px-4 py-3 font-mono focus:outline-none focus:border-indigo-500 placeholder:text-slate-600 disabled:opacity-60"
+              className="w-full bg-[#FAFAF9] border border-[#E8E5E2] text-[#1A1816] text-xl text-center rounded-lg px-4 py-3 font-mono focus:outline-none focus:border-[#2563EB] placeholder:text-[#A8A29E] disabled:opacity-60"
             />
             {input && !isActive && !isCalling && (
               <button
                 onClick={backspace}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A8A29E] hover:text-[#44403C] transition-colors"
               >
                 <BackspaceIcon />
               </button>
@@ -182,7 +182,7 @@ export default function DialerPage() {
                 key={k}
                 onClick={() => pressKey(k)}
                 disabled={status === 'loading' || status === 'error'}
-                className="h-12 rounded-xl bg-[#1a1d2e] hover:bg-[#22263a] active:scale-95 text-white text-lg font-medium transition-all disabled:opacity-40"
+                className="h-12 rounded-xl bg-[#F5F5F4] hover:bg-[#E8E5E2] active:scale-95 text-[#1A1816] text-xl font-medium transition-all disabled:opacity-40"
               >
                 {k}
               </button>
@@ -195,17 +195,17 @@ export default function DialerPage() {
               <>
                 <button
                   onClick={toggleMute}
-                  className={`flex-1 h-12 rounded-xl text-sm font-medium transition-all ${
+                  className={`flex-1 h-12 rounded-xl text-base font-medium transition-all ${
                     muted
                       ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                      : 'bg-[#1a1d2e] text-slate-400 hover:text-slate-200'
+                      : 'bg-[#F5F5F4] text-[#78716C] hover:text-[#44403C]'
                   }`}
                 >
                   {muted ? 'Unmute' : 'Mute'}
                 </button>
                 <button
                   onClick={hangUp}
-                  className="flex-1 h-12 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 text-sm font-medium border border-red-500/20 transition-all active:scale-95"
+                  className="flex-1 h-12 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 text-base font-medium border border-red-500/20 transition-all active:scale-95"
                 >
                   End Call
                 </button>
@@ -214,7 +214,7 @@ export default function DialerPage() {
               <button
                 onClick={dial}
                 disabled={!input || status !== 'ready'}
-                className="w-full h-12 rounded-xl bg-indigo-500 hover:bg-indigo-400 disabled:opacity-40 text-white text-sm font-medium transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="w-full h-12 rounded-xl bg-[#2563EB] hover:bg-[#3B82F6] disabled:opacity-40 text-white text-base font-medium transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 <CallIcon />
                 {status === 'loading' ? 'Connecting...' : 'Call'}
@@ -224,7 +224,7 @@ export default function DialerPage() {
 
           {/* Error */}
           {errorMsg && (
-            <p className="mt-3 text-red-400 text-xs text-center">{errorMsg}</p>
+            <p className="mt-3 text-red-400 text-sm text-center">{errorMsg}</p>
           )}
         </div>
       </div>
@@ -245,7 +245,7 @@ function StatusDot({ status }) {
   return (
     <div className="flex items-center gap-2">
       <span className={`w-2 h-2 rounded-full ${color}`} />
-      <span className="text-slate-500 text-xs">{label}</span>
+      <span className="text-[#A8A29E] text-sm">{label}</span>
     </div>
   )
 }

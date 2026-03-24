@@ -32,26 +32,30 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="px-5 h-16 flex items-center gap-3 border-b border-[#F0EDEA]">
         <div className="w-8 h-8 rounded-[10px] bg-[#2563EB] flex items-center justify-center shadow-sm shadow-blue-200">
-          <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] text-white fill-current">
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2H3v2a9 9 0 0 0 8 8.94V23h2v-2.06A9 9 0 0 0 21 12v-2h-2z"/>
+          {/* V-waveform mark */}
+          <svg viewBox="0 0 24 24" className="w-[18px] h-[18px] text-white" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 8v8"/>
+            <path d="M7 5v14"/>
+            <path d="M11 2v20"/>
+            <path d="M15 6v12"/>
+            <path d="M19 9v6"/>
           </svg>
         </div>
-        <span className="text-[#1A1816] font-bold text-[15px] tracking-[-0.02em]">Vani</span>
+        <span className="text-[#1A1816] font-bold text-[18px] tracking-[-0.02em]">Vani</span>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 px-3 pt-4 pb-2 overflow-y-auto">
         {NAV.map(({ section, items }) => (
           <div key={section} className="mb-5">
-            <p className="px-3 mb-1 text-[10px] font-semibold text-[#A8A29E] uppercase tracking-[0.08em]">{section}</p>
+            <p className="px-3 mb-1 text-[13px] font-semibold text-[#A8A29E] uppercase tracking-[0.08em]">{section}</p>
             {items.map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={to === '/'}
                 className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-3 py-[7px] rounded-[8px] text-[13px] transition-all ${
+                  `flex items-center gap-2.5 px-3 py-[7px] rounded-[8px] text-[16px] transition-all ${
                     isActive
                       ? 'bg-white text-[#1A1816] font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.06)] border border-[#E8E5E2]'
                       : 'text-[#78716C] hover:text-[#44403C] hover:bg-white/60'
@@ -70,7 +74,7 @@ export default function Sidebar() {
       <div className="px-3 py-3 border-t border-[#F0EDEA]">
         <NavLink to="/settings" end
           className={({ isActive }) =>
-            `flex items-center gap-2.5 px-3 py-[7px] rounded-[8px] text-[13px] transition-all mb-1 ${
+            `flex items-center gap-2.5 px-3 py-[7px] rounded-[8px] text-[16px] transition-all mb-1 ${
               isActive
                 ? 'bg-white text-[#1A1816] font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.06)] border border-[#E8E5E2]'
                 : 'text-[#78716C] hover:text-[#44403C] hover:bg-white/60'
@@ -81,7 +85,7 @@ export default function Sidebar() {
         </NavLink>
         <button
           onClick={() => { logout(); navigate('/login') }}
-          className="w-full flex items-center gap-2.5 px-3 py-[7px] rounded-[8px] text-[13px] text-[#A8A29E] hover:text-[#78716C] hover:bg-white/60 transition-all"
+          className="w-full flex items-center gap-2.5 px-3 py-[7px] rounded-[8px] text-[16px] text-[#A8A29E] hover:text-[#78716C] hover:bg-white/60 transition-all"
         >
           <LogoutIcon className="w-[16px] h-[16px]" />
           Sign out

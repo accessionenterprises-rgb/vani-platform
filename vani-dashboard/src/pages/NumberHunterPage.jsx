@@ -3,9 +3,9 @@ import { api } from '../api/client'
 
 const TIER_META = {
   'S-ten':          { label: 'S · Ten Identical',   color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-  'A-double-seq':   { label: 'A · Double + Seq',     color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
-  'A-double-rev':   { label: 'A · Double + Mirror',  color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
-  'A-seven':        { label: 'A · NPA + 7 Identical',color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
+  'A-double-seq':   { label: 'A · Double + Seq',     color: 'text-[#2563EB] bg-[#2563EB]/10 border-indigo-500/20' },
+  'A-double-rev':   { label: 'A · Double + Mirror',  color: 'text-[#2563EB] bg-[#2563EB]/10 border-indigo-500/20' },
+  'A-seven':        { label: 'A · NPA + 7 Identical',color: 'text-[#2563EB] bg-[#2563EB]/10 border-indigo-500/20' },
   'A-mirror':       { label: 'A · Mirror Open',      color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
   'B-segments':     { label: 'B · 3 Segments',       color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
   'B-fivefive':     { label: 'B · 5+5 Split',        color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
@@ -26,7 +26,7 @@ function fmt(number) {
 }
 
 function TierBadge({ tier }) {
-  const meta = TIER_META[tier] || { label: tier, color: 'text-slate-400 bg-slate-500/10 border-slate-500/20' }
+  const meta = TIER_META[tier] || { label: tier, color: 'text-[#78716C] bg-slate-500/10 border-slate-500/20' }
   return (
     <span className={`text-xs font-medium px-2 py-0.5 rounded border ${meta.color}`}>
       {meta.label}
@@ -35,12 +35,12 @@ function TierBadge({ tier }) {
 }
 
 function ScoreBadge({ score, reason }) {
-  if (score == null) return <span className="text-xs text-slate-700">—</span>
+  if (score == null) return <span className="text-xs text-[#D6D3D1]">—</span>
   const color = score >= 8
     ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
     : score >= 6
     ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
-    : 'text-slate-400 bg-slate-500/10 border-slate-500/20'
+    : 'text-[#78716C] bg-slate-500/10 border-slate-500/20'
   return (
     <span title={reason || ''} className={`text-xs font-semibold px-2 py-0.5 rounded border cursor-default ${color}`}>
       {score}/10
@@ -158,8 +158,8 @@ export default function NumberHunterPage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-xl font-semibold text-white">Number Hunter</h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <h1 className="text-xl font-semibold text-[#1A1816]">Number Hunter</h1>
+            <p className="text-sm text-[#A8A29E] mt-0.5">
               Scans Twilio daily for memorable NANP numbers — finds patterns, tracks availability
             </p>
           </div>
@@ -167,7 +167,7 @@ export default function NumberHunterPage() {
             <select
               value={scanCountry}
               onChange={e => setScanCountry(e.target.value)}
-              className="bg-[#12141f] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+              className="bg-white border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] focus:outline-none focus:border-[#2563EB]"
             >
               {(status.countries || []).map(c => (
                 <option key={c} value={c}>{COUNTRY_FLAGS[c] || ''} {c}</option>
@@ -176,7 +176,7 @@ export default function NumberHunterPage() {
             <button
               onClick={handleScan}
               disabled={scanning || isRunning}
-              className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              className="flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               {isRunning ? (
                 <>
@@ -195,9 +195,9 @@ export default function NumberHunterPage() {
 
         {/* Scan progress */}
         {isRunning && (
-          <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-5 py-3 mb-5 flex items-center gap-4">
+          <div className="bg-[#2563EB]/10 border border-indigo-500/20 rounded-xl px-5 py-3 mb-5 flex items-center gap-4">
             <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-            <div className="flex-1 text-sm text-indigo-300">
+            <div className="flex-1 text-sm text-[#3B82F6]">
               {runningCountries.map(c => {
                 const p = status.running[c] || {}
                 return (
@@ -215,7 +215,7 @@ export default function NumberHunterPage() {
         {/* Stats row */}
         <div className="grid grid-cols-5 gap-4 mb-6">
           <StatCard label="Available" value={results.filter(r => r.status === 'available').length} color="text-emerald-400" />
-          <StatCard label="Purchased" value={results.filter(r => r.status === 'purchased').length} color="text-indigo-400" />
+          <StatCard label="Purchased" value={results.filter(r => r.status === 'purchased').length} color="text-[#2563EB]" />
           <StatCard label="Top Scored (≥8)" value={results.filter(r => r.ai_score >= 8).length} color="text-amber-400" />
           <StatCard label="Last Scan" value={lastScan ? new Date(lastScan.started_at).toLocaleDateString() : '—'} />
           <StatCard label="Countries" value={status.countries?.length || 15} />
@@ -226,7 +226,7 @@ export default function NumberHunterPage() {
           <div className="flex flex-wrap gap-2 mb-5">
             <button
               onClick={() => setTierFilter('')}
-              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${!tierFilter ? 'bg-white/10 border-white/20 text-white' : 'border-[#2a2d3a] text-slate-500 hover:text-slate-300'}`}
+              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${!tierFilter ? 'bg-[#F0EDEA] border-[#E8E5E2] text-[#1A1816]' : 'border-[#E8E5E2] text-[#A8A29E] hover:text-[#44403C]'}`}
             >
               All ({results.length})
             </button>
@@ -236,8 +236,8 @@ export default function NumberHunterPage() {
                 onClick={() => setTierFilter(t === tierFilter ? '' : t)}
                 className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                   tierFilter === t
-                    ? 'bg-white/10 border-white/20 text-white'
-                    : 'border-[#2a2d3a] text-slate-500 hover:text-slate-300'
+                    ? 'bg-[#F0EDEA] border-[#E8E5E2] text-[#1A1816]'
+                    : 'border-[#E8E5E2] text-[#A8A29E] hover:text-[#44403C]'
                 }`}
               >
                 {TIER_META[t]?.label || t} ({n})
@@ -248,15 +248,15 @@ export default function NumberHunterPage() {
 
         {/* Tabs + country filter */}
         <div className="flex items-center gap-4 mb-4">
-          <div className="flex gap-1 bg-[#0d0f18] border border-[#1f2235] rounded-lg p-1">
+          <div className="flex gap-1 bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg p-1">
             {['available', 'purchased'].map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
                   tab === t
-                    ? 'bg-[#12141f] text-white shadow'
-                    : 'text-slate-500 hover:text-slate-300'
+                    ? 'bg-white text-[#1A1816] shadow'
+                    : 'text-[#A8A29E] hover:text-[#44403C]'
                 }`}
               >
                 {t}
@@ -266,53 +266,53 @@ export default function NumberHunterPage() {
           <select
             value={country}
             onChange={e => setCountry(e.target.value)}
-            className="bg-[#12141f] border border-[#2a2d3a] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+            className="bg-white border border-[#E8E5E2] rounded-lg px-3 py-1.5 text-sm text-[#1A1816] focus:outline-none focus:border-[#2563EB]"
           >
             <option value="">All countries</option>
             {(status.countries || []).map(c => (
               <option key={c} value={c}>{COUNTRY_FLAGS[c] || ''} {c}</option>
             ))}
           </select>
-          <span className="text-xs text-slate-600 ml-auto">{results.length} numbers</span>
+          <span className="text-xs text-[#A8A29E] ml-auto">{results.length} numbers</span>
         </div>
 
         {/* Results table */}
         {loading ? (
-          <div className="text-center py-16 text-slate-600 text-sm">Loading…</div>
+          <div className="text-center py-16 text-[#A8A29E] text-sm">Loading…</div>
         ) : results.length === 0 ? (
-          <div className="text-center py-20 bg-[#12141f] rounded-xl border border-[#1f2235]">
-            <RadarIcon className="w-10 h-10 text-slate-700 mx-auto mb-3" />
-            <p className="text-slate-400 font-medium mb-1">
+          <div className="text-center py-20 bg-white rounded-xl border border-[#E8E5E2]">
+            <RadarIcon className="w-10 h-10 text-[#D6D3D1] mx-auto mb-3" />
+            <p className="text-[#78716C] font-medium mb-1">
               {tab === 'available' ? 'No memorable numbers found yet' : 'No purchased numbers'}
             </p>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-[#A8A29E]">
               {tab === 'available'
                 ? 'Run a scan to discover available memorable numbers in Twilio\'s inventory'
                 : 'Numbers you buy through the hunter will appear here'}
             </p>
           </div>
         ) : (
-          <div className="bg-[#12141f] rounded-xl border border-[#1f2235] overflow-hidden">
+          <div className="bg-white rounded-xl border border-[#E8E5E2] overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#1f2235]">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-slate-500">Number</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Country</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Tier</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Score</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Pattern</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">First Seen</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-slate-500">Action</th>
+                <tr className="border-b border-[#E8E5E2]">
+                  <th className="text-left px-5 py-3 text-xs font-medium text-[#A8A29E]">Number</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#A8A29E]">Country</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#A8A29E]">Tier</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#A8A29E]">Score</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#A8A29E]">Pattern</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-[#A8A29E]">First Seen</th>
+                  <th className="text-right px-5 py-3 text-xs font-medium text-[#A8A29E]">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1f2235]">
+              <tbody className="divide-y divide-[#F0EDEA]">
                 {results.map(r => (
-                  <tr key={r.id} className="hover:bg-white/[0.02] transition-colors group">
+                  <tr key={r.id} className="hover:bg-[#FAFAF9] transition-colors group">
                     <td className="px-5 py-3.5">
-                      <div className="font-mono text-white font-medium">{fmt(r.number)}</div>
-                      <div className="text-xs text-slate-600">{r.number}</div>
+                      <div className="font-mono text-[#1A1816] font-medium">{fmt(r.number)}</div>
+                      <div className="text-xs text-[#A8A29E]">{r.number}</div>
                     </td>
-                    <td className="px-4 py-3.5 text-slate-400">
+                    <td className="px-4 py-3.5 text-[#78716C]">
                       {COUNTRY_FLAGS[r.country] || ''} {r.country}
                     </td>
                     <td className="px-4 py-3.5">
@@ -321,8 +321,8 @@ export default function NumberHunterPage() {
                     <td className="px-4 py-3.5">
                       <ScoreBadge score={r.ai_score} reason={r.ai_reason} />
                     </td>
-                    <td className="px-4 py-3.5 font-mono text-xs text-slate-500">{r.label}</td>
-                    <td className="px-4 py-3.5 text-xs text-slate-600">
+                    <td className="px-4 py-3.5 font-mono text-xs text-[#A8A29E]">{r.label}</td>
+                    <td className="px-4 py-3.5 text-xs text-[#A8A29E]">
                       {new Date(r.first_seen).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-3.5 text-right">
@@ -334,7 +334,7 @@ export default function NumberHunterPage() {
                         <button
                           onClick={() => handleBuy(r.number)}
                           disabled={purchasing === r.number}
-                          className="text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-500/20 disabled:opacity-50 transition-colors"
+                          className="text-xs text-[#2563EB] hover:text-[#3B82F6] bg-[#2563EB]/10 hover:bg-[#2563EB]/20 px-3 py-1.5 rounded-lg border border-indigo-500/20 disabled:opacity-50 transition-colors"
                         >
                           {purchasing === r.number ? 'Buying…' : 'Buy'}
                         </button>
@@ -350,18 +350,18 @@ export default function NumberHunterPage() {
         {/* Recent scans */}
         {scans.length > 0 && (
           <div className="mt-8">
-            <h2 className="text-sm font-semibold text-slate-400 mb-3">Recent Scans</h2>
-            <div className="bg-[#12141f] rounded-xl border border-[#1f2235] divide-y divide-[#1f2235]">
+            <h2 className="text-sm font-semibold text-[#78716C] mb-3">Recent Scans</h2>
+            <div className="bg-white rounded-xl border border-[#E8E5E2] divide-y divide-[#F0EDEA]">
               {scans.slice(0, 10).map(s => (
                 <div key={s.id} className="flex items-center gap-4 px-5 py-3 text-sm">
-                  <span className="font-medium text-white">{COUNTRY_FLAGS[s.country] || ''} {s.country}</span>
+                  <span className="font-medium text-[#1A1816]">{COUNTRY_FLAGS[s.country] || ''} {s.country}</span>
                   <span className={`text-xs px-2 py-0.5 rounded border ${
                     s.status === 'completed' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
-                    s.status === 'running'   ? 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' :
+                    s.status === 'running'   ? 'text-[#2563EB] bg-[#2563EB]/10 border-indigo-500/20' :
                                                'text-red-400 bg-red-500/10 border-red-500/20'
                   }`}>{s.status}</span>
-                  <span className="text-slate-500 text-xs">{new Date(s.started_at).toLocaleString()}</span>
-                  <span className="ml-auto text-xs text-slate-500">
+                  <span className="text-[#A8A29E] text-xs">{new Date(s.started_at).toLocaleString()}</span>
+                  <span className="ml-auto text-xs text-[#A8A29E]">
                     {s.found_count ?? 0} found · {s.new_count ?? 0} new · {s.gone_count ?? 0} gone
                     {s.total_patterns ? ` / ${s.total_patterns?.toLocaleString()} patterns` : ''}
                   </span>
@@ -386,10 +386,10 @@ export default function NumberHunterPage() {
   )
 }
 
-function StatCard({ label, value, color = 'text-white' }) {
+function StatCard({ label, value, color = 'text-[#1A1816]' }) {
   return (
-    <div className="bg-[#12141f] border border-[#1f2235] rounded-xl px-5 py-4">
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
+    <div className="bg-white border border-[#E8E5E2] rounded-xl px-5 py-4">
+      <p className="text-xs text-[#A8A29E] mb-1">{label}</p>
       <p className={`text-xl font-semibold ${color}`}>{value}</p>
     </div>
   )

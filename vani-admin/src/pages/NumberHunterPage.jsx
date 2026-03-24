@@ -25,44 +25,44 @@ const BLANK_SCHEDULE = {
 }
 
 const TIER_META = {
-  'A-double-seq':   { label: 'A · Double + Seq',      color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
-  'A-double-rev':   { label: 'A · Double + Mirror',   color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
-  'A-seven':        { label: 'A · NPA + 7 Identical', color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
-  'A-mirror':       { label: 'A · Mirror Open',       color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-  'B-segments':     { label: 'B · 3 Segments',        color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  'B-fivefive':     { label: 'B · 5+5 Split',         color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  'B-double-block': { label: 'B · AAABBB',            color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  'B-alternating':  { label: 'B · ABABAB',            color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  'B-alt10':        { label: 'B · ABABABABAB',        color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  'B-aab-triple':   { label: 'B · AAB×3',             color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  'B-aba-triple':   { label: 'B · ABA×3',             color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  'B-abb-triple':   { label: 'B · ABB×3',             color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  'B-abc-triple':   { label: 'B · ABC×3',             color: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  'P-suffix-quad':  { label: 'P · Suffix Quad',       color: 'text-slate-300 bg-slate-500/10 border-slate-500/20' },
-  'P-seq5':         { label: 'P · Seq 5-digit',       color: 'text-slate-300 bg-slate-500/10 border-slate-500/20' },
-  'P-seq6':         { label: 'P · Seq 6-digit',       color: 'text-slate-300 bg-slate-500/10 border-slate-500/20' },
-  'P-seq7':         { label: 'P · Seq 7-digit',       color: 'text-slate-300 bg-slate-500/10 border-slate-500/20' },
-  'TF-double-aaaa': { label: 'TF · Toll-Free AAAA',  color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  'TF-double-aabb': { label: 'TF · Toll-Free AABB',  color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  'TF-double-seq':  { label: 'TF · Toll-Free Seq',   color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  'A-double-seq':   { label: 'A · Double + Seq',      color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'A-double-rev':   { label: 'A · Double + Mirror',   color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'A-seven':        { label: 'A · NPA + 7 Identical', color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'A-mirror':       { label: 'A · Mirror Open',       color: 'text-sky-700 bg-sky-50 border-sky-200' },
+  'B-segments':     { label: 'B · 3 Segments',        color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'B-fivefive':     { label: 'B · 5+5 Split',         color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'B-double-block': { label: 'B · AAABBB',            color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'B-alternating':  { label: 'B · ABABAB',            color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'B-alt10':        { label: 'B · ABABABABAB',        color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'B-aab-triple':   { label: 'B · AAB×3',             color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'B-aba-triple':   { label: 'B · ABA×3',             color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'B-abb-triple':   { label: 'B · ABB×3',             color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'B-abc-triple':   { label: 'B · ABC×3',             color: 'text-violet-700 bg-violet-50 border-violet-200' },
+  'P-suffix-quad':  { label: 'P · Suffix Quad',       color: 'text-gray-600 bg-gray-50 border-gray-200' },
+  'P-seq5':         { label: 'P · Seq 5-digit',       color: 'text-gray-600 bg-gray-50 border-gray-200' },
+  'P-seq6':         { label: 'P · Seq 6-digit',       color: 'text-gray-600 bg-gray-50 border-gray-200' },
+  'P-seq7':         { label: 'P · Seq 7-digit',       color: 'text-gray-600 bg-gray-50 border-gray-200' },
+  'TF-double-aaaa': { label: 'TF · Toll-Free AAAA',  color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  'TF-double-aabb': { label: 'TF · Toll-Free AABB',  color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  'TF-double-seq':  { label: 'TF · Toll-Free Seq',   color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
 }
 
 const COUNTRY_FLAGS = {
-  US: '🇺🇸', CA: '🇨🇦', PR: '🇵🇷', VI: '🇻🇮', GU: '🇬🇺',
-  AS: '🇦🇸', MP: '🇲🇵', BM: '🇧🇲', KY: '🇰🇾', JM: '🇯🇲',
-  TT: '🇹🇹', BB: '🇧🇧', BS: '🇧🇸', GD: '🇬🇩', DO: '🇩🇴',
+  US: '\u{1F1FA}\u{1F1F8}', CA: '\u{1F1E8}\u{1F1E6}', PR: '\u{1F1F5}\u{1F1F7}', VI: '\u{1F1FB}\u{1F1EE}', GU: '\u{1F1EC}\u{1F1FA}',
+  AS: '\u{1F1E6}\u{1F1F8}', MP: '\u{1F1F2}\u{1F1F5}', BM: '\u{1F1E7}\u{1F1F2}', KY: '\u{1F1F0}\u{1F1FE}', JM: '\u{1F1EF}\u{1F1F2}',
+  TT: '\u{1F1F9}\u{1F1F9}', BB: '\u{1F1E7}\u{1F1E7}', BS: '\u{1F1E7}\u{1F1F8}', GD: '\u{1F1EC}\u{1F1E9}', DO: '\u{1F1E9}\u{1F1F4}',
 }
 
 // Provider for each scan — all Twilio for now, extensible later
 const SERVICE_COLORS = {
-  twilio: 'text-[#F22F46] bg-[#F22F46]/10 border-[#F22F46]/20',
-  bandwidth: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
-  telnyx: 'text-violet-400 bg-violet-500/10 border-violet-500/20',
+  twilio: 'text-[#F22F46] bg-red-50 border-red-200',
+  bandwidth: 'text-sky-700 bg-sky-50 border-sky-200',
+  telnyx: 'text-violet-700 bg-violet-50 border-violet-200',
 }
 function ServiceBadge({ service = 'twilio' }) {
-  const color = SERVICE_COLORS[service] || 'text-slate-400 bg-slate-500/10 border-slate-500/20'
+  const color = SERVICE_COLORS[service] || 'text-gray-500 bg-gray-50 border-gray-200'
   return (
-    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide ${color}`}>
+    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wide ${color}`}>
       {service}
     </span>
   )
@@ -74,23 +74,23 @@ function fmt(number) {
 }
 
 function TierBadge({ tier }) {
-  const meta = TIER_META[tier] || { label: tier, color: 'text-slate-400 bg-slate-500/10 border-slate-500/20' }
+  const meta = TIER_META[tier] || { label: tier, color: 'text-gray-500 bg-gray-50 border-gray-200' }
   return (
-    <span className={`text-xs font-medium px-2 py-0.5 rounded border ${meta.color}`}>
+    <span className={`text-base font-medium px-2 py-0.5 rounded border ${meta.color}`}>
       {meta.label}
     </span>
   )
 }
 
 function ScoreBadge({ score, reason }) {
-  if (score == null) return <span className="text-xs text-slate-700">—</span>
+  if (score == null) return <span className="text-sm text-gray-400">&mdash;</span>
   const color = score >= 8
-    ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+    ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
     : score >= 6
-    ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
-    : 'text-slate-400 bg-slate-500/10 border-slate-500/20'
+    ? 'text-amber-700 bg-amber-50 border-amber-200'
+    : 'text-gray-500 bg-gray-50 border-gray-200'
   return (
-    <span title={reason || ''} className={`text-xs font-semibold px-2 py-0.5 rounded border cursor-default ${color}`}>
+    <span title={reason || ''} className={`text-base font-semibold px-2 py-0.5 rounded border cursor-default ${color}`}>
       {score}/10
     </span>
   )
@@ -130,12 +130,12 @@ export default function NumberHunterPage() {
       .then(st => {
         const running = Object.keys((st || {}).running || {})
         const errors = running.filter(c => st.running[c]?.error).map(c => `${c}: ${st.running[c].error}`)
-        setScanMsg({ type: 'info', text: `[debug] token ok · running=${JSON.stringify(running)}${errors.length ? ' · errors: ' + errors.join(', ') : ''}` })
+        setScanMsg({ type: 'info', text: `[debug] token ok \u00b7 running=${JSON.stringify(running)}${errors.length ? ' \u00b7 errors: ' + errors.join(', ') : ''}` })
         if (running.length > 0) {
           setStatus(st)
           setScanCountries(running)
           setScanning(true)
-          setScanMsg({ type: 'info', text: `Scan in progress — resuming (${running.join(', ')})…` })
+          setScanMsg({ type: 'info', text: `Scan in progress \u2014 resuming (${running.join(', ')})\u2026` })
         }
       })
       .catch(e => setScanMsg({ type: 'err', text: `[debug] error: ${e.message}` }))
@@ -270,7 +270,7 @@ export default function NumberHunterPage() {
           scanStart.current = null
           setScanning(false)
           const errMsg = errored.map(([c, p]) => `${c}: ${p.error}`).join(' | ')
-          setScanMsg({ type: 'err', text: `✗ Scan failed — ${errMsg}` })
+          setScanMsg({ type: 'err', text: `\u2717 Scan failed \u2014 ${errMsg}` })
           load()
         }
         // Stop when we've seen it running AND it stopped normally
@@ -282,9 +282,9 @@ export default function NumberHunterPage() {
           const s = await adminApi.hunterScans(null)
           const last = s?.[0]
           if (last?.status === 'completed') {
-            setScanMsg({ type: 'ok', text: `✓ Scan complete — ${last.found_count ?? 0} found, ${last.new_count ?? 0} new, ${last.gone_count ?? 0} gone` })
+            setScanMsg({ type: 'ok', text: `\u2713 Scan complete \u2014 ${last.found_count ?? 0} found, ${last.new_count ?? 0} new, ${last.gone_count ?? 0} gone` })
           } else if (last?.status === 'failed') {
-            setScanMsg({ type: 'err', text: `✗ Scan failed: ${last.error || 'unknown error'}` })
+            setScanMsg({ type: 'err', text: `\u2717 Scan failed: ${last.error || 'unknown error'}` })
           }
           load()
         }
@@ -308,8 +308,8 @@ export default function NumberHunterPage() {
       const r = await adminApi.hunterScan(scanCountries, scanService)
       const svcLabel = r.service === 'telnyx' ? ' (Telnyx)' : ' (Twilio)'
       const label = r.countries?.length === 1
-        ? `${r.countries[0]} — ${r.patterns?.toLocaleString() || 0} patterns${svcLabel}`
-        : `${r.countries?.join(', ')} — ${r.patterns?.toLocaleString() || 0} patterns total${svcLabel}`
+        ? `${r.countries[0]} \u2014 ${r.patterns?.toLocaleString() || 0} patterns${svcLabel}`
+        : `${r.countries?.join(', ')} \u2014 ${r.patterns?.toLocaleString() || 0} patterns total${svcLabel}`
       setScanMsg({ type: 'info', text: `Scanning ${label}` })
       const st = await adminApi.hunterStatus()
       setStatus(st)
@@ -338,7 +338,7 @@ export default function NumberHunterPage() {
     setPurchasing(number)
     try {
       const r = await adminApi.hunterPurchase(number)
-      showToast(`Purchased ${fmt(r.number)} — SID ${r.sid}`)
+      showToast(`Purchased ${fmt(r.number)} \u2014 SID ${r.sid}`)
       // Remove from current list if we're on the available tab
       if (tab === 'available') {
         setResults(rs => rs.filter(x => x.number !== number))
@@ -385,9 +385,9 @@ export default function NumberHunterPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-white">Number Hunter</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Memorable NANP numbers available on Twilio — scanned daily, AI-scored
+          <h1 className="text-3xl font-bold text-gray-900">Number Hunter</h1>
+          <p className="text-base text-gray-500 mt-0.5">
+            Memorable NANP numbers available on Twilio &mdash; scanned daily, AI-scored
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -396,7 +396,7 @@ export default function NumberHunterPage() {
             <button
               onClick={() => !isRunning && setCountryPickerOpen(o => !o)}
               disabled={isRunning}
-              className="bg-[#12141f] border border-[#2a2d3a] hover:border-indigo-500/50 disabled:opacity-40 rounded-lg px-3 py-2 text-sm text-white flex items-center gap-2 min-w-[120px]"
+              className="bg-gray-50 border border-gray-200 hover:border-violet-500 disabled:opacity-40 rounded-xl px-3 py-2 text-sm text-gray-900 flex items-center gap-2 min-w-[120px]"
             >
               <span className="flex-1 text-left truncate">
                 {scanCountries.length === 0 ? 'No countries' :
@@ -404,14 +404,14 @@ export default function NumberHunterPage() {
                  scanCountries.length === 1 ? `${COUNTRY_FLAGS[scanCountries[0]] || ''} ${scanCountries[0]}` :
                  `${scanCountries.length} countries`}
               </span>
-              <span className="text-slate-500 text-xs">▾</span>
+              <span className="text-gray-400 text-sm">\u25BE</span>
             </button>
             {countryPickerOpen && (
-              <div className="absolute top-full mt-1 right-0 z-40 bg-[#12141f] border border-[#2a2d3a] rounded-xl shadow-xl p-2 w-56 max-h-72 overflow-y-auto">
+              <div className="absolute top-full mt-1 right-0 z-40 bg-white border border-gray-200 rounded-xl shadow-lg p-2 w-56 max-h-72 overflow-y-auto">
                 <div className="flex items-center justify-between px-2 py-1 mb-1">
-                  <span className="text-[10px] text-slate-500 uppercase tracking-wider">Select countries</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-wider">Select countries</span>
                   <button
-                    className="text-[10px] text-indigo-400 hover:text-indigo-300"
+                    className="text-xs text-violet-600 hover:text-violet-700"
                     onClick={() => setScanCountries(
                       scanCountries.length === Object.keys(COUNTRY_FLAGS).length ? [] : Object.keys(COUNTRY_FLAGS)
                     )}
@@ -420,29 +420,29 @@ export default function NumberHunterPage() {
                   </button>
                 </div>
                 {(status.countries?.length ? status.countries : Object.keys(COUNTRY_FLAGS)).map(c => (
-                  <label key={c} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/5 cursor-pointer">
+                  <label key={c} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={scanCountries.includes(c)}
                       onChange={() => setScanCountries(cs =>
                         cs.includes(c) ? cs.filter(x => x !== c) : [...cs, c]
                       )}
-                      className="accent-indigo-500"
+                      className="accent-violet-500"
                     />
-                    <span className="text-sm text-white">{COUNTRY_FLAGS[c] || ''} {c}</span>
+                    <span className="text-base text-gray-900">{COUNTRY_FLAGS[c] || ''} {c}</span>
                   </label>
                 ))}
               </div>
             )}
           </div>
           {/* Provider toggle */}
-          <div className="flex rounded-lg border border-[#2a2d3a] overflow-hidden">
+          <div className="flex rounded-xl border border-gray-200 overflow-hidden">
             {['twilio', 'telnyx'].map(svc => (
               <button key={svc} onClick={() => setScanService(svc)}
-                className={`px-3 py-2 text-xs font-medium transition-colors ${
+                className={`px-3 py-2 text-base font-medium transition-colors ${
                   scanService === svc
-                    ? 'bg-indigo-500/15 text-indigo-300'
-                    : 'bg-[#12141f] text-slate-500 hover:text-slate-300'
+                    ? 'bg-violet-50 text-violet-700'
+                    : 'bg-white text-gray-500 hover:text-gray-700'
                 }`}
               >{svc.charAt(0).toUpperCase() + svc.slice(1)}</button>
             ))}
@@ -450,7 +450,7 @@ export default function NumberHunterPage() {
           <button
             onClick={handleScan}
             disabled={scanning || isRunning || !scanCountries.length}
-            className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-40 text-white text-base font-medium px-4 py-2 rounded-xl shadow-sm shadow-violet-200 transition-colors"
           >
             <RadarIcon className="w-4 h-4" />
             Scan{scanCountries.length > 1 ? ` (${scanCountries.length})` : ''}
@@ -458,36 +458,36 @@ export default function NumberHunterPage() {
           <button
             onClick={handleScanAll}
             disabled={scanning || isRunning}
-            className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-40 text-gray-700 text-base font-medium px-4 py-2 rounded-xl transition-colors"
           >
             Scan All
           </button>
           <button
             onClick={() => openScheduleModal()}
-            className="flex items-center gap-2 bg-[#12141f] border border-[#2a2d3a] hover:border-indigo-500/50 text-slate-300 hover:text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-white border border-gray-200 hover:border-violet-500 text-gray-700 hover:text-gray-900 text-base font-medium px-4 py-2 rounded-xl transition-colors"
           >
             <ClockIcon className="w-4 h-4" />
-            Schedule{schedules.length > 0 && <span className="text-xs text-indigo-400 font-semibold ml-0.5">{schedules.length}</span>}
+            Schedule{schedules.length > 0 && <span className="text-sm text-violet-600 font-semibold ml-0.5">{schedules.length}</span>}
           </button>
         </div>
       </div>
 
       {/* Scan message (info / ok / err) */}
       {scanMsg && (
-        <div className={`rounded-xl px-5 py-3 mb-4 text-sm font-medium border flex items-center gap-3 ${
-          scanMsg.type === 'ok'  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' :
-          scanMsg.type === 'err' ? 'bg-red-500/10 border-red-500/20 text-red-300' :
-                                   'bg-indigo-500/10 border-indigo-500/20 text-indigo-300'
+        <div className={`rounded-xl px-5 py-3 mb-4 text-base font-medium border flex items-center gap-3 ${
+          scanMsg.type === 'ok'  ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
+          scanMsg.type === 'err' ? 'bg-red-50 border-red-100 text-red-600' :
+                                   'bg-violet-50 border-violet-200 text-violet-700'
         }`}>
-          {scanMsg.type === 'info' && <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse flex-shrink-0" />}
+          {scanMsg.type === 'info' && <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse flex-shrink-0" />}
           <span className="flex-1">{scanMsg.text}</span>
-          <button onClick={() => setScanMsg(null)} className="text-current opacity-50 hover:opacity-100 text-lg leading-none">×</button>
+          <button onClick={() => setScanMsg(null)} className="text-current opacity-50 hover:opacity-100 text-lg leading-none">&times;</button>
         </div>
       )}
 
       {/* Scan progress bars */}
       {(scanning || isRunning) && (
-        <div className="bg-[#12141f] border border-[#1f2235] rounded-xl px-5 py-4 mb-5 space-y-3">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 mb-5 space-y-3">
           {(isRunning ? runningCountries : scanCountries).map(c => {
             const p = status.running[c] || {}
             const pct = p.total ? Math.round((p.searched / p.total) * 100) : 0
@@ -502,26 +502,26 @@ export default function NumberHunterPage() {
             return (
               <div key={c}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="flex items-center gap-2 text-sm font-medium text-white">
+                  <span className="flex items-center gap-2 text-base font-medium text-gray-900">
                     {COUNTRY_FLAGS[c] || ''} {c}
                     <ServiceBadge service={p.service || 'twilio'} />
-                    <span className="text-xs text-slate-500 font-normal">
-                      {p.error ? <span className="text-red-400">error</span>
+                    <span className="text-base text-gray-500 font-normal">
+                      {p.error ? <span className="text-red-600">error</span>
                         : p.total
-                          ? `${p.searched?.toLocaleString() ?? 0} / ${p.total.toLocaleString()} patterns${p.found ? ` · ${p.found} found` : ''}${p.search_errors ? ` · ${p.search_errors} failed` : ''}`
-                          : 'queued…'}
+                          ? `${p.searched?.toLocaleString() ?? 0} / ${p.total.toLocaleString()} patterns${p.found ? ` \u00b7 ${p.found} found` : ''}${p.search_errors ? ` \u00b7 ${p.search_errors} failed` : ''}`
+                          : 'queued\u2026'}
                     </span>
                   </span>
-                  <span className="text-xs text-slate-500">{pct}% {etaStr && `· ${etaStr}`}</span>
+                  <span className="text-base text-gray-500">{pct}% {etaStr && `\u00b7 ${etaStr}`}</span>
                 </div>
-                {p.error && <div className="text-xs text-red-400 mb-1 font-mono">{p.error}</div>}
-                {p.last_error && !p.error && <div className="text-xs text-amber-400/70 mb-1 font-mono truncate">Last fail: {p.last_error}</div>}
-                <div className="h-1.5 bg-[#1f2235] rounded-full overflow-hidden">
+                {p.error && <div className="text-base text-red-600 mb-1 font-mono">{p.error}</div>}
+                {p.last_error && !p.error && <div className="text-base text-amber-600 mb-1 font-mono truncate">Last fail: {p.last_error}</div>}
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   {p.error
-                    ? <div className="h-full bg-red-500/50 rounded-full w-full" />
+                    ? <div className="h-full bg-red-400 rounded-full w-full" />
                     : pct > 0
-                      ? <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-                      : <div className="h-full bg-indigo-500/30 rounded-full animate-pulse w-full" />
+                      ? <div className="h-full bg-violet-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                      : <div className="h-full bg-violet-300 rounded-full animate-pulse w-full" />
                   }
                 </div>
               </div>
@@ -532,21 +532,21 @@ export default function NumberHunterPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-5 gap-4 mb-6">
-        <StatCard label="Available"     value={totals.available}  color="text-emerald-400" />
-        <StatCard label="Purchased"     value={totals.purchased}  color="text-indigo-400" />
-        <StatCard label="Top Scored ≥8" value={totals.topScored}  color="text-amber-400" />
-        <StatCard label="Last Scan"     value={lastScan ? new Date(lastScan.started_at).toLocaleDateString() : '—'} />
+        <StatCard label="Available"     value={totals.available}  color="text-emerald-600" />
+        <StatCard label="Purchased"     value={totals.purchased}  color="text-violet-600" />
+        <StatCard label="Top Scored \u22658" value={totals.topScored}  color="text-amber-600" />
+        <StatCard label="Last Scan"     value={lastScan ? new Date(lastScan.started_at).toLocaleDateString() : '\u2014'} />
         <StatCard label="Countries"     value={status.countries?.length || 15} />
       </div>
 
       {/* Filters row */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         {/* Status tabs */}
-        <div className="flex gap-1 bg-[#0d0f18] border border-[#1f2235] rounded-lg p-1">
+        <div className="flex gap-1 bg-gray-50 border border-gray-200 rounded-xl p-1">
           {['available', 'purchased'].map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors capitalize ${
-                tab === t ? 'bg-[#12141f] text-white shadow' : 'text-slate-500 hover:text-slate-300'
+              className={`px-4 py-1.5 rounded-lg text-base font-medium transition-colors capitalize ${
+                tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >{t}</button>
           ))}
@@ -554,7 +554,7 @@ export default function NumberHunterPage() {
 
         {/* Country filter */}
         <select value={country} onChange={e => setCountry(e.target.value)}
-          className="bg-[#12141f] border border-[#2a2d3a] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-base text-gray-900 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
         >
           <option value="">All countries</option>
           {(status.countries || []).map(c => (
@@ -564,22 +564,22 @@ export default function NumberHunterPage() {
 
         {/* Score filter */}
         <select value={scoreFilter} onChange={e => setScoreFilter(e.target.value)}
-          className="bg-[#12141f] border border-[#2a2d3a] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-base text-gray-900 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
         >
           <option value="">All scores</option>
-          <option value="8">Score ≥ 8 (top)</option>
-          <option value="6">Score 6–7</option>
+          <option value="8">Score \u2265 8 (top)</option>
+          <option value="6">Score 6\u20137</option>
           <option value="unscored">Not scored yet</option>
         </select>
 
-        <span className="text-xs text-slate-600 ml-auto">{filtered.length} numbers</span>
+        <span className="text-base text-gray-400 ml-auto">{filtered.length} numbers</span>
       </div>
 
       {/* Extra filters row */}
       <div className="flex items-center gap-3 mb-4">
         {/* Area code */}
         <select value={areaCodeFilter} onChange={e => setAreaCodeFilter(e.target.value)}
-          className="bg-[#12141f] border border-[#2a2d3a] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-base text-gray-900 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
         >
           <option value="">All area codes</option>
           {areaCodes.map(ac => (
@@ -589,7 +589,7 @@ export default function NumberHunterPage() {
 
         {/* Sort */}
         <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-          className="bg-[#12141f] border border-[#2a2d3a] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+          className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-base text-gray-900 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
         >
           <option value="score">Sort: AI Score</option>
           <option value="date">Sort: Newest first</option>
@@ -600,7 +600,7 @@ export default function NumberHunterPage() {
         {(scoreFilter || areaCodeFilter || tierFilter || country) && (
           <button
             onClick={() => { setScoreFilter(''); setAreaCodeFilter(''); setTierFilter(''); setCountry('') }}
-            className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+            className="text-base text-gray-500 hover:text-gray-700 px-2 py-1.5 rounded-xl hover:bg-gray-50 transition-colors"
           >Reset filters</button>
         )}
       </div>
@@ -610,14 +610,14 @@ export default function NumberHunterPage() {
         <div className="flex flex-wrap gap-2 mb-4">
           <button
             onClick={() => setTierFilter('')}
-            className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-              !tierFilter ? 'bg-white/10 border-white/20 text-white' : 'border-[#2a2d3a] text-slate-500 hover:text-slate-300'
+            className={`text-base px-2.5 py-1 rounded-full border transition-colors ${
+              !tierFilter ? 'bg-violet-50 border-violet-200 text-violet-700' : 'border-gray-200 text-gray-500 hover:text-gray-700'
             }`}
           >All ({results.length})</button>
           {Object.entries(tierCounts).sort((a, b) => b[1] - a[1]).map(([t, n]) => (
             <button key={t} onClick={() => setTierFilter(t === tierFilter ? '' : t)}
-              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                tierFilter === t ? 'bg-white/10 border-white/20 text-white' : 'border-[#2a2d3a] text-slate-500 hover:text-slate-300'
+              className={`text-base px-2.5 py-1 rounded-full border transition-colors ${
+                tierFilter === t ? 'bg-violet-50 border-violet-200 text-violet-700' : 'border-gray-200 text-gray-500 hover:text-gray-700'
               }`}
             >{TIER_META[t]?.label || t} ({n})</button>
           ))}
@@ -626,51 +626,51 @@ export default function NumberHunterPage() {
 
       {/* Table */}
       {loading ? (
-        <div className="text-center py-16 text-slate-600 text-sm">Loading…</div>
+        <div className="text-center py-16 text-gray-400 text-base">Loading\u2026</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 bg-[#12141f] rounded-xl border border-[#1f2235]">
-          <RadarIcon className="w-10 h-10 text-slate-700 mx-auto mb-3" />
-          <p className="text-slate-400 font-medium mb-1">No numbers found</p>
-          <p className="text-sm text-slate-600">Trigger a scan to populate this list</p>
+        <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <RadarIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+          <p className="text-gray-500 font-medium mb-1">No numbers found</p>
+          <p className="text-base text-gray-400">Trigger a scan to populate this list</p>
         </div>
       ) : (
-        <div className="bg-[#12141f] rounded-xl border border-[#1f2235] overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <table className="w-full text-base">
             <thead>
-              <tr className="border-b border-[#1f2235]">
-                <th className="text-left px-5 py-3 text-xs font-medium text-slate-500">Number</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Country</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Score</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Tier</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">Pattern</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">First Seen</th>
-                <th className="text-right px-5 py-3 text-xs font-medium text-slate-500">Action</th>
+              <tr className="border-b border-gray-100">
+                <th className="text-left px-5 py-3 text-sm font-medium text-gray-500">Number</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Country</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Score</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Tier</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Pattern</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">First Seen</th>
+                <th className="text-right px-5 py-3 text-sm font-medium text-gray-500">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1f2235]">
+            <tbody className="divide-y divide-gray-100">
               {filtered.map(r => (
-                <tr key={r.id} className="hover:bg-white/[0.02] transition-colors">
+                <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-5 py-3.5">
-                    <div className="font-mono text-white font-medium">{fmt(r.number)}</div>
-                    <div className="text-xs text-slate-600">{r.number}</div>
+                    <div className="font-mono text-gray-900 font-medium">{fmt(r.number)}</div>
+                    <div className="text-base text-gray-400">{r.number}</div>
                   </td>
-                  <td className="px-4 py-3.5 text-slate-400 text-xs">{COUNTRY_FLAGS[r.country] || ''} {r.country}</td>
+                  <td className="px-4 py-3.5 text-gray-500 text-base">{COUNTRY_FLAGS[r.country] || ''} {r.country}</td>
                   <td className="px-4 py-3.5"><ScoreBadge score={r.ai_score} reason={r.ai_reason} /></td>
                   <td className="px-4 py-3.5"><TierBadge tier={r.tier} /></td>
-                  <td className="px-4 py-3.5 font-mono text-xs text-slate-500">{r.label}</td>
-                  <td className="px-4 py-3.5 text-xs text-slate-600">{new Date(r.first_seen).toLocaleDateString()}</td>
+                  <td className="px-4 py-3.5 font-mono text-base text-gray-500">{r.label}</td>
+                  <td className="px-4 py-3.5 text-base text-gray-400">{new Date(r.first_seen).toLocaleDateString()}</td>
                   <td className="px-5 py-3.5 text-right">
                     {r.status === 'purchased' ? (
-                      <span className="text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                      <span className="text-base text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
                         Purchased
                       </span>
                     ) : (
                       <button
                         onClick={() => handleBuy(r.number)}
                         disabled={purchasing === r.number}
-                        className="text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-500/20 disabled:opacity-50 transition-colors"
+                        className="text-base text-violet-700 hover:text-violet-800 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-xl border border-violet-200 disabled:opacity-50 transition-colors"
                       >
-                        {purchasing === r.number ? 'Buying…' : 'Buy'}
+                        {purchasing === r.number ? 'Buying\u2026' : 'Buy'}
                       </button>
                     )}
                   </td>
@@ -685,8 +685,8 @@ export default function NumberHunterPage() {
       <div className="mt-8">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-slate-400">Scan Logs</h2>
-            {scans.length > 0 && <span className="text-xs text-slate-600">{scans.length} runs</span>}
+            <h2 className="text-lg font-semibold text-gray-500">Scan Logs</h2>
+            {scans.length > 0 && <span className="text-base text-gray-400">{scans.length} runs</span>}
           </div>
           <div className="flex items-center gap-2">
             {results.length > 0 && (
@@ -699,7 +699,7 @@ export default function NumberHunterPage() {
                     load()
                   } catch (e) { showToast(e.message, 'err') }
                 }}
-                className="text-xs text-red-400/60 hover:text-red-400 bg-red-500/0 hover:bg-red-500/8 px-2.5 py-1.5 rounded-lg transition-colors">
+                className="text-base text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-xl transition-colors">
                 Clear Results
               </button>
             )}
@@ -713,65 +713,65 @@ export default function NumberHunterPage() {
                     load()
                   } catch (e) { showToast(e.message, 'err') }
                 }}
-                className="text-xs text-red-400/60 hover:text-red-400 bg-red-500/0 hover:bg-red-500/8 px-2.5 py-1.5 rounded-lg transition-colors">
+                className="text-base text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-xl transition-colors">
                 Clear Logs
               </button>
             )}
           </div>
         </div>
         {scans.length === 0 ? (
-          <div className="text-xs text-slate-600 py-4">No scans yet — trigger a scan to see logs here.</div>
+          <div className="text-base text-gray-400 py-4">No scans yet &mdash; trigger a scan to see logs here.</div>
         ) : (
-          <div className="bg-[#12141f] rounded-xl border border-[#1f2235] overflow-hidden">
-            <table className="w-full text-xs">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <table className="w-full text-base">
               <thead>
-                <tr className="border-b border-[#1f2235]">
-                  <th className="text-left px-5 py-2.5 text-slate-500 font-medium">Country</th>
-                  <th className="text-left px-4 py-2.5 text-slate-500 font-medium">Status</th>
-                  <th className="text-left px-4 py-2.5 text-slate-500 font-medium">Started</th>
-                  <th className="text-left px-4 py-2.5 text-slate-500 font-medium">Duration</th>
-                  <th className="text-left px-4 py-2.5 text-slate-500 font-medium">Patterns</th>
-                  <th className="text-left px-4 py-2.5 text-slate-500 font-medium">Found</th>
-                  <th className="text-left px-4 py-2.5 text-slate-500 font-medium">New</th>
-                  <th className="text-left px-4 py-2.5 text-slate-500 font-medium">Gone</th>
-                  <th className="text-left px-5 py-2.5 text-slate-500 font-medium">Notes</th>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left px-5 py-2.5 text-sm text-gray-500 font-medium">Country</th>
+                  <th className="text-left px-4 py-2.5 text-sm text-gray-500 font-medium">Status</th>
+                  <th className="text-left px-4 py-2.5 text-sm text-gray-500 font-medium">Started</th>
+                  <th className="text-left px-4 py-2.5 text-sm text-gray-500 font-medium">Duration</th>
+                  <th className="text-left px-4 py-2.5 text-sm text-gray-500 font-medium">Patterns</th>
+                  <th className="text-left px-4 py-2.5 text-sm text-gray-500 font-medium">Found</th>
+                  <th className="text-left px-4 py-2.5 text-sm text-gray-500 font-medium">New</th>
+                  <th className="text-left px-4 py-2.5 text-sm text-gray-500 font-medium">Gone</th>
+                  <th className="text-left px-5 py-2.5 text-sm text-gray-500 font-medium">Notes</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1f2235]">
+              <tbody className="divide-y divide-gray-100">
                 {scans.slice(0, 20).map(s => {
                   const durSec = s.completed_at && s.started_at
                     ? Math.round((new Date(s.completed_at) - new Date(s.started_at)) / 1000)
                     : null
-                  const durStr = durSec == null ? (s.status === 'running' ? 'running…' : '—')
+                  const durStr = durSec == null ? (s.status === 'running' ? 'running\u2026' : '\u2014')
                     : durSec >= 3600 ? `${Math.floor(durSec/3600)}h ${Math.floor((durSec%3600)/60)}m`
                     : durSec >= 60   ? `${Math.floor(durSec/60)}m ${durSec%60}s`
                     :                  `${durSec}s`
                   return (
-                    <tr key={s.id} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={s.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-5 py-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">{COUNTRY_FLAGS[s.country] || ''} {s.country}</span>
+                          <span className="font-medium text-gray-900">{COUNTRY_FLAGS[s.country] || ''} {s.country}</span>
                           <ServiceBadge service={s.service || 'twilio'} />
                         </div>
                       </td>
                       <td className="px-4 py-2.5">
                         <span className={`px-2 py-0.5 rounded border ${
-                          s.status === 'completed' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
-                          s.status === 'running'   ? 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' :
-                                                     'text-red-400 bg-red-500/10 border-red-500/20'
+                          s.status === 'completed' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
+                          s.status === 'running'   ? 'text-violet-700 bg-violet-50 border-violet-200' :
+                                                     'text-red-600 bg-red-50 border-red-100'
                         }`}>{s.status}</span>
                       </td>
-                      <td className="px-4 py-2.5 text-slate-500">{new Date(s.started_at).toLocaleString()}</td>
-                      <td className="px-4 py-2.5 text-slate-400 font-mono">{durStr}</td>
-                      <td className="px-4 py-2.5 text-slate-400 font-mono">{s.total_patterns?.toLocaleString() ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-emerald-400 font-mono font-semibold">{s.found_count ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-sky-400 font-mono">{s.new_count ?? '—'}</td>
-                      <td className="px-4 py-2.5 text-slate-500 font-mono">{s.gone_count ?? '—'}</td>
-                      <td className="px-5 py-2.5 text-slate-600 max-w-xs truncate">
+                      <td className="px-4 py-2.5 text-gray-500">{new Date(s.started_at).toLocaleString()}</td>
+                      <td className="px-4 py-2.5 text-gray-500 font-mono">{durStr}</td>
+                      <td className="px-4 py-2.5 text-gray-500 font-mono">{s.total_patterns?.toLocaleString() ?? '\u2014'}</td>
+                      <td className="px-4 py-2.5 text-emerald-600 font-mono font-semibold">{s.found_count ?? '\u2014'}</td>
+                      <td className="px-4 py-2.5 text-sky-600 font-mono">{s.new_count ?? '\u2014'}</td>
+                      <td className="px-4 py-2.5 text-gray-500 font-mono">{s.gone_count ?? '\u2014'}</td>
+                      <td className="px-5 py-2.5 text-gray-400 max-w-xs truncate">
                         {s.status === 'failed' && s.error
-                          ? <span className="text-red-400">{s.error}</span>
+                          ? <span className="text-red-600">{s.error}</span>
                           : s.total_patterns && s.found_count != null
-                          ? <span className="text-slate-600">{((s.found_count / s.total_patterns) * 100).toFixed(2)}% hit rate</span>
+                          ? <span className="text-gray-400">{((s.found_count / s.total_patterns) * 100).toFixed(2)}% hit rate</span>
                           : null
                         }
                       </td>
@@ -785,10 +785,10 @@ export default function NumberHunterPage() {
       </div>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl text-sm font-medium shadow-xl border z-50 ${
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl text-base font-medium shadow-lg border z-50 ${
           toast.type === 'err'
-            ? 'bg-red-500/15 border-red-500/30 text-red-300'
-            : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+            ? 'bg-red-50 border-red-100 text-red-600'
+            : 'bg-emerald-50 border-emerald-200 text-emerald-700'
         }`}>
           {toast.msg}
         </div>
@@ -813,11 +813,11 @@ export default function NumberHunterPage() {
   )
 }
 
-function StatCard({ label, value, color = 'text-white' }) {
+function StatCard({ label, value, color = 'text-gray-900' }) {
   return (
-    <div className="bg-[#12141f] border border-[#1f2235] rounded-xl px-5 py-4">
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className={`text-xl font-semibold ${color}`}>{value}</p>
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
+      <p className="text-base text-gray-500 mb-1">{label}</p>
+      <p className={`text-2xl font-semibold ${color}`}>{value}</p>
     </div>
   )
 }
@@ -840,7 +840,7 @@ function ClockIcon({ className }) {
   )
 }
 
-// ── Schedule Modal ─────────────────────────────────────────────────────────────
+// -- Schedule Modal --
 
 function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onEdit, onDelete, onSave, onClose }) {
   const allCountries = Object.keys(COUNTRY_FLAGS)
@@ -884,7 +884,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
   const allTiersSel = draft.tiers === null
 
   function fmtNextRun(s) {
-    if (!s.next_run_at) return '—'
+    if (!s.next_run_at) return '\u2014'
     const d = new Date(s.next_run_at)
     const diff = d - Date.now()
     if (diff < 0) return 'overdue'
@@ -893,46 +893,46 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
     return `in ${Math.round(diff/86400000)}d`
   }
 
-  const inputCls = 'bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 w-full'
-  const tabCls = (active) => `px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${active ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:text-slate-300'}`
+  const inputCls = 'bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 w-full'
+  const tabCls = (active) => `px-4 py-1.5 rounded-lg text-base font-medium transition-colors ${active ? 'bg-violet-500 text-white' : 'text-gray-500 hover:text-gray-700'}`
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative w-[520px] h-full bg-[#0d0f18] border-l border-[#1f2235] overflow-y-auto flex flex-col">
+      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="relative w-[520px] h-full bg-white border-l border-gray-200 overflow-y-auto flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#1f2235]">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
           <div>
-            <h2 className="text-white font-semibold">Scan Schedules</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Automate recurring number hunts</p>
+            <h2 className="text-gray-900 font-semibold">Scan Schedules</h2>
+            <p className="text-base text-gray-500 mt-0.5">Automate recurring number hunts</p>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-white text-xl leading-none">×</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-900 text-xl leading-none">&times;</button>
         </div>
 
         {/* Existing schedules */}
         {schedules.length > 0 && (
-          <div className="px-6 py-4 border-b border-[#1f2235]">
+          <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Schedules</p>
-              <button onClick={onNew} className="text-xs text-indigo-400 hover:text-indigo-300">+ New</button>
+              <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Active Schedules</p>
+              <button onClick={onNew} className="text-base text-violet-600 hover:text-violet-700">+ New</button>
             </div>
             <div className="space-y-2">
               {schedules.map(s => (
-                <div key={s.id} className="flex items-center gap-3 bg-[#12141f] border border-[#1f2235] rounded-lg px-4 py-3">
+                <div key={s.id} className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white truncate">{s.name || 'Unnamed'}</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded border ${
-                        s.is_active ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-slate-500 bg-slate-500/10 border-slate-500/20'
+                      <span className="text-base font-medium text-gray-900 truncate">{s.name || 'Unnamed'}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded border ${
+                        s.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-gray-500 bg-gray-50 border-gray-200'
                       }`}>{s.is_active ? 'active' : 'paused'}</span>
                     </div>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {s.frequency} · {s.countries ? `${s.countries.length} countries` : 'all countries'} · {s.tiers ? `${s.tiers.length} tier(s)` : 'all tiers'} · next {fmtNextRun(s)}
+                    <p className="text-base text-gray-500 mt-0.5">
+                      {s.frequency} \u00b7 {s.countries ? `${s.countries.length} countries` : 'all countries'} \u00b7 {s.tiers ? `${s.tiers.length} tier(s)` : 'all tiers'} \u00b7 next {fmtNextRun(s)}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <button onClick={() => onEdit(s)} className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-white/5">Edit</button>
-                    <button onClick={() => onDelete(s.id)} className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10">Del</button>
+                    <button onClick={() => onEdit(s)} className="text-base text-gray-500 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-100">Edit</button>
+                    <button onClick={() => onDelete(s.id)} className="text-base text-red-600 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50">Del</button>
                   </div>
                 </div>
               ))}
@@ -942,11 +942,11 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
 
         {/* Form */}
         <div className="flex-1 px-6 py-5 space-y-6">
-          <p className="text-sm font-semibold text-slate-300">{editing ? 'Edit Schedule' : 'New Schedule'}</p>
+          <p className="text-base font-semibold text-gray-700">{editing ? 'Edit Schedule' : 'New Schedule'}</p>
 
           {/* Name */}
           <div>
-            <label className="block text-xs text-slate-500 mb-1.5">Name</label>
+            <label className="block text-base text-gray-500 mb-1.5">Name</label>
             <input
               className={inputCls}
               placeholder="e.g. Daily US Scan"
@@ -958,18 +958,18 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
           {/* Active toggle */}
           <label className="flex items-center gap-3 cursor-pointer">
             <div
-              className={`w-9 h-5 rounded-full transition-colors relative ${draft.is_active ? 'bg-indigo-500' : 'bg-slate-700'}`}
+              className={`w-9 h-5 rounded-full transition-colors relative ${draft.is_active ? 'bg-violet-500' : 'bg-gray-300'}`}
               onClick={() => setField('is_active', !draft.is_active)}
             >
               <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${draft.is_active ? 'translate-x-4' : 'translate-x-0.5'}`} />
             </div>
-            <span className="text-sm text-slate-300">{draft.is_active ? 'Active' : 'Paused'}</span>
+            <span className="text-base text-gray-700">{draft.is_active ? 'Active' : 'Paused'}</span>
           </label>
 
           {/* Frequency */}
           <div>
-            <label className="block text-xs text-slate-500 mb-2">Frequency</label>
-            <div className="flex gap-1 bg-[#12141f] border border-[#1f2235] rounded-lg p-1">
+            <label className="block text-base text-gray-500 mb-2">Frequency</label>
+            <div className="flex gap-1 bg-gray-50 border border-gray-200 rounded-xl p-1">
               {['hourly', 'daily', 'weekly', 'monthly'].map(f => (
                 <button key={f} onClick={() => setField('frequency', f)} className={tabCls(draft.frequency === f)}>
                   {f[0].toUpperCase() + f.slice(1)}
@@ -982,7 +982,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
           {draft.frequency !== 'hourly' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-slate-500 mb-1.5">Hour of day (UTC)</label>
+                <label className="block text-base text-gray-500 mb-1.5">Hour of day (UTC)</label>
                 <select className={inputCls} value={draft.hour_of_day} onChange={e => setField('hour_of_day', +e.target.value)}>
                   {Array.from({length: 24}, (_, i) => (
                     <option key={i} value={i}>{String(i).padStart(2,'0')}:00 UTC</option>
@@ -991,7 +991,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
               </div>
               {draft.frequency === 'weekly' && (
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1.5">Day of week</label>
+                  <label className="block text-base text-gray-500 mb-1.5">Day of week</label>
                   <select className={inputCls} value={draft.day_of_week} onChange={e => setField('day_of_week', +e.target.value)}>
                     {DOW_LABELS.map((d, i) => <option key={i} value={i}>{d}</option>)}
                   </select>
@@ -999,7 +999,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
               )}
               {draft.frequency === 'monthly' && (
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1.5">Day of month</label>
+                  <label className="block text-base text-gray-500 mb-1.5">Day of month</label>
                   <select className={inputCls} value={draft.day_of_month} onChange={e => setField('day_of_month', +e.target.value)}>
                     {Array.from({length: 28}, (_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
                   </select>
@@ -1010,16 +1010,16 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
 
           {/* Service */}
           <div>
-            <label className="block text-xs text-slate-500 mb-2">Provider</label>
+            <label className="block text-base text-gray-500 mb-2">Provider</label>
             <div className="flex gap-2">
               {SERVICES.map(s => (
                 <button
                   key={s}
                   onClick={() => setField('service', s)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-base font-medium transition-colors ${
                     draft.service === s
-                      ? 'border-indigo-500 bg-indigo-500/15 text-white'
-                      : 'border-[#2a2d3a] text-slate-500 hover:text-slate-300'
+                      ? 'border-violet-500 bg-violet-50 text-gray-900'
+                      : 'border-gray-200 text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   <ServiceBadge service={s} />
@@ -1032,16 +1032,16 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
           {/* Countries */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-slate-500">Countries</label>
+              <label className="text-base text-gray-500">Countries</label>
               <button
                 onClick={() => setField('countries', allCountriesSel ? [allCountries[0]] : null)}
-                className="text-xs text-indigo-400 hover:text-indigo-300"
+                className="text-base text-violet-600 hover:text-violet-700"
               >
                 {allCountriesSel ? 'Select specific' : 'All countries'}
               </button>
             </div>
             {allCountriesSel ? (
-              <div className="text-xs text-slate-500 bg-[#12141f] border border-[#1f2235] rounded-lg px-3 py-2">
+              <div className="text-base text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
                 All 15 NANP countries will be scanned
               </div>
             ) : (
@@ -1050,10 +1050,10 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
                   <button
                     key={c}
                     onClick={() => toggleCountry(c)}
-                    className={`text-xs px-2 py-1.5 rounded-lg border transition-colors text-center ${
+                    className={`text-base px-2 py-1.5 rounded-xl border transition-colors text-center ${
                       selectedCountries.includes(c)
-                        ? 'border-indigo-500/50 bg-indigo-500/15 text-white'
-                        : 'border-[#2a2d3a] text-slate-500 hover:text-slate-300'
+                        ? 'border-violet-400 bg-violet-50 text-gray-900'
+                        : 'border-gray-200 text-gray-500 hover:text-gray-700'
                     }`}
                   >
                     {COUNTRY_FLAGS[c]} {c}
@@ -1066,16 +1066,16 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
           {/* Patterns / Tiers */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs text-slate-500">Patterns</label>
+              <label className="text-base text-gray-500">Patterns</label>
               <button
                 onClick={() => setField('tiers', allTiersSel ? [] : null)}
-                className="text-xs text-indigo-400 hover:text-indigo-300"
+                className="text-base text-violet-600 hover:text-violet-700"
               >
                 {allTiersSel ? 'Select specific' : 'All patterns'}
               </button>
             </div>
             {allTiersSel ? (
-              <div className="text-xs text-slate-500 bg-[#12141f] border border-[#1f2235] rounded-lg px-3 py-2">
+              <div className="text-base text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
                 All pattern groups will be searched (~58k patterns for US)
               </div>
             ) : (
@@ -1087,10 +1087,10 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
                     <div key={group}>
                       <button
                         onClick={() => toggleTierGroup(tiers)}
-                        className={`text-xs font-semibold px-2 py-1 rounded border mb-1.5 transition-colors ${
-                          allIn ? 'border-indigo-500/50 text-indigo-300 bg-indigo-500/10'
-                          : someIn ? 'border-amber-500/50 text-amber-300 bg-amber-500/10'
-                          : 'border-[#2a2d3a] text-slate-500'
+                        className={`text-base font-semibold px-2 py-1 rounded border mb-1.5 transition-colors ${
+                          allIn ? 'border-violet-400 text-violet-700 bg-violet-50'
+                          : someIn ? 'border-amber-400 text-amber-700 bg-amber-50'
+                          : 'border-gray-200 text-gray-500'
                         }`}
                       >
                         {group}
@@ -1100,10 +1100,10 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
                           <button
                             key={t}
                             onClick={() => toggleTier(t)}
-                            className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${
+                            className={`text-xs px-1.5 py-0.5 rounded border transition-colors ${
                               selectedTiers.includes(t)
-                                ? 'border-indigo-500/50 bg-indigo-500/15 text-indigo-300'
-                                : 'border-[#2a2d3a] text-slate-600 hover:text-slate-400'
+                                ? 'border-violet-400 bg-violet-50 text-violet-700'
+                                : 'border-gray-200 text-gray-400 hover:text-gray-600'
                             }`}
                           >
                             {TIER_META[t]?.label || t}
@@ -1119,15 +1119,15 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 px-6 py-4 border-t border-[#1f2235]">
+        <div className="flex items-center gap-3 px-6 py-4 border-t border-gray-200">
           <button
             onClick={onSave}
             disabled={saving}
-            className="flex-1 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+            className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-40 text-white text-base font-medium py-2.5 rounded-xl shadow-sm shadow-violet-200 transition-colors"
           >
-            {saving ? 'Saving…' : editing ? 'Save Changes' : 'Create Schedule'}
+            {saving ? 'Saving\u2026' : editing ? 'Save Changes' : 'Create Schedule'}
           </button>
-          <button onClick={onClose} className="px-4 py-2.5 text-sm text-slate-400 hover:text-white border border-[#2a2d3a] rounded-lg transition-colors">
+          <button onClick={onClose} className="px-4 py-2.5 text-base text-gray-500 hover:text-gray-900 border border-gray-200 rounded-xl transition-colors">
             Cancel
           </button>
         </div>

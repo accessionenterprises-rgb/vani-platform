@@ -212,7 +212,7 @@ export default function AgentFormPage() {
     }
   }
 
-  if (loading) return <div className="flex-1 flex items-center justify-center text-slate-600 text-base">Loading…</div>
+  if (loading) return <div className="flex-1 flex items-center justify-center text-[#A8A29E] text-base">Loading…</div>
 
   const sttMeta = STT_PROVIDERS.find(p => p.id === form.stt_provider)
   const llmMeta = LLM_PROVIDERS.find(p => p.id === form.llm_provider)
@@ -223,35 +223,35 @@ export default function AgentFormPage() {
     <div className="flex-1 flex flex-col overflow-hidden">
 
       {/* ── Top bar ── */}
-      <div className="flex items-center justify-between px-6 py-3.5 border-b border-[#1a1d2e] shrink-0 bg-[#080a12]">
+      <div className="flex items-center justify-between px-6 py-3.5 border-b border-[#E8E5E2] shrink-0 bg-[#FAFAF9]">
         <div className="flex items-center gap-2.5">
           <button onClick={() => navigate('/agents')}
-            className="text-slate-500 hover:text-slate-300 text-base transition-colors flex items-center gap-1.5">
+            className="text-[#A8A29E] hover:text-[#44403C] text-base transition-colors flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="15 18 9 12 15 6" />
             </svg>
             Agents
           </button>
-          <span className="text-slate-700">/</span>
-          <span className="text-base text-white font-medium">
+          <span className="text-[#D6D3D1]">/</span>
+          <span className="text-base text-[#1A1816] font-medium">
             {isNew ? 'New Agent' : (form.name || 'Edit Agent')}
           </span>
         </div>
         <div className="flex items-center gap-2.5">
           {!isNew && (
             <button type="button" onClick={() => setShowVersions(v => !v)}
-              className="text-sm text-slate-400 hover:text-slate-200 px-3 py-1.5 rounded-lg border border-[#2a2d3a] hover:border-slate-500 transition-colors">
+              className="text-sm text-[#78716C] hover:text-[#44403C] px-3 py-1.5 rounded-lg border border-[#E8E5E2] hover:border-slate-500 transition-colors">
               {showVersions ? 'Hide History' : 'Version History'}
             </button>
           )}
           <button onClick={() => navigate('/agents')}
-            className="text-base text-slate-400 hover:text-slate-200 px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors">
+            className="text-base text-[#78716C] hover:text-[#44403C] px-3 py-1.5 rounded-lg hover:bg-[#F5F5F4] transition-colors">
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving || !form.name.trim()}
-            className="bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium px-4 py-1.5 rounded-lg text-base transition-colors">
+            className="bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium px-4 py-1.5 rounded-lg text-base transition-colors">
             {saving ? 'Saving…' : isNew ? 'Create Agent' : 'Save Changes'}
           </button>
         </div>
@@ -261,7 +261,7 @@ export default function AgentFormPage() {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── Left sidebar ── */}
-        <div className="w-52 shrink-0 border-r border-[#1a1d2e] flex flex-col overflow-y-auto bg-[#080a12]">
+        <div className="w-52 shrink-0 border-r border-[#E8E5E2] flex flex-col overflow-y-auto bg-[#FAFAF9]">
           <nav className="p-3 space-y-0.5 mt-2">
             {STEPS.map((s, i) => {
               const isActive = step === s.id
@@ -270,14 +270,14 @@ export default function AgentFormPage() {
                 <button key={s.id} onClick={() => setStep(s.id)}
                   className={`w-full text-left px-3 py-3 rounded-xl transition-all group ${
                     isActive
-                      ? 'bg-indigo-500/10 border border-indigo-500/20'
-                      : 'border border-transparent hover:bg-white/4'
+                      ? 'bg-[#2563EB]/10 border border-indigo-500/20'
+                      : 'border border-transparent hover:bg-[#F5F5F4]'
                   }`}>
                   <div className="flex items-center gap-2.5">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold transition-colors ${
-                      isActive  ? 'bg-indigo-500 text-white' :
-                      isBefore  ? 'bg-indigo-500/20 text-indigo-400' :
-                                  'bg-[#1f2235] text-slate-600'
+                      isActive  ? 'bg-[#2563EB] text-white' :
+                      isBefore  ? 'bg-[#2563EB]/20 text-[#2563EB]' :
+                                  'bg-[#F5F5F4] text-[#A8A29E]'
                     }`}>
                       {isBefore ? (
                         <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -286,10 +286,10 @@ export default function AgentFormPage() {
                       ) : i + 1}
                     </div>
                     <div className="min-w-0">
-                      <p className={`text-sm font-medium leading-tight ${isActive ? 'text-indigo-300' : 'text-slate-300 group-hover:text-slate-200'}`}>
+                      <p className={`text-sm font-medium leading-tight ${isActive ? 'text-[#3B82F6]' : 'text-[#44403C] group-hover:text-[#44403C]'}`}>
                         {s.label}
                       </p>
-                      <p className="text-[12px] text-slate-600 mt-0.5 leading-tight">{s.desc}</p>
+                      <p className="text-[12px] text-[#A8A29E] mt-0.5 leading-tight">{s.desc}</p>
                     </div>
                   </div>
                 </button>
@@ -298,8 +298,8 @@ export default function AgentFormPage() {
           </nav>
 
           {/* ── Pipeline mini preview ── */}
-          <div className="mt-auto p-4 border-t border-[#1a1d2e] mx-3 mb-3">
-            <p className="text-[9px] font-semibold text-slate-600 uppercase tracking-widest mb-3">
+          <div className="mt-auto p-4 border-t border-[#E8E5E2] mx-3 mb-3">
+            <p className="text-[9px] font-semibold text-[#A8A29E] uppercase tracking-widest mb-3">
               {form.agent_type === 'chatbot' ? 'Chat Pipeline' : 'Voice Pipeline'}
             </p>
             <div className="space-y-2">
@@ -313,18 +313,18 @@ export default function AgentFormPage() {
               ).map((item, i, arr) => (
                 <div key={i}>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-mono text-slate-600 w-6 shrink-0">{item.label}</span>
-                    <div className="flex-1 min-w-0 bg-[#0d0f1a] rounded-lg px-2 py-1.5">
-                      <p className="text-[12px] text-slate-400 font-medium truncate leading-tight">
+                    <span className="text-[9px] font-mono text-[#A8A29E] w-6 shrink-0">{item.label}</span>
+                    <div className="flex-1 min-w-0 bg-white rounded-lg px-2 py-1.5">
+                      <p className="text-[12px] text-[#78716C] font-medium truncate leading-tight">
                         {item.meta?.name || item.raw}
                       </p>
                       {item.meta?.vendor && (
-                        <p className="text-[9px] text-slate-600 leading-tight">{item.meta.vendor}</p>
+                        <p className="text-[9px] text-[#A8A29E] leading-tight">{item.meta.vendor}</p>
                       )}
                     </div>
                   </div>
                   {i < arr.length - 1 && (
-                    <div className="ml-3 w-px h-2 bg-[#2a2d3a] mt-1" />
+                    <div className="ml-3 w-px h-2 bg-[#F5F5F4] mt-1" />
                   )}
                 </div>
               ))}
@@ -355,17 +355,17 @@ export default function AgentFormPage() {
             )}
 
             {/* ── Step nav ── */}
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#1a1d2e]">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#E8E5E2]">
               <button type="button"
                 onClick={() => stepIdx > 0 && setStep(STEPS[stepIdx - 1].id)}
                 disabled={stepIdx === 0}
-                className="text-base text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-4 py-2 rounded-lg hover:bg-white/5">
+                className="text-base text-[#78716C] hover:text-[#44403C] disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-4 py-2 rounded-lg hover:bg-[#F5F5F4]">
                 ← Back
               </button>
               {stepIdx < STEPS.length - 1 ? (
                 <button type="button"
                   onClick={() => setStep(STEPS[stepIdx + 1].id)}
-                  className="flex items-center gap-2 bg-[#12141f] hover:bg-[#1a1d2e] border border-[#2a2d3a] text-slate-200 text-base font-medium px-5 py-2 rounded-lg transition-colors">
+                  className="flex items-center gap-2 bg-white hover:bg-[#F5F5F4] border border-[#E8E5E2] text-[#44403C] text-base font-medium px-5 py-2 rounded-lg transition-colors">
                   Next
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="9 18 15 12 9 6" />
@@ -374,7 +374,7 @@ export default function AgentFormPage() {
               ) : (
                 <button onClick={handleSave}
                   disabled={saving || !form.name.trim()}
-                  className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 text-white font-medium px-6 py-2 rounded-lg text-base transition-colors">
+                  className="bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-40 text-white font-medium px-6 py-2 rounded-lg text-base transition-colors">
                   {saving ? 'Saving…' : isNew ? 'Create Agent' : 'Save Changes'}
                 </button>
               )}
@@ -385,21 +385,21 @@ export default function AgentFormPage() {
 
       {/* ── Version history drawer ── */}
       {showVersions && !isNew && (
-        <div className="absolute inset-y-0 right-0 w-80 bg-[#0d0f18] border-l border-[#1f2235] flex flex-col z-20 shadow-2xl">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#1f2235]">
-            <h2 className="text-base font-semibold text-white">Version History</h2>
+        <div className="absolute inset-y-0 right-0 w-80 bg-[#FAFAF9] border-l border-[#E8E5E2] flex flex-col z-20 shadow-2xl">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8E5E2]">
+            <h2 className="text-base font-semibold text-[#1A1816]">Version History</h2>
             <button onClick={() => setShowVersions(false)}
-              className="text-slate-500 hover:text-slate-300 w-6 h-6 flex items-center justify-center rounded hover:bg-white/5">✕</button>
+              className="text-[#A8A29E] hover:text-[#44403C] w-6 h-6 flex items-center justify-center rounded hover:bg-[#F5F5F4]">✕</button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {versions.length === 0 ? (
-              <p className="text-sm text-slate-600 text-center py-8">No versions saved yet.</p>
+              <p className="text-sm text-[#A8A29E] text-center py-8">No versions saved yet.</p>
             ) : versions.map(v => (
-              <div key={v.id} className="flex items-center justify-between p-3 bg-[#080a12] rounded-xl border border-[#1f2235]">
+              <div key={v.id} className="flex items-center justify-between p-3 bg-[#FAFAF9] rounded-xl border border-[#E8E5E2]">
                 <div>
-                  <span className="text-sm text-slate-300 font-medium">v{v.version_num}</span>
-                  {v.note && <span className="text-sm text-slate-500 ml-2">— {v.note}</span>}
-                  <p className="text-[12px] text-slate-600 mt-0.5">{new Date(v.created_at).toLocaleString()}</p>
+                  <span className="text-sm text-[#44403C] font-medium">v{v.version_num}</span>
+                  {v.note && <span className="text-sm text-[#A8A29E] ml-2">— {v.note}</span>}
+                  <p className="text-[12px] text-[#A8A29E] mt-0.5">{new Date(v.created_at).toLocaleString()}</p>
                 </div>
                 <button
                   disabled={restoring}
@@ -421,7 +421,7 @@ export default function AgentFormPage() {
                     } catch (err) { setError(err.message) }
                     finally { setRestoring(false) }
                   }}
-                  className="text-sm text-indigo-400 hover:text-indigo-300 px-2.5 py-1 rounded-lg border border-indigo-500/20 hover:border-indigo-500/40 transition-colors disabled:opacity-50">
+                  className="text-sm text-[#2563EB] hover:text-[#3B82F6] px-2.5 py-1 rounded-lg border border-indigo-500/20 hover:border-indigo-500/40 transition-colors disabled:opacity-50">
                   Restore
                 </button>
               </div>
@@ -455,15 +455,15 @@ function IdentityStep({ form, set, isNew }) {
                 <button key={t.id} type="button" onClick={() => set('agent_type', t.id)}
                   className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${
                     form.agent_type === t.id
-                      ? 'bg-indigo-500/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
-                      : 'bg-[#0d0f18] border-[#2a2d3a] hover:border-[#3a3d4a]'
+                      ? 'bg-[#2563EB]/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
+                      : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
                   }`}>
                   <span className="text-3xl">{t.icon}</span>
                   <div>
-                    <p className={`text-base font-semibold ${form.agent_type === t.id ? 'text-indigo-300' : 'text-slate-300'}`}>
+                    <p className={`text-base font-semibold ${form.agent_type === t.id ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>
                       {t.label}
                     </p>
-                    <p className="text-[13px] text-slate-500 mt-0.5">{t.desc}</p>
+                    <p className="text-[13px] text-[#A8A29E] mt-0.5">{t.desc}</p>
                   </div>
                 </button>
               ))}
@@ -475,20 +475,20 @@ function IdentityStep({ form, set, isNew }) {
           <input value={form.name} onChange={e => set('name', e.target.value)}
             placeholder="e.g. Hotel Receptionist, Sales Assistant"
             autoFocus
-            className="w-full bg-[#0d0f18] border border-[#2a2d3a] hover:border-[#3a3d4a] focus:border-indigo-500 rounded-xl px-4 py-3 text-base text-white placeholder-slate-600 focus:outline-none transition-colors" />
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors" />
         </FormField>
 
         <FormField label="Greeting" hint="First thing the agent says when a call connects">
           <input value={form.greeting} onChange={e => set('greeting', e.target.value)}
             placeholder="Welcome! How can I help you today?"
-            className="w-full bg-[#0d0f18] border border-[#2a2d3a] hover:border-[#3a3d4a] focus:border-indigo-500 rounded-xl px-4 py-3 text-base text-white placeholder-slate-600 focus:outline-none transition-colors" />
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors" />
         </FormField>
 
         <FormField label="System Prompt" hint="Full instructions for the agent's persona and behavior">
           <textarea value={form.prompt} onChange={e => set('prompt', e.target.value)}
             rows={8}
             placeholder={"You are a helpful hotel receptionist for The Grand Hotel.\n\nBe polite, professional, and assist guests with:\n- Check-in and check-out queries\n- Room availability and upgrades\n- Restaurant reservations\n- Directions and local recommendations\n\nIf a caller needs maintenance, transfer them to the facilities team."}
-            className="w-full bg-[#0d0f18] border border-[#2a2d3a] hover:border-[#3a3d4a] focus:border-indigo-500 rounded-xl px-4 py-3 text-base text-white placeholder-slate-600 focus:outline-none transition-colors resize-none leading-relaxed" />
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none leading-relaxed" />
         </FormField>
 
         <FormField label="Language">
@@ -501,13 +501,13 @@ function IdentityStep({ form, set, isNew }) {
               <button key={lang.id} type="button" onClick={() => set('language', lang.id)}
                 className={`flex-1 py-3 px-4 rounded-xl border text-left transition-all ${
                   form.language === lang.id
-                    ? 'bg-indigo-500/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
-                    : 'bg-[#0d0f18] border-[#2a2d3a] hover:border-[#3a3d4a]'
+                    ? 'bg-[#2563EB]/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
+                    : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
                 }`}>
-                <p className={`text-sm font-semibold ${form.language === lang.id ? 'text-indigo-300' : 'text-slate-300'}`}>
+                <p className={`text-sm font-semibold ${form.language === lang.id ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>
                   {lang.label}
                 </p>
-                <p className="text-[12px] text-slate-600 mt-0.5">{lang.sub}</p>
+                <p className="text-[12px] text-[#A8A29E] mt-0.5">{lang.sub}</p>
               </button>
             ))}
           </div>
@@ -528,7 +528,7 @@ function StackStep({ form, set }) {
       />
 
       {/* Pipeline diagram */}
-      <div className="flex items-center gap-2 bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-4">
+      <div className="flex items-center gap-2 bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-4">
         {[
           { label: 'Audio In',        type: 'io' },
           { label: null,              type: 'arrow' },
@@ -541,12 +541,12 @@ function StackStep({ form, set }) {
           { label: 'Audio Out',       type: 'io' },
         ].map((item, i) => {
           if (item.type === 'arrow') return (
-            <svg key={i} className="w-4 h-4 text-slate-700 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg key={i} className="w-4 h-4 text-[#D6D3D1] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="9 18 15 12 9 6" />
             </svg>
           )
           if (item.type === 'io') return (
-            <div key={i} className="text-[12px] text-slate-600 font-medium shrink-0">{item.label}</div>
+            <div key={i} className="text-[12px] text-[#A8A29E] font-medium shrink-0">{item.label}</div>
           )
           const colors = {
             blue:    'bg-blue-500/10 border-blue-500/20 text-blue-400',
@@ -649,14 +649,14 @@ function StackStep({ form, set }) {
 function PipelineConnector({ label }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-px bg-[#1f2235]" />
-      <div className="flex items-center gap-1.5 text-[12px] text-slate-600 shrink-0">
+      <div className="flex-1 h-px bg-[#F5F5F4]" />
+      <div className="flex items-center gap-1.5 text-[12px] text-[#A8A29E] shrink-0">
         <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="6 9 12 15 18 9" />
         </svg>
         {label}
       </div>
-      <div className="flex-1 h-px bg-[#1f2235]" />
+      <div className="flex-1 h-px bg-[#F5F5F4]" />
     </div>
   )
 }
@@ -665,12 +665,12 @@ function ProviderSection({ title, stepTag, subtitle, providers, selected, onSele
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 rounded-lg bg-[#1f2235] border border-[#2a2d3a] flex items-center justify-center shrink-0">
-          <span className="text-[9px] font-bold text-slate-400 tracking-wider">{stepTag}</span>
+        <div className="w-8 h-8 rounded-lg bg-[#F5F5F4] border border-[#E8E5E2] flex items-center justify-center shrink-0">
+          <span className="text-[9px] font-bold text-[#78716C] tracking-wider">{stepTag}</span>
         </div>
         <div>
-          <p className="text-base font-semibold text-white">{title}</p>
-          <p className="text-sm text-slate-500">{subtitle}</p>
+          <p className="text-base font-semibold text-[#1A1816]">{title}</p>
+          <p className="text-sm text-[#A8A29E]">{subtitle}</p>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2.5">
@@ -731,9 +731,9 @@ function LatencyEstimator({ stt, llm, tts }) {
   }
 
   return (
-    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
+    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-slate-300">Estimated Response Latency</p>
+        <p className="text-[13px] font-semibold text-[#44403C]">Estimated Response Latency</p>
         <div className="flex items-center gap-2">
           <span className={`text-base font-bold font-mono ${ratingColor}`}>~{total}ms</span>
           <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
@@ -741,33 +741,33 @@ function LatencyEstimator({ stt, llm, tts }) {
           }`}>{rating}</span>
         </div>
       </div>
-      <div className="w-full h-1.5 bg-[#1f2235] rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-[#F5F5F4] rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all duration-300 ${barColor}`} style={{ width: `${barWidth}%` }} />
       </div>
-      <div className="flex items-center justify-between text-[9px] text-slate-600 font-mono">
+      <div className="flex items-center justify-between text-[9px] text-[#A8A29E] font-mono">
         <span>STT {sttMs}ms + LLM {llmMs}ms + TTS {ttsMs}ms</span>
         <span>Target: &lt;800ms</span>
       </div>
 
       {totalCostMin > 0 && (
-        <div className="flex items-center justify-between pt-2 border-t border-[#1f2235]">
+        <div className="flex items-center justify-between pt-2 border-t border-[#E8E5E2]">
           <div className="flex items-center gap-2">
-            <p className="text-[13px] font-semibold text-slate-300">Estimated AI Cost</p>
-            <div className="flex rounded-md border border-[#2a2d3a] overflow-hidden">
+            <p className="text-[13px] font-semibold text-[#44403C]">Estimated AI Cost</p>
+            <div className="flex rounded-md border border-[#E8E5E2] overflow-hidden">
               <button type="button" onClick={() => setCurrency('USD')}
-                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'USD' ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>USD</button>
+                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'USD' ? 'bg-[#2563EB]/20 text-[#3B82F6]' : 'text-[#A8A29E] hover:text-[#44403C]'}`}>USD</button>
               <button type="button" onClick={() => setCurrency('INR')}
-                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'INR' ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>INR</button>
+                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'INR' ? 'bg-[#2563EB]/20 text-[#3B82F6]' : 'text-[#A8A29E] hover:text-[#44403C]'}`}>INR</button>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <span className="text-base font-bold font-mono text-white">{sym}{fmtCost(totalCostMin)}</span>
-              <span className="text-[9px] text-slate-500 ml-1">/min</span>
+              <span className="text-base font-bold font-mono text-[#1A1816]">{sym}{fmtCost(totalCostMin)}</span>
+              <span className="text-[9px] text-[#A8A29E] ml-1">/min</span>
             </div>
             <div className="text-right">
-              <span className="text-sm font-semibold font-mono text-slate-400">{sym}{fmtCost(totalCostHr)}</span>
-              <span className="text-[9px] text-slate-500 ml-1">/hr</span>
+              <span className="text-sm font-semibold font-mono text-[#78716C]">{sym}{fmtCost(totalCostHr)}</span>
+              <span className="text-[9px] text-[#A8A29E] ml-1">/hr</span>
             </div>
           </div>
         </div>
@@ -781,28 +781,28 @@ function ProviderCard({ provider, isSelected, onSelect }) {
     <button type="button" onClick={onSelect}
       className={`relative text-left p-4 rounded-xl border transition-all ${
         isSelected
-          ? 'bg-indigo-500/8 border-indigo-500/35 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
-          : 'bg-[#0d0f18] border-[#2a2d3a] hover:border-[#3a3d4a] hover:bg-[#10121c]'
+          ? 'bg-[#2563EB]/8 border-indigo-500/35 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
+          : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1] hover:bg-[#F5F5F4]'
       }`}>
 
       {provider.badge && (
         <span className={`absolute top-2.5 right-2.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
           isSelected
-            ? 'bg-indigo-500/20 text-indigo-300'
-            : 'bg-[#1f2235] text-slate-500'
+            ? 'bg-[#2563EB]/20 text-[#3B82F6]'
+            : 'bg-[#F5F5F4] text-[#A8A29E]'
         }`}>
           {provider.badge}
         </span>
       )}
 
-      <p className={`text-sm font-semibold leading-tight mb-0.5 ${isSelected ? 'text-indigo-300' : 'text-white'}`}>
+      <p className={`text-sm font-semibold leading-tight mb-0.5 ${isSelected ? 'text-[#3B82F6]' : 'text-[#1A1816]'}`}>
         {provider.name}
       </p>
-      <p className="text-[12px] text-slate-500 mb-1.5">{provider.vendor}</p>
-      <p className="text-[12px] text-slate-600 leading-relaxed">{provider.desc}</p>
+      <p className="text-[12px] text-[#A8A29E] mb-1.5">{provider.vendor}</p>
+      <p className="text-[12px] text-[#A8A29E] leading-relaxed">{provider.desc}</p>
 
       {(provider.latency || provider.cost) && (
-        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[#1f2235]">
+        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[#E8E5E2]">
           {provider.latency && (
             <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
               provider.latency.includes('100') || provider.latency.includes('150')
@@ -815,7 +815,7 @@ function ProviderCard({ provider, isSelected, onSelect }) {
             </span>
           )}
           {provider.cost && (
-            <span className="text-[9px] font-mono text-slate-500">
+            <span className="text-[9px] font-mono text-[#A8A29E]">
               {provider.cost}
             </span>
           )}
@@ -823,8 +823,8 @@ function ProviderCard({ provider, isSelected, onSelect }) {
       )}
 
       {isSelected && (
-        <div className="absolute bottom-2.5 right-2.5 w-4 h-4 rounded-full bg-indigo-500 flex items-center justify-center">
-          <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <div className="absolute bottom-2.5 right-2.5 w-4 h-4 rounded-full bg-[#2563EB] flex items-center justify-center">
+          <svg className="w-2.5 h-2.5 text-[#1A1816]" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <polyline points="2 6.5 4.5 9 10 3" />
           </svg>
         </div>
@@ -841,10 +841,10 @@ function BehaviorStep({ form, setBeh, setEsc }) {
       <StepHeader title="Behavior" desc="Control how your agent acts, responds, and handles escalations." />
 
       {/* Tone + Objective */}
-      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5 space-y-5">
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-5">
         <div className="grid grid-cols-2 gap-5">
           <div>
-            <p className="text-sm font-semibold text-slate-400 mb-3">Tone</p>
+            <p className="text-sm font-semibold text-[#78716C] mb-3">Tone</p>
             <div className="space-y-2">
               {[
                 { id: 'friendly', label: 'Friendly',   sub: 'Warm, approachable' },
@@ -854,17 +854,17 @@ function BehaviorStep({ form, setBeh, setEsc }) {
                 <button key={t.id} type="button" onClick={() => setBeh('tone', t.id)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
                     form.behavior.tone === t.id
-                      ? 'bg-indigo-500/8 border-indigo-500/30 text-indigo-300'
-                      : 'bg-[#080a12] border-[#2a2d3a] text-slate-400 hover:border-[#3a3d4a] hover:text-slate-300'
+                      ? 'bg-[#2563EB]/8 border-indigo-500/30 text-[#3B82F6]'
+                      : 'bg-[#FAFAF9] border-[#E8E5E2] text-[#78716C] hover:border-[#D6D3D1] hover:text-[#44403C]'
                   }`}>
                   <p className="text-sm font-medium">{t.label}</p>
-                  <p className="text-[12px] text-slate-600 mt-0.5">{t.sub}</p>
+                  <p className="text-[12px] text-[#A8A29E] mt-0.5">{t.sub}</p>
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-400 mb-3">Objective</p>
+            <p className="text-sm font-semibold text-[#78716C] mb-3">Objective</p>
             <div className="space-y-2">
               {[
                 { id: 'support',  label: 'Support',    sub: 'Resolve issues' },
@@ -875,11 +875,11 @@ function BehaviorStep({ form, setBeh, setEsc }) {
                 <button key={o.id} type="button" onClick={() => setBeh('objective', o.id)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
                     form.behavior.objective === o.id
-                      ? 'bg-indigo-500/8 border-indigo-500/30 text-indigo-300'
-                      : 'bg-[#080a12] border-[#2a2d3a] text-slate-400 hover:border-[#3a3d4a] hover:text-slate-300'
+                      ? 'bg-[#2563EB]/8 border-indigo-500/30 text-[#3B82F6]'
+                      : 'bg-[#FAFAF9] border-[#E8E5E2] text-[#78716C] hover:border-[#D6D3D1] hover:text-[#44403C]'
                   }`}>
                   <p className="text-sm font-medium">{o.label}</p>
-                  <p className="text-[12px] text-slate-600 mt-0.5">{o.sub}</p>
+                  <p className="text-[12px] text-[#A8A29E] mt-0.5">{o.sub}</p>
                 </button>
               ))}
             </div>
@@ -887,28 +887,28 @@ function BehaviorStep({ form, setBeh, setEsc }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-2">
+          <label className="block text-sm font-medium text-[#78716C] mb-2">
             Fallback Message
-            <span className="text-slate-600 font-normal ml-1.5">— said when the agent can't help</span>
+            <span className="text-[#A8A29E] font-normal ml-1.5">— said when the agent can't help</span>
           </label>
           <input value={form.behavior.fallback || ''} onChange={e => setBeh('fallback', e.target.value)}
             placeholder="Let me transfer you to our team."
-            className="w-full bg-[#080a12] border border-[#2a2d3a] focus:border-indigo-500 rounded-lg px-3 py-2.5 text-base text-white placeholder-slate-600 focus:outline-none transition-colors" />
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] focus:border-[#2563EB] rounded-lg px-3 py-2.5 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors" />
         </div>
       </div>
 
       {/* Warm Transfer */}
-      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5">
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-base font-semibold text-white">Warm Transfer</p>
-            <p className="text-sm text-slate-500 mt-0.5">Escalate to a human agent on trigger</p>
+            <p className="text-base font-semibold text-[#1A1816]">Warm Transfer</p>
+            <p className="text-sm text-[#A8A29E] mt-0.5">Escalate to a human agent on trigger</p>
           </div>
           <Toggle value={form.escalation_config.enabled} onChange={v => setEsc('enabled', v)} />
         </div>
 
         {form.escalation_config.enabled && (
-          <div className="mt-5 pt-5 border-t border-[#1f2235] space-y-4">
+          <div className="mt-5 pt-5 border-t border-[#E8E5E2] space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Transfer Number" hint="E.164 format">
                 <input value={form.escalation_config.transfer_number}
@@ -935,10 +935,10 @@ function BehaviorStep({ form, setBeh, setEsc }) {
                 placeholder="Incoming AI transfer. Caller needs human support."
                 className={inputCls} />
             </FormField>
-            <div className="flex items-center justify-between p-3 bg-[#080a12] rounded-lg border border-[#1f2235]">
+            <div className="flex items-center justify-between p-3 bg-[#FAFAF9] rounded-lg border border-[#E8E5E2]">
               <div>
-                <p className="text-sm font-medium text-slate-300">Announce Transfer</p>
-                <p className="text-[12px] text-slate-600 mt-0.5">Tell caller they're being transferred</p>
+                <p className="text-sm font-medium text-[#44403C]">Announce Transfer</p>
+                <p className="text-[12px] text-[#A8A29E] mt-0.5">Tell caller they're being transferred</p>
               </div>
               <Toggle value={form.escalation_config.announce_transfer} onChange={v => setEsc('announce_transfer', v)} />
             </div>
@@ -954,13 +954,13 @@ function BehaviorStep({ form, setBeh, setEsc }) {
 function KnowledgeLocked() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-[#12141f] border border-[#1f2235] flex items-center justify-center mb-5">
-        <svg className="w-7 h-7 text-slate-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <div className="w-14 h-14 rounded-2xl bg-white border border-[#E8E5E2] flex items-center justify-center mb-5">
+        <svg className="w-7 h-7 text-[#A8A29E]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/>
         </svg>
       </div>
-      <p className="text-base font-medium text-white">Create the agent first</p>
-      <p className="text-sm text-slate-600 mt-2 max-w-xs">
+      <p className="text-base font-medium text-[#1A1816]">Create the agent first</p>
+      <p className="text-sm text-[#A8A29E] mt-2 max-w-xs">
         Upload documents, PDFs, and web pages after the agent is saved — they'll be available to the agent on every call.
       </p>
     </div>
@@ -1021,7 +1021,7 @@ function KnowledgeStep({ agentId }) {
 
       <div className="flex gap-2">
         <button type="button" onClick={() => setShowUrlForm(v => !v)}
-          className="flex items-center gap-1.5 text-sm font-medium text-slate-400 hover:text-slate-200 bg-white/5 hover:bg-white/8 border border-[#2a2d3a] px-3 py-2 rounded-lg transition-colors">
+          className="flex items-center gap-1.5 text-sm font-medium text-[#78716C] hover:text-[#44403C] bg-[#F5F5F4] hover:bg-[#F0EDEA] border border-[#E8E5E2] px-3 py-2 rounded-lg transition-colors">
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
@@ -1029,7 +1029,7 @@ function KnowledgeStep({ agentId }) {
           Add URL
         </button>
         <button type="button" onClick={() => inputRef.current?.click()}
-          className="flex items-center gap-1.5 text-sm font-medium text-indigo-400 hover:text-indigo-300 bg-indigo-500/8 hover:bg-indigo-500/15 border border-indigo-500/20 px-3 py-2 rounded-lg transition-colors">
+          className="flex items-center gap-1.5 text-sm font-medium text-[#2563EB] hover:text-[#3B82F6] bg-[#2563EB]/8 hover:bg-[#2563EB]/15 border border-indigo-500/20 px-3 py-2 rounded-lg transition-colors">
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="17 8 12 3 7 8"/>
@@ -1042,21 +1042,21 @@ function KnowledgeStep({ agentId }) {
       </div>
 
       {showUrlForm && (
-        <form onSubmit={scrapeUrl} className="bg-[#0d0f18] rounded-xl border border-[#2a2d3a] p-4 space-y-3">
-          <p className="text-sm font-semibold text-slate-300">Scrape a web page</p>
+        <form onSubmit={scrapeUrl} className="bg-[#FAFAF9] rounded-xl border border-[#E8E5E2] p-4 space-y-3">
+          <p className="text-sm font-semibold text-[#44403C]">Scrape a web page</p>
           <input value={urlInput} onChange={e => setUrlInput(e.target.value)} placeholder="https://example.com/faq"
-            className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
           <input value={urlTitle} onChange={e => setUrlTitle(e.target.value)} placeholder="Title (optional)"
-            className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
           <div className="flex gap-2">
             <button type="submit" disabled={!urlInput.trim() || scrapingUrl}
-              className="flex items-center gap-1.5 text-sm bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-lg disabled:opacity-50 transition-colors">
+              className="flex items-center gap-1.5 text-sm bg-[#2563EB]/10 hover:bg-[#2563EB]/20 text-[#2563EB] border border-indigo-500/20 px-3 py-1.5 rounded-lg disabled:opacity-50 transition-colors">
               {scrapingUrl
                 ? <><div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />Scraping…</>
                 : 'Scrape & Add'}
             </button>
             <button type="button" onClick={() => setShowUrlForm(false)}
-              className="text-sm text-slate-500 hover:text-slate-300 px-3 py-1.5 transition-colors">Cancel</button>
+              className="text-sm text-[#A8A29E] hover:text-[#44403C] px-3 py-1.5 transition-colors">Cancel</button>
           </div>
         </form>
       )}
@@ -1067,17 +1067,17 @@ function KnowledgeStep({ agentId }) {
         onDrop={e => { e.preventDefault(); setDragOver(false); upload(e.dataTransfer.files[0]) }}
         onClick={() => inputRef.current?.click()}
         className={`border-2 border-dashed rounded-xl px-4 py-10 text-center cursor-pointer transition-colors ${
-          dragOver ? 'border-indigo-500 bg-indigo-500/5' : 'border-[#2a2d3a] hover:border-[#3a3d4a]'
+          dragOver ? 'border-indigo-500 bg-[#2563EB]/5' : 'border-[#E8E5E2] hover:border-[#D6D3D1]'
         }`}>
         {uploading ? (
-          <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
+          <div className="flex items-center justify-center gap-2 text-[#78716C] text-sm">
             <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
             Uploading…
           </div>
         ) : (
           <>
-            <p className="text-sm text-slate-500">Drop files here or <span className="text-indigo-400">browse</span></p>
-            <p className="text-[12px] text-slate-700 mt-1">txt · pdf · md · csv · max 5 MB each</p>
+            <p className="text-sm text-[#A8A29E]">Drop files here or <span className="text-[#2563EB]">browse</span></p>
+            <p className="text-[12px] text-[#D6D3D1] mt-1">txt · pdf · md · csv · max 5 MB each</p>
           </>
         )}
       </div>
@@ -1085,19 +1085,19 @@ function KnowledgeStep({ agentId }) {
       {error && <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
 
       {loading ? (
-        <p className="text-sm text-slate-600 text-center py-6">Loading…</p>
+        <p className="text-sm text-[#A8A29E] text-center py-6">Loading…</p>
       ) : docs.length === 0 ? (
-        <p className="text-sm text-slate-600 text-center py-6">No documents yet.</p>
+        <p className="text-sm text-[#A8A29E] text-center py-6">No documents yet.</p>
       ) : (
         <div className="space-y-2">
           {docs.map(doc => (
-            <div key={doc.id} className="flex items-start gap-3 bg-[#0d0f18] rounded-xl border border-[#1f2235] px-4 py-3">
-              <svg className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div key={doc.id} className="flex items-start gap-3 bg-[#FAFAF9] rounded-xl border border-[#E8E5E2] px-4 py-3">
+              <svg className="w-4 h-4 text-[#A8A29E] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-300 truncate">{doc.filename}</p>
-                <p className="text-[12px] text-slate-600 mt-0.5 line-clamp-2">{doc.content_preview}</p>
+                <p className="text-sm font-medium text-[#44403C] truncate">{doc.filename}</p>
+                <p className="text-[12px] text-[#A8A29E] mt-0.5 line-clamp-2">{doc.content_preview}</p>
               </div>
               <button type="button"
                 onClick={async () => {
@@ -1130,10 +1130,10 @@ function AdvancedStep({ form, set }) {
       <StepHeader title="Advanced" desc="Data extraction, call goals, privacy, and custom LLM endpoints." />
 
       {/* Custom LLM */}
-      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5 space-y-4">
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-4">
         <div>
-          <p className="text-base font-semibold text-white">Custom LLM Endpoint</p>
-          <p className="text-sm text-slate-500 mt-0.5">Override with any OpenAI-compatible endpoint (Ollama, vLLM, Together AI, etc.)</p>
+          <p className="text-base font-semibold text-[#1A1816]">Custom LLM Endpoint</p>
+          <p className="text-sm text-[#A8A29E] mt-0.5">Override with any OpenAI-compatible endpoint (Ollama, vLLM, Together AI, etc.)</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <FormField label="Base URL" hint="e.g. http://localhost:11434/v1">
@@ -1155,11 +1155,11 @@ function AdvancedStep({ form, set }) {
       </div>
 
       {/* PII */}
-      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5">
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5">
         <div className="flex items-center justify-between">
           <div className="pr-4">
-            <p className="text-base font-semibold text-white">PII Redaction</p>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-base font-semibold text-[#1A1816]">PII Redaction</p>
+            <p className="text-sm text-[#A8A29E] mt-0.5">
               Automatically redact phone numbers, emails, and card numbers from transcripts.
             </p>
           </div>
@@ -1168,10 +1168,10 @@ function AdvancedStep({ form, set }) {
       </div>
 
       {/* Extraction Schema */}
-      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5 space-y-4">
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-4">
         <div>
-          <p className="text-base font-semibold text-white">Data Extraction Schema</p>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-base font-semibold text-[#1A1816]">Data Extraction Schema</p>
+          <p className="text-sm text-[#A8A29E] mt-0.5">
             Fields extracted from each call by LLM post-processing. Saved to call metadata.
           </p>
         </div>
@@ -1182,18 +1182,18 @@ function AdvancedStep({ form, set }) {
                 <div className="col-span-4">
                   <input value={fld.field} onChange={e => setField(i, 'field', e.target.value)}
                     placeholder="field_name"
-                    className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
                 </div>
                 <div className="col-span-3">
                   <select value={fld.type} onChange={e => setField(i, 'type', e.target.value)}
-                    className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] focus:outline-none focus:border-[#2563EB]">
                     {['text', 'boolean', 'number', 'enum'].map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div className="col-span-4">
                   <input value={fld.description} onChange={e => setField(i, 'description', e.target.value)}
                     placeholder="description (optional)"
-                    className="w-full bg-[#080a12] border border-[#2a2d3a] rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
                 </div>
                 <div className="col-span-1 flex items-center justify-center">
                   <button type="button" onClick={() => removeField(i)}
@@ -1204,23 +1204,23 @@ function AdvancedStep({ form, set }) {
           </div>
         )}
         <button type="button" onClick={addField}
-          className="flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
+          className="flex items-center gap-1.5 text-sm text-[#2563EB] hover:text-[#3B82F6] transition-colors">
           <span className="text-lg leading-none">+</span> Add field
         </button>
       </div>
 
       {/* Call Goal */}
-      <div className="bg-[#0d0f18] border border-[#1f2235] rounded-2xl p-5 space-y-3">
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-3">
         <div>
-          <p className="text-base font-semibold text-white">Call Goal</p>
-          <p className="text-sm text-slate-500 mt-0.5">
-            LLM evaluates this after each call — result saved as <code className="text-indigo-400 text-[12px]">goal_achieved</code>.
+          <p className="text-base font-semibold text-[#1A1816]">Call Goal</p>
+          <p className="text-sm text-[#A8A29E] mt-0.5">
+            LLM evaluates this after each call — result saved as <code className="text-[#2563EB] text-[12px]">goal_achieved</code>.
           </p>
         </div>
         <textarea value={form.success_criteria} onChange={e => set('success_criteria', e.target.value)}
           rows={3}
           placeholder="The call is successful if the caller confirmed an appointment, agreed to a callback, or their issue was resolved."
-          className="w-full bg-[#080a12] border border-[#2a2d3a] focus:border-indigo-500 rounded-xl px-3 py-2.5 text-base text-white placeholder-slate-600 focus:outline-none transition-colors resize-none" />
+          className="w-full bg-[#FAFAF9] border border-[#E8E5E2] focus:border-[#2563EB] rounded-xl px-3 py-2.5 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none" />
       </div>
     </div>
   )
@@ -1228,7 +1228,7 @@ function AdvancedStep({ form, set }) {
 
 // ─── Shared Primitives ─────────────────────────────────────────────────────
 
-const inputCls = 'w-full bg-[#080a12] border border-[#2a2d3a] focus:border-indigo-500 rounded-lg px-3 py-2.5 text-base text-white placeholder-slate-600 focus:outline-none transition-colors'
+const inputCls = 'w-full bg-[#FAFAF9] border border-[#E8E5E2] focus:border-[#2563EB] rounded-lg px-3 py-2.5 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors'
 
 // ─── Step: LLM Only (Chatbot) ──────────────────────────────────────────────
 
@@ -1279,12 +1279,12 @@ function VoicePreview({ voice, lang }) {
     : voice.replace('openai-', '').replace(/^\w/, c => c.toUpperCase())
 
   return (
-    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 flex items-center gap-4">
+    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 flex items-center gap-4">
       <button onClick={handlePlay} disabled={loading}
         className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
           playing
             ? 'bg-red-500/15 border border-red-500/30 text-red-400'
-            : 'bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/25'
+            : 'bg-[#2563EB]/15 border border-indigo-500/30 text-[#2563EB] hover:bg-[#2563EB]/25'
         } disabled:opacity-50`}>
         {loading ? (
           <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
@@ -1295,8 +1295,8 @@ function VoicePreview({ voice, lang }) {
         )}
       </button>
       <div>
-        <p className="text-sm font-medium text-slate-300">Preview {voiceName} voice</p>
-        <p className="text-[12px] text-slate-600 mt-0.5">Hear how your agent will sound on calls</p>
+        <p className="text-sm font-medium text-[#44403C]">Preview {voiceName} voice</p>
+        <p className="text-[12px] text-[#A8A29E] mt-0.5">Hear how your agent will sound on calls</p>
       </div>
     </div>
   )
@@ -1307,18 +1307,18 @@ function VoicePreview({ voice, lang }) {
 
 function OpenAIVoicePicker({ selected, onSelect }) {
   return (
-    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
-      <p className="text-sm font-semibold text-slate-400">Choose OpenAI Voice</p>
+    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
+      <p className="text-sm font-semibold text-[#78716C]">Choose OpenAI Voice</p>
       <div className="grid grid-cols-4 gap-2">
         {OPENAI_VOICES.map(v => (
           <button key={v.id} type="button" onClick={() => onSelect(v.id)}
             className={`p-2.5 rounded-xl border text-left transition-all ${
               selected === v.id
-                ? 'bg-indigo-500/10 border-indigo-500/40'
-                : 'bg-[#080a12] border-[#2a2d3a] hover:border-[#3a3d4a]'
+                ? 'bg-[#2563EB]/10 border-indigo-500/40'
+                : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
             }`}>
-            <p className={`text-sm font-semibold ${selected === v.id ? 'text-indigo-300' : 'text-slate-300'}`}>{v.name}</p>
-            <p className="text-[12px] text-slate-600 mt-0.5">{v.accent} · {v.age}</p>
+            <p className={`text-sm font-semibold ${selected === v.id ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>{v.name}</p>
+            <p className="text-[12px] text-[#A8A29E] mt-0.5">{v.accent} · {v.age}</p>
           </button>
         ))}
       </div>
@@ -1395,17 +1395,17 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
   }
 
   return (
-    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
+    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-slate-300">{title}</p>
-          <p className="text-[12px] text-slate-500">{subtitle}</p>
+          <p className="text-sm font-semibold text-[#44403C]">{title}</p>
+          <p className="text-[12px] text-[#A8A29E]">{subtitle}</p>
         </div>
         <div className="flex gap-1">
           {['All', 'F', 'M'].map(g => (
             <button key={g} type="button" onClick={() => setGenderFilter(g)}
               className={`px-2 py-0.5 text-[9px] font-medium rounded transition-colors ${
-                genderFilter === g ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-500 hover:text-slate-300'
+                genderFilter === g ? 'bg-[#2563EB]/20 text-[#3B82F6]' : 'text-[#A8A29E] hover:text-[#44403C]'
               }`}>{g === 'All' ? 'All' : g === 'F' ? 'Female' : 'Male'}</button>
           ))}
         </div>
@@ -1416,18 +1416,18 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
             onClick={() => onSelect(v.id)}
             className={`relative text-left p-3 rounded-lg border transition-all ${
               selected === v.id
-                ? 'bg-indigo-500/10 border-indigo-500/40'
-                : 'bg-[#12141f] border-[#2a2d3a] hover:border-[#3a3d4a]'
+                ? 'bg-[#2563EB]/10 border-indigo-500/40'
+                : 'bg-white border-[#E8E5E2] hover:border-[#D6D3D1]'
             }`}>
-            <p className={`text-[13px] font-semibold ${selected === v.id ? 'text-indigo-300' : 'text-white'}`}>{v.name}</p>
-            <p className="text-[9px] text-slate-500">{v.desc}</p>
-            <p className="text-[9px] text-slate-600">{v.accent} {v.gender === 'F' ? '♀' : '♂'}</p>
+            <p className={`text-[13px] font-semibold ${selected === v.id ? 'text-[#3B82F6]' : 'text-[#1A1816]'}`}>{v.name}</p>
+            <p className="text-[9px] text-[#A8A29E]">{v.desc}</p>
+            <p className="text-[9px] text-[#A8A29E]">{v.accent} {v.gender === 'F' ? '♀' : '♂'}</p>
             <button type="button" onClick={(e) => { e.stopPropagation(); playPreview(v) }}
-              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1f2235] hover:bg-[#2a2d3a] flex items-center justify-center transition-colors">
+              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#F5F5F4] hover:bg-[#F5F5F4] flex items-center justify-center transition-colors">
               {playing === v.id ? (
                 <div className="w-2 h-2 rounded-sm bg-indigo-400" />
               ) : (
-                <svg className="w-2.5 h-2.5 text-slate-400 ml-0.5" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,0 12,6 2,12" /></svg>
+                <svg className="w-2.5 h-2.5 text-[#78716C] ml-0.5" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,0 12,6 2,12" /></svg>
               )}
             </button>
           </button>
@@ -1443,27 +1443,27 @@ function SarvamVoicePicker({ selected, onSelect }) {
   const [genderFilter, setGenderFilter] = useState('All')
   const filtered = genderFilter === 'All' ? SARVAM_VOICES : SARVAM_VOICES.filter(v => v.gender === genderFilter)
   return (
-    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
+    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-slate-400">Choose Sarvam Voice</p>
+        <p className="text-sm font-semibold text-[#78716C]">Choose Sarvam Voice</p>
         <div className="flex gap-2">
-          <div className="flex rounded-lg border border-[#2a2d3a] overflow-hidden">
+          <div className="flex rounded-lg border border-[#E8E5E2] overflow-hidden">
             {['All', 'Female', 'Male'].map(g => (
               <button key={g} type="button" onClick={() => setGenderFilter(g)}
                 className={`px-2.5 py-1.5 text-[12px] font-medium transition-colors ${
                   genderFilter === g
-                    ? 'bg-indigo-500/15 text-indigo-300'
-                    : 'bg-[#080a12] text-slate-500 hover:text-slate-300'
+                    ? 'bg-[#2563EB]/15 text-[#3B82F6]'
+                    : 'bg-[#FAFAF9] text-[#A8A29E] hover:text-[#44403C]'
                 }`}>{g}</button>
             ))}
           </div>
-          <div className="flex rounded-lg border border-[#2a2d3a] overflow-hidden">
+          <div className="flex rounded-lg border border-[#E8E5E2] overflow-hidden">
             {[{ id: 'en', label: 'EN' }, { id: 'hi', label: 'हि' }].map(l => (
               <button key={l.id} type="button" onClick={() => setPreviewLang(l.id)}
                 className={`px-2.5 py-1.5 text-[12px] font-medium transition-colors ${
                   previewLang === l.id
-                    ? 'bg-indigo-500/15 text-indigo-300'
-                    : 'bg-[#080a12] text-slate-500 hover:text-slate-300'
+                    ? 'bg-[#2563EB]/15 text-[#3B82F6]'
+                    : 'bg-[#FAFAF9] text-[#A8A29E] hover:text-[#44403C]'
                 }`}>{l.label}</button>
             ))}
           </div>
@@ -1474,11 +1474,11 @@ function SarvamVoicePicker({ selected, onSelect }) {
           <button key={v.id} type="button" onClick={() => onSelect(v.id)}
             className={`p-2.5 rounded-xl border text-left transition-all ${
               selected === v.id
-                ? 'bg-indigo-500/10 border-indigo-500/40'
-                : 'bg-[#080a12] border-[#2a2d3a] hover:border-[#3a3d4a]'
+                ? 'bg-[#2563EB]/10 border-indigo-500/40'
+                : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
             }`}>
-            <p className={`text-sm font-semibold ${selected === v.id ? 'text-indigo-300' : 'text-slate-300'}`}>{v.name}</p>
-            <p className="text-[12px] text-slate-600 mt-0.5">{v.gender === 'Female' ? '♀' : '♂'}</p>
+            <p className={`text-sm font-semibold ${selected === v.id ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>{v.name}</p>
+            <p className="text-[12px] text-[#A8A29E] mt-0.5">{v.gender === 'Female' ? '♀' : '♂'}</p>
           </button>
         ))}
       </div>
@@ -1544,10 +1544,10 @@ function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
           <div className="flex items-center gap-3">
             <input type="color" value={wc.theme_color || '#6366f1'}
               onChange={e => setWc('theme_color', e.target.value)}
-              className="w-10 h-10 rounded-lg border border-[#2a2d3a] bg-transparent cursor-pointer" />
+              className="w-10 h-10 rounded-lg border border-[#E8E5E2] bg-transparent cursor-pointer" />
             <input value={wc.theme_color || '#6366f1'}
               onChange={e => setWc('theme_color', e.target.value)}
-              className="bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-base text-white font-mono w-28 focus:outline-none focus:border-indigo-500" />
+              className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-base text-[#1A1816] font-mono w-28 focus:outline-none focus:border-[#2563EB]" />
           </div>
         </FormField>
 
@@ -1557,8 +1557,8 @@ function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
               <button key={pos} type="button" onClick={() => setWc('position', pos)}
                 className={`flex-1 py-3 px-4 rounded-xl border text-center text-sm font-medium transition-all ${
                   (wc.position || 'bottom-right') === pos
-                    ? 'bg-indigo-500/10 border-indigo-500/40 text-indigo-300'
-                    : 'bg-[#0d0f18] border-[#2a2d3a] text-slate-400 hover:border-[#3a3d4a]'
+                    ? 'bg-[#2563EB]/10 border-indigo-500/40 text-[#3B82F6]'
+                    : 'bg-[#FAFAF9] border-[#E8E5E2] text-[#78716C] hover:border-[#D6D3D1]'
                 }`}>
                 {pos === 'bottom-right' ? 'Bottom Right' : 'Bottom Left'}
               </button>
@@ -1569,45 +1569,45 @@ function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
         <FormField label="Input Placeholder">
           <input value={wc.placeholder || 'Type a message...'}
             onChange={e => setWc('placeholder', e.target.value)}
-            className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-xl px-4 py-3 text-base text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
         </FormField>
 
         <FormField label="Avatar URL" hint="Optional — shown in chat header">
           <input value={wc.avatar_url || ''}
             onChange={e => setWc('avatar_url', e.target.value)}
             placeholder="https://..."
-            className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-xl px-4 py-3 text-base text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500" />
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
         </FormField>
 
         {/* Embed Code */}
         {!isNew && (
-          <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-5 space-y-3">
+          <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-slate-300">Embed Code</p>
+              <p className="text-sm font-semibold text-[#44403C]">Embed Code</p>
               {!widgetKey && (
                 <button onClick={handleGenerate} disabled={generating}
-                  className="text-sm bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded-lg disabled:opacity-50">
+                  className="text-sm bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-3 py-1.5 rounded-lg disabled:opacity-50">
                   {generating ? 'Generating...' : 'Generate Widget Key'}
                 </button>
               )}
             </div>
             {widgetKey ? (
               <>
-                <div className="bg-[#080a12] rounded-lg p-3 font-mono text-[13px] text-emerald-400 break-all select-all leading-relaxed">
+                <div className="bg-[#FAFAF9] rounded-lg p-3 font-mono text-[13px] text-emerald-400 break-all select-all leading-relaxed">
                   {embedCode}
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => { navigator.clipboard.writeText(embedCode); setCopying(true); setTimeout(() => setCopying(false), 2000) }}
-                    className="text-sm text-slate-400 hover:text-white bg-white/5 border border-[#2a2d3a] px-3 py-1.5 rounded-lg transition-colors">
+                    className="text-sm text-[#78716C] hover:text-[#1A1816] bg-[#F5F5F4] border border-[#E8E5E2] px-3 py-1.5 rounded-lg transition-colors">
                     {copying ? 'Copied!' : 'Copy Code'}
                   </button>
-                  <span className="text-[12px] text-slate-600">
+                  <span className="text-[12px] text-[#A8A29E]">
                     Key: {widgetKey.slice(0, 16)}...
                   </span>
                 </div>
               </>
             ) : (
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-[#A8A29E]">
                 Save the agent first, then generate a widget key to get the embed code.
               </p>
             )}
@@ -1628,8 +1628,8 @@ function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
 function StepHeader({ title, desc }) {
   return (
     <div className="mb-2">
-      <h2 className="text-xl font-semibold text-white">{title}</h2>
-      {desc && <p className="text-sm text-slate-500 mt-1">{desc}</p>}
+      <h2 className="text-xl font-semibold text-[#1A1816]">{title}</h2>
+      {desc && <p className="text-sm text-[#A8A29E] mt-1">{desc}</p>}
     </div>
   )
 }
@@ -1637,10 +1637,10 @@ function StepHeader({ title, desc }) {
 function FormField({ label, hint, required, children }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-400 mb-2">
+      <label className="block text-sm font-medium text-[#78716C] mb-2">
         {label}
         {required && <span className="text-red-400 ml-0.5">*</span>}
-        {hint && <span className="text-slate-600 font-normal ml-1.5">— {hint}</span>}
+        {hint && <span className="text-[#A8A29E] font-normal ml-1.5">— {hint}</span>}
       </label>
       {children}
     </div>
@@ -1650,7 +1650,7 @@ function FormField({ label, hint, required, children }) {
 function Toggle({ value, onChange }) {
   return (
     <button type="button" onClick={() => onChange(!value)}
-      className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${value ? 'bg-indigo-500' : 'bg-[#2a2d3a]'}`}>
+      className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${value ? 'bg-[#2563EB]' : 'bg-[#F5F5F4]'}`}>
       <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${value ? 'translate-x-5' : ''}`} />
     </button>
   )

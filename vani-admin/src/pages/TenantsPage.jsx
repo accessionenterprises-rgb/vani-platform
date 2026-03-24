@@ -6,12 +6,12 @@ const PLANS = ['starter', 'growth', 'enterprise']
 
 function planBadge(plan) {
   const colors = {
-    starter:    'bg-slate-500/15 text-slate-400',
-    growth:     'bg-indigo-500/15 text-indigo-400',
-    enterprise: 'bg-amber-500/15 text-amber-400',
+    starter:    'bg-gray-100 text-gray-600',
+    growth:     'bg-violet-50 text-violet-700',
+    enterprise: 'bg-amber-50 text-amber-700',
   }
   return (
-    <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${colors[plan] || colors.starter}`}>
+    <span className={`text-xs font-semibold uppercase px-2 py-0.5 rounded-full ${colors[plan] || colors.starter}`}>
       {plan}
     </span>
   )
@@ -90,8 +90,8 @@ export default function TenantsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-white">Tenants</h1>
-          <p className="text-sm text-slate-500 mt-1">{filtered.length} workspace{filtered.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-3xl font-bold text-gray-900">Tenants</h1>
+          <p className="text-base text-gray-500 mt-1">{filtered.length} workspace{filtered.length !== 1 ? 's' : ''}</p>
         </div>
       </div>
 
@@ -101,12 +101,12 @@ export default function TenantsPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search name or email…"
-          className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-lg px-3 py-2 text-sm text-white placeholder-slate-600 outline-none focus:border-indigo-500 transition-colors w-56"
+          className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-base text-gray-900 placeholder-gray-400 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition-colors w-56"
         />
         <select
           value={filterPlan}
           onChange={e => setFilterPlan(e.target.value)}
-          className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-lg px-3 py-2 text-sm text-slate-300 outline-none focus:border-indigo-500 transition-colors"
+          className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-base text-gray-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition-colors"
         >
           <option value="">All plans</option>
           {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
@@ -114,7 +114,7 @@ export default function TenantsPage() {
         <select
           value={filterActive}
           onChange={e => setFilterActive(e.target.value)}
-          className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-lg px-3 py-2 text-sm text-slate-300 outline-none focus:border-indigo-500 transition-colors"
+          className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-base text-gray-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition-colors"
         >
           <option value="">All statuses</option>
           <option value="true">Active</option>
@@ -123,43 +123,43 @@ export default function TenantsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <table className="w-full text-base">
           <thead>
-            <tr className="border-b border-[#1a1d2e]">
+            <tr className="border-b border-gray-100">
               {['Workspace', 'Plan', 'Agents', 'Calls', 'Joined', 'Status', ''].map(h => (
-                <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
+                <th key={h} className="text-left text-sm font-medium text-gray-500 px-4 py-3">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-600">Loading…</td></tr>
+              <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">Loading…</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-600">No tenants found</td></tr>
+              <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400">No tenants found</td></tr>
             ) : filtered.map(t => (
               <tr
                 key={t.id}
-                className="border-b border-[#1a1d2e] last:border-0 hover:bg-white/[0.02] cursor-pointer"
+                className="border-b border-gray-100 last:border-0 hover:bg-gray-50 cursor-pointer"
                 onClick={() => navigate(`/tenants/${t.id}`)}
               >
                 <td className="px-4 py-3">
-                  <p className="font-medium text-white">{t.name || '—'}</p>
-                  <p className="text-xs text-slate-500">{t.email}</p>
+                  <p className="font-medium text-gray-900">{t.name || '—'}</p>
+                  <p className="text-sm text-gray-500">{t.email}</p>
                 </td>
                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                   <select
                     value={t.plan || 'starter'}
                     disabled={updating === t.id}
                     onChange={e => changePlan(t, e.target.value)}
-                    className="bg-transparent text-xs text-slate-300 border-0 outline-none cursor-pointer"
+                    className="bg-transparent text-sm text-gray-700 border-0 outline-none cursor-pointer"
                   >
                     {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </td>
-                <td className="px-4 py-3 text-slate-400">{t.agent_count ?? 0}</td>
-                <td className="px-4 py-3 text-slate-400">{t.call_count ?? 0}</td>
-                <td className="px-4 py-3 text-slate-500 text-xs">
+                <td className="px-4 py-3 text-gray-500">{t.agent_count ?? 0}</td>
+                <td className="px-4 py-3 text-gray-500">{t.call_count ?? 0}</td>
+                <td className="px-4 py-3 text-gray-500 text-sm">
                   {t.created_at ? new Date(t.created_at).toLocaleDateString() : '—'}
                 </td>
                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
@@ -167,7 +167,7 @@ export default function TenantsPage() {
                     onClick={() => toggleActive(t)}
                     disabled={updating === t.id}
                     className={`relative inline-flex h-5 w-9 rounded-full transition-colors focus:outline-none ${
-                      t.active !== false ? 'bg-indigo-500' : 'bg-slate-700'
+                      t.active !== false ? 'bg-violet-500' : 'bg-gray-300'
                     }`}
                   >
                     <span
@@ -180,7 +180,7 @@ export default function TenantsPage() {
                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                   <button
                     onClick={() => setConfirmDelete(t)}
-                    className="text-slate-600 hover:text-rose-400 transition-colors p-1"
+                    className="text-gray-400 hover:text-red-500 transition-colors p-1"
                   >
                     <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8}>
                       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -196,22 +196,22 @@ export default function TenantsPage() {
 
       {/* Delete confirm modal */}
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setConfirmDelete(null)}>
-          <div className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-xl p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
-            <h3 className="text-base font-semibold text-white mb-2">Delete tenant?</h3>
-            <p className="text-sm text-slate-400 mb-5">
-              <strong className="text-white">{confirmDelete.name}</strong> ({confirmDelete.email}) and all their agents, calls, and data will be permanently deleted.
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setConfirmDelete(null)}>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 max-w-sm w-full mx-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete tenant?</h3>
+            <p className="text-base text-gray-500 mb-5">
+              <strong className="text-gray-900">{confirmDelete.name}</strong> ({confirmDelete.email}) and all their agents, calls, and data will be permanently deleted.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="flex-1 bg-[#1a1d2e] text-slate-300 py-2 rounded-lg text-sm hover:bg-[#2a2d3e] transition-colors"
+                className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-xl text-base hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => deleteTenant(confirmDelete.id)}
-                className="flex-1 bg-rose-500 text-white py-2 rounded-lg text-sm hover:bg-rose-600 transition-colors"
+                className="flex-1 bg-red-500 text-white py-2 rounded-xl text-base hover:bg-red-600 transition-colors"
               >
                 Delete
               </button>

@@ -61,7 +61,7 @@ export default function TenantDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -70,19 +70,19 @@ export default function TenantDetailPage() {
 
   return (
     <div className="p-8 max-w-5xl">
-      <div className="flex items-center gap-2 text-sm text-slate-500 mb-6">
-        <Link to="/tenants" className="hover:text-slate-300 transition-colors">Tenants</Link>
+      <div className="flex items-center gap-2 text-base text-gray-500 mb-6">
+        <Link to="/tenants" className="hover:text-gray-700 transition-colors">Tenants</Link>
         <span>/</span>
-        <span className="text-white">{tenant.name}</span>
+        <span className="text-gray-900">{tenant.name}</span>
       </div>
 
       {/* Header */}
-      <div className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-xl p-6 mb-6">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold text-white">{tenant.name}</h1>
-            <p className="text-sm text-slate-500 mt-0.5">{tenant.email}</p>
-            <p className="text-xs text-slate-600 mt-1">ID: {tenant.id}</p>
+            <h1 className="text-3xl font-bold text-gray-900">{tenant.name}</h1>
+            <p className="text-base text-gray-500 mt-0.5">{tenant.email}</p>
+            <p className="text-sm text-gray-400 mt-1">ID: {tenant.id}</p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             {/* Open in dashboard */}
@@ -90,7 +90,7 @@ export default function TenantDetailPage() {
               href="https://dashboard.vani.live"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 bg-[#1a1d2e] hover:text-white hover:bg-[#2a2d3e] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-gray-500 bg-gray-100 hover:text-gray-700 hover:bg-gray-200 transition-colors"
             >
               <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -103,7 +103,7 @@ export default function TenantDetailPage() {
             <button
               onClick={impersonate}
               disabled={saving}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-violet-700 bg-violet-50 hover:bg-violet-100 transition-colors"
             >
               <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
@@ -116,7 +116,7 @@ export default function TenantDetailPage() {
               value={tenant.plan || 'starter'}
               disabled={saving}
               onChange={e => changePlan(e.target.value)}
-              className="bg-[#1a1d2e] border border-[#2a2d3e] rounded-lg px-3 py-1.5 text-sm text-slate-300 outline-none focus:border-indigo-500 transition-colors"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-base text-gray-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition-colors"
             >
               {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -125,10 +125,10 @@ export default function TenantDetailPage() {
             <button
               onClick={toggleActive}
               disabled={saving}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-emerald-500/15 text-emerald-400 hover:bg-rose-500/15 hover:text-rose-400'
-                  : 'bg-rose-500/15 text-rose-400 hover:bg-emerald-500/15 hover:text-emerald-400'
+                  ? 'bg-emerald-50 text-emerald-700 hover:bg-red-50 hover:text-red-600'
+                  : 'bg-red-50 text-red-600 hover:bg-emerald-50 hover:text-emerald-700'
               }`}
             >
               {isActive ? 'Active — click to disable' : 'Disabled — click to enable'}
@@ -137,30 +137,30 @@ export default function TenantDetailPage() {
         </div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-[#1a1d2e]">
+        <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-gray-100">
           <div>
-            <p className="text-xs text-slate-500">Agents</p>
-            <p className="text-2xl font-bold text-white mt-0.5">{tenant.agents?.length ?? 0}</p>
+            <p className="text-sm text-gray-500">Agents</p>
+            <p className="text-3xl font-bold text-gray-900 mt-0.5">{tenant.agents?.length ?? 0}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500">Recent calls</p>
-            <p className="text-2xl font-bold text-white mt-0.5">{tenant.recent_calls?.length ?? 0}</p>
+            <p className="text-sm text-gray-500">Recent calls</p>
+            <p className="text-3xl font-bold text-gray-900 mt-0.5">{tenant.recent_calls?.length ?? 0}</p>
           </div>
           <div>
-            <p className="text-xs text-slate-500">Phone numbers</p>
-            <p className="text-2xl font-bold text-white mt-0.5">{tenant.phone_numbers?.length ?? 0}</p>
+            <p className="text-sm text-gray-500">Phone numbers</p>
+            <p className="text-3xl font-bold text-gray-900 mt-0.5">{tenant.phone_numbers?.length ?? 0}</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-5 bg-[#0d0f1a] border border-[#1a1d2e] p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-5 bg-gray-100 p-1 rounded-xl w-fit">
         {['agents', 'calls', 'numbers'].map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${
-              tab === t ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:text-slate-300'
+            className={`px-4 py-1.5 rounded-lg text-base font-medium transition-colors capitalize ${
+              tab === t ? 'bg-white text-violet-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             {t}
@@ -170,28 +170,28 @@ export default function TenantDetailPage() {
 
       {/* Agents tab */}
       {tab === 'agents' && (
-        <div className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-xl overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           {!tenant.agents?.length ? (
-            <p className="text-slate-600 text-sm p-6">No agents.</p>
+            <p className="text-gray-400 text-base p-6">No agents.</p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead>
-                <tr className="border-b border-[#1a1d2e]">
+                <tr className="border-b border-gray-100">
                   {['Name', 'Voice', 'LLM', 'STT', 'Status', ''].map(h => (
-                    <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
+                    <th key={h} className="text-left text-sm font-medium text-gray-500 px-4 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {tenant.agents.map(a => (
-                  <tr key={a.id} className="border-b border-[#1a1d2e] last:border-0">
-                    <td className="px-4 py-3 font-medium text-white">{a.name}</td>
-                    <td className="px-4 py-3 text-slate-400 text-xs">{a.voice || '—'}</td>
-                    <td className="px-4 py-3 text-slate-400 text-xs">{a.llm_provider || '—'}</td>
-                    <td className="px-4 py-3 text-slate-400 text-xs">{a.stt_provider || '—'}</td>
+                  <tr key={a.id} className="border-b border-gray-100 last:border-0">
+                    <td className="px-4 py-3 font-medium text-gray-900">{a.name}</td>
+                    <td className="px-4 py-3 text-gray-500 text-sm">{a.voice || '—'}</td>
+                    <td className="px-4 py-3 text-gray-500 text-sm">{a.llm_provider || '—'}</td>
+                    <td className="px-4 py-3 text-gray-500 text-sm">{a.stt_provider || '—'}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                        a.active !== false ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-500/15 text-slate-400'
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        a.active !== false ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'
                       }`}>
                         {a.active !== false ? 'active' : 'inactive'}
                       </span>
@@ -199,7 +199,7 @@ export default function TenantDetailPage() {
                     <td className="px-4 py-3">
                       <button
                         onClick={() => deleteAgent(a.id)}
-                        className="text-slate-600 hover:text-rose-400 transition-colors p-1"
+                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
                       >
                         <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8}>
                           <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
@@ -216,35 +216,35 @@ export default function TenantDetailPage() {
 
       {/* Calls tab */}
       {tab === 'calls' && (
-        <div className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-xl overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           {!tenant.recent_calls?.length ? (
-            <p className="text-slate-600 text-sm p-6">No calls.</p>
+            <p className="text-gray-400 text-base p-6">No calls.</p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead>
-                <tr className="border-b border-[#1a1d2e]">
+                <tr className="border-b border-gray-100">
                   {['Phone', 'Direction', 'Status', 'Duration', 'Date'].map(h => (
-                    <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
+                    <th key={h} className="text-left text-sm font-medium text-gray-500 px-4 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {tenant.recent_calls.map(c => (
-                  <tr key={c.id} className="border-b border-[#1a1d2e] last:border-0">
-                    <td className="px-4 py-3 text-white">{c.phone || '—'}</td>
-                    <td className="px-4 py-3 text-slate-400 capitalize">{c.direction}</td>
+                  <tr key={c.id} className="border-b border-gray-100 last:border-0">
+                    <td className="px-4 py-3 text-gray-900">{c.phone || '—'}</td>
+                    <td className="px-4 py-3 text-gray-500 capitalize">{c.direction}</td>
                     <td className="px-4 py-3">
-                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-                        c.status === 'completed' ? 'bg-emerald-500/15 text-emerald-400' :
-                        c.status === 'active' ? 'bg-indigo-500/15 text-indigo-400' :
-                        c.status === 'failed' ? 'bg-rose-500/15 text-rose-400' :
-                        'bg-slate-500/15 text-slate-400'
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        c.status === 'completed' ? 'bg-emerald-50 text-emerald-700' :
+                        c.status === 'active' ? 'bg-violet-50 text-violet-700' :
+                        c.status === 'failed' ? 'bg-red-50 text-red-600' :
+                        'bg-gray-100 text-gray-500'
                       }`}>{c.status}</span>
                     </td>
-                    <td className="px-4 py-3 text-slate-400">
+                    <td className="px-4 py-3 text-gray-500">
                       {c.duration_sec ? `${Math.round(c.duration_sec / 60)}m ${c.duration_sec % 60}s` : '—'}
                     </td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">
+                    <td className="px-4 py-3 text-gray-500 text-sm">
                       {c.created_at ? new Date(c.created_at).toLocaleString() : '—'}
                     </td>
                   </tr>
@@ -257,25 +257,25 @@ export default function TenantDetailPage() {
 
       {/* Numbers tab */}
       {tab === 'numbers' && (
-        <div className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-xl overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           {!tenant.phone_numbers?.length ? (
-            <p className="text-slate-600 text-sm p-6">No phone numbers.</p>
+            <p className="text-gray-400 text-base p-6">No phone numbers.</p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead>
-                <tr className="border-b border-[#1a1d2e]">
+                <tr className="border-b border-gray-100">
                   {['Number', 'Provider', 'Status', 'SIP URI'].map(h => (
-                    <th key={h} className="text-left text-xs font-medium text-slate-500 px-4 py-3">{h}</th>
+                    <th key={h} className="text-left text-sm font-medium text-gray-500 px-4 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {tenant.phone_numbers.map(n => (
-                  <tr key={n.id} className="border-b border-[#1a1d2e] last:border-0">
-                    <td className="px-4 py-3 font-mono text-white">{n.number}</td>
-                    <td className="px-4 py-3 text-slate-400 capitalize">{n.provider}</td>
-                    <td className="px-4 py-3 text-slate-400">{n.status}</td>
-                    <td className="px-4 py-3 text-slate-500 text-xs truncate max-w-48">{n.sip_uri || '—'}</td>
+                  <tr key={n.id} className="border-b border-gray-100 last:border-0">
+                    <td className="px-4 py-3 font-mono text-gray-900">{n.number}</td>
+                    <td className="px-4 py-3 text-gray-500 capitalize">{n.provider}</td>
+                    <td className="px-4 py-3 text-gray-500">{n.status}</td>
+                    <td className="px-4 py-3 text-gray-400 text-sm truncate max-w-48">{n.sip_uri || '—'}</td>
                   </tr>
                 ))}
               </tbody>

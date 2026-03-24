@@ -29,11 +29,11 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-[22px] font-bold text-[#1A1816] tracking-[-0.02em]">Dashboard</h1>
-            <p className="text-[13px] text-[#A8A29E] mt-0.5 font-medium">Your voice AI at a glance</p>
+            <h1 className="text-[30px] font-bold text-[#1A1816] tracking-[-0.02em]">Dashboard</h1>
+            <p className="text-[16px] text-[#A8A29E] mt-0.5 font-medium">Your voice AI at a glance</p>
           </div>
           <Link to="/agents/build"
-            className="press flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[13px] font-semibold px-5 py-2.5 rounded-[10px] shadow-sm shadow-blue-200 transition-all">
+            className="press flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[16px] font-semibold px-5 py-2.5 rounded-[10px] shadow-sm shadow-blue-200 transition-all">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             New Agent
           </Link>
@@ -48,10 +48,10 @@ export default function DashboardPage() {
               ))}
             </div>
             <div className="flex-1">
-              <p className="text-[13px] font-bold text-[#15803D]">{activeCalls} live call{activeCalls > 1 ? 's' : ''}</p>
-              <p className="text-[12px] text-[#16A34A]/70 mt-0.5">Your agents are handling conversations</p>
+              <p className="text-[16px] font-bold text-[#15803D]">{activeCalls} live call{activeCalls > 1 ? 's' : ''}</p>
+              <p className="text-[15px] text-[#16A34A]/70 mt-0.5">Your agents are handling conversations</p>
             </div>
-            <Link to="/calls" className="press text-[12px] font-semibold text-[#15803D] bg-white border border-[#BBF7D0] px-4 py-1.5 rounded-lg hover:bg-[#F0FDF4] transition-all">
+            <Link to="/calls" className="press text-[15px] font-semibold text-[#15803D] bg-white border border-[#BBF7D0] px-4 py-1.5 rounded-lg hover:bg-[#F0FDF4] transition-all">
               View live →
             </Link>
           </div>
@@ -67,15 +67,15 @@ export default function DashboardPage() {
           ].map((s, i) => (
             <div key={i} className="card-hover bg-white rounded-2xl border border-[#E8E5E2] px-5 py-5">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[11px] font-semibold text-[#A8A29E] uppercase tracking-[0.06em]">{s.label}</span>
-                <div className="w-8 h-8 rounded-[8px] flex items-center justify-center text-sm" style={{ background: s.bg }}>
+                <span className="text-[14px] font-semibold text-[#A8A29E] uppercase tracking-[0.06em]">{s.label}</span>
+                <div className="w-8 h-8 rounded-[8px] flex items-center justify-center text-base" style={{ background: s.bg }}>
                   {s.icon === '✓'
                     ? <svg className="w-4 h-4" style={{ color: s.color }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     : s.icon}
                 </div>
               </div>
               <div className="flex items-end gap-2">
-                <span className="text-[28px] font-bold tracking-[-0.03em]" style={{ color: s.color }}>{s.value}</span>
+                <span className="text-[40px] font-bold tracking-[-0.03em]" style={{ color: s.color }}>{s.value}</span>
                 {s.pulse && <span className="relative flex h-2 w-2 mb-2"><span className="animate-ping absolute h-full w-full rounded-full bg-[#16A34A] opacity-60"/><span className="relative h-2 w-2 rounded-full bg-[#16A34A]"/></span>}
               </div>
             </div>
@@ -88,8 +88,8 @@ export default function DashboardPage() {
           {/* Recent Calls — 3 cols */}
           <div className="col-span-3 bg-white rounded-2xl border border-[#E8E5E2] overflow-hidden">
             <div className="px-5 py-4 border-b border-[#F0EDEA] flex items-center justify-between">
-              <h2 className="text-[13px] font-bold text-[#1A1816]">Recent Calls</h2>
-              <Link to="/calls" className="press text-[11px] font-semibold text-[#2563EB] bg-[#EFF4FF] hover:bg-[#DBEAFE] px-3 py-1 rounded-md transition-colors">
+              <h2 className="text-[16px] font-bold text-[#1A1816]">Recent Calls</h2>
+              <Link to="/calls" className="press text-[14px] font-semibold text-[#2563EB] bg-[#EFF4FF] hover:bg-[#DBEAFE] px-3 py-1 rounded-md transition-colors">
                 View all
               </Link>
             </div>
@@ -99,9 +99,9 @@ export default function DashboardPage() {
               </div>
             ) : calls.length === 0 ? (
               <div className="p-12 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-[#F5F5F4] flex items-center justify-center mx-auto mb-3 text-xl">📞</div>
-                <p className="text-[13px] text-[#78716C] font-medium">No calls yet</p>
-                <p className="text-[11px] text-[#A8A29E] mt-1">Waiting for your first inbound call</p>
+                <div className="w-12 h-12 rounded-2xl bg-[#F5F5F4] flex items-center justify-center mx-auto mb-3 text-2xl">📞</div>
+                <p className="text-[16px] text-[#78716C] font-medium">No calls yet</p>
+                <p className="text-[14px] text-[#A8A29E] mt-1">Waiting for your first inbound call</p>
               </div>
             ) : (
               <div>
@@ -112,13 +112,13 @@ export default function DashboardPage() {
                       <svg className="w-3.5 h-3.5 text-[#A8A29E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.73a16 16 0 0 0 7.36 7.36l1.91-1.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] text-[#1A1816] font-semibold truncate">{call.phone || 'Unknown'}</p>
-                      <p className="text-[11px] text-[#A8A29E] mt-0.5">
+                      <p className="text-[16px] text-[#1A1816] font-semibold truncate">{call.phone || 'Unknown'}</p>
+                      <p className="text-[14px] text-[#A8A29E] mt-0.5">
                         {agents.find(a => a.id === call.agent_id)?.name || '—'} · {fmtTime(call.started_at)}
                       </p>
                     </div>
                     {call.duration_sec > 0 && (
-                      <span className="text-[11px] text-[#A8A29E] font-mono tabular-nums">{fmtDur(call.duration_sec)}</span>
+                      <span className="text-[14px] text-[#A8A29E] font-mono tabular-nums">{fmtDur(call.duration_sec)}</span>
                     )}
                     <StatusBadge status={call.status} />
                   </Link>
@@ -130,16 +130,16 @@ export default function DashboardPage() {
           {/* Agents — 2 cols */}
           <div className="col-span-2 bg-white rounded-2xl border border-[#E8E5E2] overflow-hidden">
             <div className="px-5 py-4 border-b border-[#F0EDEA] flex items-center justify-between">
-              <h2 className="text-[13px] font-bold text-[#1A1816]">Agents</h2>
-              <Link to="/agents" className="press text-[11px] font-semibold text-[#2563EB] bg-[#EFF4FF] hover:bg-[#DBEAFE] px-3 py-1 rounded-md transition-colors">
+              <h2 className="text-[16px] font-bold text-[#1A1816]">Agents</h2>
+              <Link to="/agents" className="press text-[14px] font-semibold text-[#2563EB] bg-[#EFF4FF] hover:bg-[#DBEAFE] px-3 py-1 rounded-md transition-colors">
                 Manage
               </Link>
             </div>
             {agents.length === 0 ? (
               <div className="p-10 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-[#F5F5F4] flex items-center justify-center mx-auto mb-3 text-xl">🤖</div>
-                <p className="text-[13px] text-[#78716C] font-medium mb-3">No agents yet</p>
-                <Link to="/agents/build" className="press inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#2563EB]">
+                <div className="w-12 h-12 rounded-2xl bg-[#F5F5F4] flex items-center justify-center mx-auto mb-3 text-2xl">🤖</div>
+                <p className="text-[16px] text-[#78716C] font-medium mb-3">No agents yet</p>
+                <Link to="/agents/build" className="press inline-flex items-center gap-1.5 text-[15px] font-semibold text-[#2563EB]">
                   + Create your first agent
                 </Link>
               </div>
@@ -148,18 +148,18 @@ export default function DashboardPage() {
                 {agents.map((a, idx) => (
                   <Link key={a.id} to={`/agents/${a.id}`}
                     className={`flex items-center gap-3 px-5 py-3 hover:bg-[#FAFAF9] transition-colors ${idx < agents.length - 1 ? 'border-b border-[#F5F5F4]' : ''}`}>
-                    <div className={`w-8 h-8 rounded-[8px] flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                    <div className={`w-8 h-8 rounded-[8px] flex items-center justify-center text-[14px] font-bold shrink-0 ${
                       a.active ? 'bg-[#EFF4FF] text-[#2563EB]' : 'bg-[#F5F5F4] text-[#A8A29E]'
                     }`}>
                       {a.name[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] text-[#1A1816] font-semibold truncate">{a.name}</p>
-                      <p className="text-[11px] text-[#A8A29E] mt-0.5">{a.language?.toUpperCase()} · {a.llm_provider}</p>
+                      <p className="text-[16px] text-[#1A1816] font-semibold truncate">{a.name}</p>
+                      <p className="text-[14px] text-[#A8A29E] mt-0.5">{a.language?.toUpperCase()} · {a.llm_provider}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       {a.agent_type === 'chatbot' && (
-                        <span className="text-[9px] font-bold text-[#7C3AED] bg-[#F5F3FF] px-1.5 py-0.5 rounded">CHAT</span>
+                        <span className="text-[10px] font-bold text-[#7C3AED] bg-[#F5F3FF] px-1.5 py-0.5 rounded">CHAT</span>
                       )}
                       <div className={`w-[6px] h-[6px] rounded-full ${a.active ? 'bg-[#16A34A]' : 'bg-[#D6D3D1]'}`} />
                     </div>
@@ -178,12 +178,12 @@ export default function DashboardPage() {
             { to: '/campaigns',    icon: '🚀', label: 'Launch Campaign', desc: 'Outbound calling at scale',    color: '#FFF7ED' },
           ].map(a => (
             <Link key={a.to} to={a.to} className="group card-hover bg-white rounded-2xl border border-[#E8E5E2] p-5 flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 transition-transform group-hover:scale-105" style={{ background: a.color }}>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 transition-transform group-hover:scale-105" style={{ background: a.color }}>
                 {a.icon}
               </div>
               <div>
-                <p className="text-[13px] font-bold text-[#1A1816] group-hover:text-[#2563EB] transition-colors">{a.label}</p>
-                <p className="text-[11px] text-[#A8A29E] mt-0.5">{a.desc}</p>
+                <p className="text-[16px] font-bold text-[#1A1816] group-hover:text-[#2563EB] transition-colors">{a.label}</p>
+                <p className="text-[14px] text-[#A8A29E] mt-0.5">{a.desc}</p>
               </div>
             </Link>
           ))}

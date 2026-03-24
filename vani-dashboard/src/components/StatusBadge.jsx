@@ -14,7 +14,7 @@ const STYLES = {
 export default function StatusBadge({ status }) {
   const cls = STYLES[status?.toLowerCase()] || 'bg-[#F5F5F4] text-[#78716C] border-[#E7E5E4]'
   return (
-    <span className={`inline-flex items-center px-2 py-[2px] rounded-md text-[10px] font-semibold border tracking-wide ${cls}`}>
+    <span className={`inline-flex items-center px-2 py-[2px] rounded-md text-[11px] font-semibold border tracking-wide ${cls}`}>
       {status}
     </span>
   )

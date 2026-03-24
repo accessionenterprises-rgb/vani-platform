@@ -80,7 +80,7 @@ export default function PlatformConfigPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -89,18 +89,18 @@ export default function PlatformConfigPage() {
     <div className="p-8 max-w-3xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-xl font-semibold text-white">Platform Config</h1>
-          <p className="text-sm text-slate-500 mt-1">Provider API keys and global defaults.</p>
+          <h1 className="text-3xl font-bold text-gray-900">Platform Config</h1>
+          <p className="text-base text-gray-500 mt-1">Provider API keys and global defaults.</p>
         </div>
         <button
           onClick={save}
           disabled={!hasChanges || saving}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-xl text-base font-medium transition-colors ${
             saved
-              ? 'bg-emerald-500/15 text-emerald-400'
+              ? 'bg-emerald-50 text-emerald-700'
               : hasChanges
-                ? 'bg-indigo-500 text-white hover:bg-indigo-600'
-                : 'bg-[#1a1d2e] text-slate-600 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-200 hover:opacity-90'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           }`}
         >
           {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save changes'}
@@ -109,15 +109,15 @@ export default function PlatformConfigPage() {
 
       <div className="space-y-6">
         {CONFIG_SECTIONS.map(section => (
-          <div key={section.title} className="bg-[#0d0f1a] border border-[#1a1d2e] rounded-xl p-5">
-            <h2 className="text-sm font-semibold text-white mb-4">{section.title}</h2>
+          <div key={section.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">{section.title}</h2>
             <div className="space-y-4">
               {section.fields.map(field => (
                 <div key={field.key}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-medium text-slate-400">{field.label}</label>
+                    <label className="text-sm font-medium text-gray-500">{field.label}</label>
                     {field.key in edits && (
-                      <span className="text-[10px] text-amber-400 font-medium">unsaved</span>
+                      <span className="text-xs text-amber-600 font-medium">unsaved</span>
                     )}
                   </div>
                   <div className="relative">
@@ -126,13 +126,13 @@ export default function PlatformConfigPage() {
                       value={get(field.key)}
                       onChange={e => set(field.key, e.target.value)}
                       placeholder={field.placeholder}
-                      className="w-full bg-[#080a12] border border-[#1a1d2e] hover:border-[#2a2d3e] focus:border-indigo-500 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-slate-700 outline-none transition-colors pr-10"
+                      className="w-full bg-gray-50 border border-gray-200 hover:border-gray-300 focus:border-violet-500 focus:ring-2 focus:ring-violet-100 rounded-xl px-3.5 py-2.5 text-base text-gray-900 placeholder-gray-400 outline-none transition-colors pr-10"
                     />
                     {field.secret && (
                       <button
                         type="button"
                         onClick={() => setRevealed(r => ({ ...r, [field.key]: !r[field.key] }))}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         {revealed[field.key] ? (
                           <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.8}>
@@ -148,7 +148,7 @@ export default function PlatformConfigPage() {
                       </button>
                     )}
                   </div>
-                  {field.hint && <p className="text-xs text-slate-600 mt-1">{field.hint}</p>}
+                  {field.hint && <p className="text-sm text-gray-400 mt-1">{field.hint}</p>}
                 </div>
               ))}
             </div>

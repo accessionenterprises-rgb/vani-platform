@@ -192,8 +192,8 @@ export default function TemplatesPage() {
     <div className="flex-1 overflow-auto">
       <div className="px-8 py-7 max-w-5xl">
         <div className="mb-7">
-          <h1 className="text-xl font-semibold text-white">Templates</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h1 className="text-2xl font-semibold text-[#1A1816]">Templates</h1>
+          <p className="text-base text-[#A8A29E] mt-0.5">
             Start with a pre-built agent — fully customisable after creation
           </p>
         </div>
@@ -208,16 +208,16 @@ export default function TemplatesPage() {
                   <span className="text-3xl">{t.icon}</span>
                   <div>
                     <div className="flex items-center gap-2.5 mb-1">
-                      <h3 className="text-base font-semibold text-white">{t.title}</h3>
+                      <h3 className="text-lg font-semibold text-[#1A1816]">{t.title}</h3>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${BADGE_MAP[t.color]}`}>
                         {t.industry}
                       </span>
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium text-slate-500 bg-slate-500/10">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium text-[#A8A29E] bg-slate-500/10">
                         {t.agent.objective}
                       </span>
                     </div>
-                    <p className="text-sm text-slate-400">{t.description}</p>
-                    <p className="text-xs text-slate-600 mt-2 italic">
+                    <p className="text-base text-[#78716C]">{t.description}</p>
+                    <p className="text-sm text-[#A8A29E] mt-2 italic">
                       "{t.agent.greeting}"
                     </p>
                   </div>
@@ -225,12 +225,12 @@ export default function TemplatesPage() {
                 <button
                   disabled={!!creating}
                   onClick={(e) => { e.stopPropagation(); handleUseTemplate(t) }}
-                  className={`shrink-0 ml-4 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`shrink-0 ml-4 px-4 py-2 rounded-lg text-base font-medium transition-colors ${
                     status[t.id] === 'done'
                       ? 'bg-emerald-500/20 text-emerald-400'
                       : status[t.id] === 'creating'
-                      ? 'bg-indigo-500/20 text-indigo-400 opacity-70'
-                      : 'bg-indigo-500 hover:bg-indigo-600 text-white opacity-0 group-hover:opacity-100'
+                      ? 'bg-[#2563EB]/20 text-[#2563EB] opacity-70'
+                      : 'bg-[#2563EB] hover:bg-[#1D4ED8] text-white opacity-0 group-hover:opacity-100'
                   }`}>
                   {status[t.id] === 'done' ? '✓ Created' : status[t.id] === 'creating' ? 'Creating…' : 'Use Template'}
                 </button>
@@ -239,7 +239,7 @@ export default function TemplatesPage() {
               {/* Stack chips */}
               <div className="flex flex-wrap gap-1.5 mt-4 ml-[52px]">
                 {[t.agent.stt_provider, t.agent.llm_provider, t.agent.tts_provider].map(p => (
-                  <span key={p} className="text-xs text-slate-600 bg-white/[0.04] border border-white/5 px-2 py-0.5 rounded">
+                  <span key={p} className="text-sm text-[#A8A29E] bg-[#F5F5F4] border border-[#F0EDEA] px-2 py-0.5 rounded">
                     {p}
                   </span>
                 ))}
@@ -248,9 +248,9 @@ export default function TemplatesPage() {
           ))}
         </div>
 
-        <div className="mt-8 bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-          <h2 className="text-sm font-medium text-white mb-2">More templates coming soon</h2>
-          <p className="text-xs text-slate-500">
+        <div className="mt-8 bg-white rounded-xl border border-[#E8E5E2] p-5">
+          <h2 className="text-base font-medium text-[#1A1816] mb-2">More templates coming soon</h2>
+          <p className="text-sm text-[#A8A29E]">
             Healthcare Follow-up, Debt Collection, Lead Nurturing, Appointment Reminder,
             Travel Booking, Insurance Sales — in the next update.
           </p>

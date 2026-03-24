@@ -8,7 +8,7 @@ import { api } from '../api/client'
 
 const NODE_TYPES = {
   start:      { label: 'Start',          color: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' },
-  speak:      { label: 'Speak',          color: 'bg-indigo-500/20 border-indigo-500/40 text-indigo-400' },
+  speak:      { label: 'Speak',          color: 'bg-[#2563EB]/20 border-indigo-500/40 text-[#2563EB]' },
   listen:     { label: 'Listen',         color: 'bg-blue-500/20 border-blue-500/40 text-blue-400' },
   branch:     { label: 'Branch',         color: 'bg-amber-500/20 border-amber-500/40 text-amber-400' },
   transfer:   { label: 'Transfer',       color: 'bg-orange-500/20 border-orange-500/40 text-orange-400' },
@@ -144,46 +144,46 @@ export default function FlowBuilderPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center gap-3 px-6 py-3 border-b border-[#1f2235] bg-[#12141f] shrink-0">
-        <h1 className="text-sm font-semibold text-white">Flow Builder</h1>
-        <span className="text-slate-700">|</span>
+      <div className="flex items-center gap-3 px-6 py-3 border-b border-[#E8E5E2] bg-white shrink-0">
+        <h1 className="text-base font-semibold text-[#1A1816]">Flow Builder</h1>
+        <span className="text-[#D6D3D1]">|</span>
 
         {/* Agent selector */}
         <select value={selectedAgent} onChange={e => setSelectedAgent(e.target.value)}
-          className="bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+          className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-2.5 py-1.5 text-sm text-[#1A1816] focus:outline-none focus:border-[#2563EB]">
           {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
 
-        <span className="text-slate-700">|</span>
+        <span className="text-[#D6D3D1]">|</span>
 
         {/* Add node buttons */}
         {Object.entries(NODE_TYPES).filter(([k]) => k !== 'start').map(([type, cfg]) => (
           <button key={type} onClick={() => addNode(type)}
-            className={`text-xs px-2.5 py-1 rounded border ${cfg.color} transition-opacity hover:opacity-80`}>
+            className={`text-sm px-2.5 py-1 rounded border ${cfg.color} transition-opacity hover:opacity-80`}>
             + {cfg.label}
           </button>
         ))}
 
-        <span className="text-slate-700">|</span>
+        <span className="text-[#D6D3D1]">|</span>
 
         {connecting && (
-          <span className="text-xs text-amber-400 animate-pulse">Click a node to connect → (or click here to cancel)</span>
+          <span className="text-sm text-amber-400 animate-pulse">Click a node to connect → (or click here to cancel)</span>
         )}
 
         <div className="ml-auto flex items-center gap-2">
           {/* Zoom */}
-          <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="text-xs text-slate-400 hover:text-white bg-[#0d0f18] border border-[#2a2d3a] px-2 py-1 rounded">+</button>
-          <span className="text-xs text-slate-500">{Math.round(zoom * 100)}%</span>
-          <button onClick={() => setZoom(z => Math.max(0.3, z - 0.1))} className="text-xs text-slate-400 hover:text-white bg-[#0d0f18] border border-[#2a2d3a] px-2 py-1 rounded">−</button>
+          <button onClick={() => setZoom(z => Math.min(2, z + 0.1))} className="text-sm text-[#78716C] hover:text-[#1A1816] bg-[#FAFAF9] border border-[#E8E5E2] px-2 py-1 rounded">+</button>
+          <span className="text-sm text-[#A8A29E]">{Math.round(zoom * 100)}%</span>
+          <button onClick={() => setZoom(z => Math.max(0.3, z - 0.1))} className="text-sm text-[#78716C] hover:text-[#1A1816] bg-[#FAFAF9] border border-[#E8E5E2] px-2 py-1 rounded">−</button>
 
-          <label className="text-xs text-slate-400 hover:text-white cursor-pointer bg-[#0d0f18] border border-[#2a2d3a] px-3 py-1 rounded transition-colors">
+          <label className="text-sm text-[#78716C] hover:text-[#1A1816] cursor-pointer bg-[#FAFAF9] border border-[#E8E5E2] px-3 py-1 rounded transition-colors">
             Import
             <input type="file" accept=".json" className="hidden" onChange={importFlow} />
           </label>
-          <button onClick={exportFlow} className="text-xs text-slate-400 hover:text-white bg-[#0d0f18] border border-[#2a2d3a] px-3 py-1 rounded transition-colors">
+          <button onClick={exportFlow} className="text-sm text-[#78716C] hover:text-[#1A1816] bg-[#FAFAF9] border border-[#E8E5E2] px-3 py-1 rounded transition-colors">
             Export
           </button>
-          {saved && <span className="text-xs text-emerald-400">✓ Saved</span>}
+          {saved && <span className="text-sm text-emerald-400">✓ Saved</span>}
         </div>
       </div>
 
@@ -191,8 +191,8 @@ export default function FlowBuilderPage() {
         {/* Canvas */}
         <div
           ref={canvasRef}
-          className="flex-1 relative overflow-hidden bg-[#0d0f18] cursor-default select-none"
-          style={{ backgroundImage: 'radial-gradient(circle, #1f2235 1px, transparent 1px)', backgroundSize: '24px 24px' }}
+          className="flex-1 relative overflow-hidden bg-[#FAFAF9] cursor-default select-none"
+          style={{ backgroundImage: 'radial-gradient(circle, #E8E5E2 1px, transparent 1px)', backgroundSize: '24px 24px' }}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={() => setDragging(null)}
           onMouseLeave={() => setDragging(null)}
@@ -232,7 +232,7 @@ export default function FlowBuilderPage() {
                 onMouseDown={e => handleNodeMouseDown(e, n.id)}
                 style={{ left: n.x * zoom + pan.x, top: n.y * zoom + pan.y, transform: `scale(${zoom})`, transformOrigin: 'top left', position: 'absolute', width: 160 }}
                 className={`rounded-xl border-2 px-3 py-2.5 cursor-grab active:cursor-grabbing transition-shadow ${cfg.color} ${
-                  selectedNode === n.id ? 'ring-2 ring-indigo-400 ring-offset-1 ring-offset-[#0d0f18] shadow-lg shadow-indigo-500/20' : ''
+                  selectedNode === n.id ? 'ring-2 ring-indigo-400 ring-offset-1 ring-offset-white shadow-lg shadow-blue-200/20' : ''
                 }`}
               >
                 <div className="flex items-center justify-between gap-1">
@@ -240,12 +240,12 @@ export default function FlowBuilderPage() {
                   <div className="flex gap-1 shrink-0">
                     <button
                       onMouseDown={e => { e.stopPropagation(); setConnecting(n.id) }}
-                      className="text-[9px] opacity-60 hover:opacity-100 bg-white/10 px-1 py-0.5 rounded"
+                      className="text-[9px] opacity-60 hover:opacity-100 bg-[#F0EDEA] px-1 py-0.5 rounded"
                       title="Draw connection">→</button>
                     {n.id !== 'start' && (
                       <button
                         onMouseDown={e => { e.stopPropagation(); deleteNode(n.id) }}
-                        className="text-[9px] text-red-400/70 hover:text-red-400 bg-white/10 px-1 py-0.5 rounded"
+                        className="text-[9px] text-red-400/70 hover:text-red-400 bg-[#F0EDEA] px-1 py-0.5 rounded"
                         title="Delete node">×</button>
                     )}
                   </div>
@@ -258,30 +258,30 @@ export default function FlowBuilderPage() {
 
         {/* Properties panel */}
         {node && (
-          <div className="w-64 shrink-0 bg-[#12141f] border-l border-[#1f2235] p-4 overflow-y-auto">
+          <div className="w-64 shrink-0 bg-white border-l border-[#E8E5E2] p-4 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-white">Node Properties</h2>
-              <button onClick={() => setSelectedNode(null)} className="text-slate-500 hover:text-slate-300 text-lg leading-none">×</button>
+              <h2 className="text-base font-semibold text-[#1A1816]">Node Properties</h2>
+              <button onClick={() => setSelectedNode(null)} className="text-[#A8A29E] hover:text-[#44403C] text-xl leading-none">×</button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">Label</label>
+                <label className="block text-sm font-medium text-[#78716C] mb-1.5">Label</label>
                 <input value={node.label} onChange={e => updateNode(node.id, { label: e.target.value })}
-                  className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" />
+                  className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] focus:outline-none focus:border-[#2563EB]" />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">Type</label>
+                <label className="block text-sm font-medium text-[#78716C] mb-1.5">Type</label>
                 <select value={node.type} onChange={e => updateNode(node.id, { type: e.target.value })}
                   disabled={node.id === 'start'}
-                  className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 disabled:opacity-50">
+                  className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] focus:outline-none focus:border-[#2563EB] disabled:opacity-50">
                   {Object.entries(NODE_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                <label className="block text-sm font-medium text-[#78716C] mb-1.5">
                   {node.type === 'speak' ? 'Script' :
                    node.type === 'branch' ? 'Conditions (one per line)' :
                    node.type === 'transfer' ? 'Transfer Number' :
@@ -300,21 +300,21 @@ export default function FlowBuilderPage() {
                     node.type === 'webhook' ? 'https://...' :
                     ''
                   }
-                  className="w-full bg-[#0d0f18] border border-[#2a2d3a] rounded-lg px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 resize-none"
+                  className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB] resize-none"
                 />
               </div>
 
               {node.type === 'speak' && (
-                <div className="bg-[#0d0f18] rounded-lg border border-[#1f2235] p-3">
-                  <p className="text-[10px] text-slate-600">
+                <div className="bg-[#FAFAF9] rounded-lg border border-[#E8E5E2] p-3">
+                  <p className="text-[12px] text-[#A8A29E]">
                     The agent will speak this text. Use {'{variable}'} for dynamic substitution.
                   </p>
                 </div>
               )}
 
               {node.type === 'branch' && (
-                <div className="bg-[#0d0f18] rounded-lg border border-[#1f2235] p-3">
-                  <p className="text-[10px] text-slate-600">
+                <div className="bg-[#FAFAF9] rounded-lg border border-[#E8E5E2] p-3">
+                  <p className="text-[12px] text-[#A8A29E]">
                     Each line is a branch condition. Draw edges from this node to target nodes for each branch.
                   </p>
                 </div>
@@ -323,7 +323,7 @@ export default function FlowBuilderPage() {
               {node.id !== 'start' && (
                 <button
                   onClick={() => deleteNode(node.id)}
-                  className="w-full text-xs text-red-400/70 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 py-2 rounded-lg transition-colors">
+                  className="w-full text-sm text-red-400/70 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 py-2 rounded-lg transition-colors">
                   Delete Node
                 </button>
               )}
@@ -333,7 +333,7 @@ export default function FlowBuilderPage() {
       </div>
 
       {/* Status bar */}
-      <div className="px-6 py-2 border-t border-[#1f2235] bg-[#12141f] shrink-0 flex items-center gap-4 text-[11px] text-slate-600">
+      <div className="px-6 py-2 border-t border-[#E8E5E2] bg-white shrink-0 flex items-center gap-4 text-[11px] text-[#A8A29E]">
         <span>{nodes.length} nodes</span>
         <span>{edges.length} connections</span>
         <span>Drag nodes to move · Click → button to connect · Click edge to delete</span>

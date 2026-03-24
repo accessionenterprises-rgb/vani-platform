@@ -25,11 +25,11 @@ function QAPanel({ callId, transcript }) {
   const overall = qa ? Math.round(scores.reduce((s, x) => s + x.value, 0) / scores.length) : 0
 
   return (
-    <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
+    <div className="bg-white rounded-xl border border-[#E8E5E2] p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-medium text-white">AI QA Review</h2>
+        <h2 className="text-base font-medium text-[#1A1816]">AI QA Review</h2>
         {qa && (
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+          <span className={`text-sm font-semibold px-2 py-0.5 rounded ${
             overall >= 8 ? 'bg-emerald-500/15 text-emerald-400' :
             overall >= 6 ? 'bg-amber-500/15 text-amber-400' : 'bg-red-500/15 text-red-400'
           }`}>{overall}/10</span>
@@ -37,41 +37,41 @@ function QAPanel({ callId, transcript }) {
       </div>
       {!qa && !loading && (
         <div className="text-center py-3">
-          <p className="text-xs text-slate-500 mb-3">
+          <p className="text-sm text-[#A8A29E] mb-3">
             {transcript ? 'Run an AI-powered quality review.' : 'No transcript available.'}
           </p>
           <button onClick={runQA} disabled={!transcript}
-            className="text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40">
+            className="text-sm bg-[#2563EB]/10 hover:bg-[#2563EB]/20 text-[#2563EB] border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40">
             Run QA Review
           </button>
         </div>
       )}
       {loading && (
-        <div className="flex items-center justify-center gap-2 py-4 text-xs text-slate-500">
+        <div className="flex items-center justify-center gap-2 py-4 text-sm text-[#A8A29E]">
           <div className="w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
           Analysing transcript…
         </div>
       )}
-      {error && <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
+      {error && <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
       {qa && (
         <div className="space-y-2.5">
           {scores.map(({ label, value }) => (
             <div key={label}>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-400">{label}</span>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-[#78716C]">{label}</span>
                 <span className={value >= 8 ? 'text-emerald-400' : value >= 6 ? 'text-amber-400' : 'text-red-400'}>{value}/10</span>
               </div>
-              <div className="h-1.5 bg-[#1f2235] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[#F5F5F4] rounded-full overflow-hidden">
                 <div style={{ width: `${value * 10}%` }}
                   className={`h-full rounded-full ${value >= 8 ? 'bg-emerald-500' : value >= 6 ? 'bg-amber-500' : 'bg-red-500'}`} />
               </div>
             </div>
           ))}
-          {qa.summary && <p className="text-xs text-slate-400 leading-relaxed mt-3 pt-3 border-t border-[#1f2235]">{qa.summary}</p>}
+          {qa.summary && <p className="text-sm text-[#78716C] leading-relaxed mt-3 pt-3 border-t border-[#E8E5E2]">{qa.summary}</p>}
           {qa.flags?.map((f, i) => (
-            <p key={i} className="text-xs text-amber-400 flex gap-1"><span>⚠</span>{f}</p>
+            <p key={i} className="text-sm text-amber-400 flex gap-1"><span>⚠</span>{f}</p>
           ))}
-          <button onClick={runQA} className="text-xs text-slate-600 hover:text-slate-400 transition-colors">Re-run</button>
+          <button onClick={runQA} className="text-sm text-[#A8A29E] hover:text-[#78716C] transition-colors">Re-run</button>
         </div>
       )}
     </div>
@@ -152,7 +152,7 @@ export default function CallDetailPage() {
     setReplayIndex(lines.length - 1)
   }
 
-  if (loading) return <div className="flex-1 flex items-center justify-center text-slate-600">Loading…</div>
+  if (loading) return <div className="flex-1 flex items-center justify-center text-[#A8A29E]">Loading…</div>
   if (!call) return null
 
   const transcriptLines = call.transcript ? call.transcript.split('\n').filter(Boolean) : []
@@ -166,11 +166,11 @@ export default function CallDetailPage() {
     <div className="flex-1 overflow-auto">
       <div className="px-8 py-7 max-w-4xl">
         <div className="flex items-center gap-3 mb-7">
-          <button onClick={() => navigate('/calls')} className="text-slate-500 hover:text-slate-300 text-sm">
+          <button onClick={() => navigate('/calls')} className="text-[#A8A29E] hover:text-[#44403C] text-base">
             ← Calls
           </button>
-          <span className="text-slate-700">/</span>
-          <h1 className="text-xl font-semibold text-white font-mono">{call.phone || 'Unknown'}</h1>
+          <span className="text-[#D6D3D1]">/</span>
+          <h1 className="text-2xl font-semibold text-[#1A1816] font-mono">{call.phone || 'Unknown'}</h1>
           <StatusBadge status={call.status} />
           {call.direction === 'outbound' && (
             <span className="text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">outbound</span>
@@ -179,7 +179,7 @@ export default function CallDetailPage() {
             <button
               onClick={openMonitor}
               disabled={monitorLoading}
-              className="ml-auto text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+              className="ml-auto text-sm bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
               {monitorLoading ? 'Getting token…' : '🎧 Monitor Live'}
             </button>
           )}
@@ -187,24 +187,24 @@ export default function CallDetailPage() {
 
         {/* Monitor token display */}
         {monitorToken && (
-          <div className="mb-5 bg-[#12141f] rounded-xl border border-emerald-500/20 p-4">
-            <h3 className="text-xs font-medium text-emerald-400 mb-2">Supervisor Listen-In Token</h3>
-            <p className="text-xs text-slate-500 mb-2">
+          <div className="mb-5 bg-white rounded-xl border border-emerald-500/20 p-4">
+            <h3 className="text-sm font-medium text-emerald-400 mb-2">Supervisor Listen-In Token</h3>
+            <p className="text-sm text-[#A8A29E] mb-2">
               Use this token with a LiveKit web client to listen in (read-only, caller cannot hear you).
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs text-slate-600 mb-1">LiveKit URL</p>
-                <code className="text-xs text-slate-300 bg-[#0d0f18] px-2 py-1 rounded block truncate">{monitorToken.livekit_url}</code>
+                <p className="text-sm text-[#A8A29E] mb-1">LiveKit URL</p>
+                <code className="text-sm text-[#44403C] bg-[#FAFAF9] px-2 py-1 rounded block truncate">{monitorToken.livekit_url}</code>
               </div>
               <div>
-                <p className="text-xs text-slate-600 mb-1">Room</p>
-                <code className="text-xs text-slate-300 bg-[#0d0f18] px-2 py-1 rounded block truncate">{monitorToken.room}</code>
+                <p className="text-sm text-[#A8A29E] mb-1">Room</p>
+                <code className="text-sm text-[#44403C] bg-[#FAFAF9] px-2 py-1 rounded block truncate">{monitorToken.room}</code>
               </div>
             </div>
             <div className="mt-3">
-              <p className="text-xs text-slate-600 mb-1">Token (copy to LiveKit client)</p>
-              <code className="text-xs text-slate-400 bg-[#0d0f18] px-2 py-1.5 rounded block break-all">{monitorToken.token.slice(0, 80)}…</code>
+              <p className="text-sm text-[#A8A29E] mb-1">Token (copy to LiveKit client)</p>
+              <code className="text-sm text-[#78716C] bg-[#FAFAF9] px-2 py-1.5 rounded block break-all">{monitorToken.token.slice(0, 80)}…</code>
             </div>
           </div>
         )}
@@ -220,26 +220,26 @@ export default function CallDetailPage() {
 
         {/* Recording */}
         {call.recording_url && (
-          <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5 mb-5">
-            <h2 className="text-sm font-medium text-white mb-3">Recording</h2>
-            <audio controls src={call.recording_url} className="w-full h-10" style={{ colorScheme: 'dark' }} />
+          <div className="bg-white rounded-xl border border-[#E8E5E2] p-5 mb-5">
+            <h2 className="text-base font-medium text-[#1A1816] mb-3">Recording</h2>
+            <audio controls src={call.recording_url} className="w-full h-10" style={{ colorScheme: 'light' }} />
           </div>
         )}
 
         <div className="grid grid-cols-5 gap-5">
           {/* Transcript */}
-          <div className="col-span-3 bg-[#12141f] rounded-xl border border-[#1f2235]">
-            <div className="px-5 py-4 border-b border-[#1f2235] flex items-center justify-between gap-3">
-              <h2 className="text-sm font-medium text-white">Transcript</h2>
+          <div className="col-span-3 bg-white rounded-xl border border-[#E8E5E2]">
+            <div className="px-5 py-4 border-b border-[#E8E5E2] flex items-center justify-between gap-3">
+              <h2 className="text-base font-medium text-[#1A1816]">Transcript</h2>
               {transcriptLines.length > 0 && (
                 <div className="flex items-center gap-2">
                   {/* Speed selector — only visible when replaying */}
                   {replayActive && (
-                    <div className="flex gap-0.5 bg-[#0d0f18] rounded-md p-0.5 border border-[#2a2d3a]">
+                    <div className="flex gap-0.5 bg-[#FAFAF9] rounded-md p-0.5 border border-[#E8E5E2]">
                       {[0.5, 1, 2].map(s => (
                         <button key={s} onClick={() => { replayRef.current.speed = s; setReplaySpeed(s) }}
-                          className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
-                            replaySpeed === s ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-slate-200'
+                          className={`px-2 py-0.5 rounded text-sm font-medium transition-colors ${
+                            replaySpeed === s ? 'bg-[#2563EB] text-white' : 'text-[#78716C] hover:text-[#44403C]'
                           }`}>
                           {s}×
                         </button>
@@ -248,13 +248,13 @@ export default function CallDetailPage() {
                   )}
                   {replayActive ? (
                     <button onClick={() => stopReplay(transcriptLines)}
-                      className="flex items-center gap-1.5 text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition-colors">
+                      className="flex items-center gap-1.5 text-sm bg-[#E8E5E2] hover:bg-slate-600 text-[#44403C] px-3 py-1.5 rounded-lg transition-colors">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                       Stop
                     </button>
                   ) : (
                     <button onClick={() => startReplay(transcriptLines)}
-                      className="flex items-center gap-1.5 text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors">
+                      className="flex items-center gap-1.5 text-sm bg-[#2563EB]/10 hover:bg-[#2563EB]/20 text-[#2563EB] border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-colors">
                       ▶ Replay
                     </button>
                   )}
@@ -263,7 +263,7 @@ export default function CallDetailPage() {
             </div>
             <div className="p-5 space-y-3 max-h-[520px] overflow-y-auto">
               {transcriptLines.length === 0 ? (
-                <p className="text-slate-600 text-sm text-center py-6">No transcript available.</p>
+                <p className="text-[#A8A29E] text-base text-center py-6">No transcript available.</p>
               ) : (
                 (() => {
                   const displayLines = replayActive
@@ -280,18 +280,18 @@ export default function CallDetailPage() {
                           <div key={i} className={`flex gap-3 ${isAgent ? 'flex-row-reverse' : ''} ${
                             replayActive && i === displayLines.length - 1 ? 'animate-pulse' : ''
                           }`}>
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 mt-0.5 ${
-                              isUser ? 'bg-slate-700 text-slate-300' : 'bg-indigo-500/20 text-indigo-400'
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm shrink-0 mt-0.5 ${
+                              isUser ? 'bg-[#E8E5E2] text-[#44403C]' : 'bg-[#2563EB]/20 text-[#2563EB]'
                             }`}>
                               {isUser ? 'U' : 'A'}
                             </div>
                             <div className={`flex-1 ${isAgent ? 'text-right' : ''}`}>
-                              <p className={`text-sm rounded-xl px-3.5 py-2.5 inline-block max-w-xs ${
-                                isUser ? 'bg-[#1a1d2e] text-slate-200' : 'bg-indigo-500/15 text-indigo-200'
+                              <p className={`text-base rounded-xl px-3.5 py-2.5 inline-block max-w-xs ${
+                                isUser ? 'bg-[#F5F5F4] text-[#44403C]' : 'bg-[#2563EB]/15 text-[#60A5FA]'
                               }`}>
                                 {text}
                               </p>
-                              {time && <p className="text-xs text-slate-700 mt-1 px-1">{time}</p>}
+                              {time && <p className="text-sm text-[#D6D3D1] mt-1 px-1">{time}</p>}
                             </div>
                           </div>
                         )
@@ -319,13 +319,13 @@ export default function CallDetailPage() {
               <QAPanel callId={call.id} transcript={call.transcript} />
             )}
             {/* Call info */}
-            <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-              <h2 className="text-sm font-medium text-white mb-4">Details</h2>
+            <div className="bg-white rounded-xl border border-[#E8E5E2] p-5">
+              <h2 className="text-base font-medium text-[#1A1816] mb-4">Details</h2>
               <dl className="space-y-3">
-                <InfoRow label="Call ID"   value={<span className="font-mono text-xs">{call.id?.slice(0, 12)}…</span>} />
-                <InfoRow label="Agent ID"  value={<span className="font-mono text-xs">{call.agent_id?.slice(0,12)}…</span>} />
+                <InfoRow label="Call ID"   value={<span className="font-mono text-sm">{call.id?.slice(0, 12)}…</span>} />
+                <InfoRow label="Agent ID"  value={<span className="font-mono text-sm">{call.agent_id?.slice(0,12)}…</span>} />
                 <InfoRow label="Sentiment" value={<span className={sentimentColor(call.sentiment)}>{call.sentiment || '—'}</span>} />
-                {meta.intent && <InfoRow label="Intent" value={<span className="text-indigo-400 capitalize">{meta.intent}</span>} />}
+                {meta.intent && <InfoRow label="Intent" value={<span className="text-[#2563EB] capitalize">{meta.intent}</span>} />}
                 {meta.resolved !== undefined && (
                   <InfoRow label="Resolved" value={
                     <span className={meta.resolved ? 'text-emerald-400' : 'text-amber-400'}>
@@ -345,48 +345,48 @@ export default function CallDetailPage() {
 
             {/* Summary */}
             {call.summary && (
-              <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-                <h2 className="text-sm font-medium text-white mb-3">AI Summary</h2>
-                <p className="text-xs text-slate-400 leading-relaxed">{call.summary}</p>
+              <div className="bg-white rounded-xl border border-[#E8E5E2] p-5">
+                <h2 className="text-base font-medium text-[#1A1816] mb-3">AI Summary</h2>
+                <p className="text-sm text-[#78716C] leading-relaxed">{call.summary}</p>
               </div>
             )}
 
             {/* Latency profile */}
             {latency && (
-              <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-                <h2 className="text-sm font-medium text-white mb-3">Response Latency</h2>
+              <div className="bg-white rounded-xl border border-[#E8E5E2] p-5">
+                <h2 className="text-base font-medium text-[#1A1816] mb-3">Response Latency</h2>
                 <div className="space-y-2">
                   {[['Avg', latency.avg_ms], ['P50', latency.p50_ms], ['P95', latency.p95_ms], ['Max', latency.max_ms]].map(([label, val]) => (
                     <div key={label} className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500 w-7">{label}</span>
-                      <div className="flex-1 bg-[#0d0f18] rounded-full h-1.5 overflow-hidden">
+                      <span className="text-sm text-[#A8A29E] w-7">{label}</span>
+                      <div className="flex-1 bg-[#FAFAF9] rounded-full h-1.5 overflow-hidden">
                         <div
                           className={`h-full rounded-full ${val < 500 ? 'bg-emerald-500' : val < 1000 ? 'bg-amber-500' : 'bg-red-500'}`}
                           style={{ width: `${Math.min(100, (val / 2000) * 100)}%` }}
                         />
                       </div>
-                      <span className="text-xs text-slate-300 w-14 text-right">{val}ms</span>
+                      <span className="text-sm text-[#44403C] w-14 text-right">{val}ms</span>
                     </div>
                   ))}
-                  <p className="text-xs text-slate-600 mt-1">{latency.samples} turns measured</p>
+                  <p className="text-sm text-[#A8A29E] mt-1">{latency.samples} turns measured</p>
                 </div>
               </div>
             )}
 
             {/* Cost breakdown */}
             {cost.total_usd !== undefined && (
-              <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-                <h2 className="text-sm font-medium text-white mb-3">Cost Breakdown</h2>
+              <div className="bg-white rounded-xl border border-[#E8E5E2] p-5">
+                <h2 className="text-base font-medium text-[#1A1816] mb-3">Cost Breakdown</h2>
                 <div className="space-y-1.5">
                   {[['STT', cost.stt_usd], ['LLM', cost.llm_usd], ['TTS', cost.tts_usd], ['Telephony', cost.telephony_usd]].map(([label, val]) => (
                     <div key={label} className="flex justify-between">
-                      <span className="text-xs text-slate-500">{label}</span>
-                      <span className="text-xs text-slate-300">${(val || 0).toFixed(5)}</span>
+                      <span className="text-sm text-[#A8A29E]">{label}</span>
+                      <span className="text-sm text-[#44403C]">${(val || 0).toFixed(5)}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between border-t border-[#1f2235] pt-1.5 mt-1.5">
-                    <span className="text-xs font-medium text-slate-400">Total</span>
-                    <span className="text-xs font-medium text-slate-200">${(cost.total_usd || 0).toFixed(5)}</span>
+                  <div className="flex justify-between border-t border-[#E8E5E2] pt-1.5 mt-1.5">
+                    <span className="text-sm font-medium text-[#78716C]">Total</span>
+                    <span className="text-sm font-medium text-[#44403C]">${(cost.total_usd || 0).toFixed(5)}</span>
                   </div>
                 </div>
               </div>
@@ -394,13 +394,13 @@ export default function CallDetailPage() {
 
             {/* Extracted fields */}
             {extracted && Object.keys(extracted).length > 0 && (
-              <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-                <h2 className="text-sm font-medium text-white mb-3">Extracted Data</h2>
+              <div className="bg-white rounded-xl border border-[#E8E5E2] p-5">
+                <h2 className="text-base font-medium text-[#1A1816] mb-3">Extracted Data</h2>
                 <dl className="space-y-2">
                   {Object.entries(extracted).map(([k, v]) => (
                     <InfoRow key={k} label={k} value={
-                      <span className="text-slate-300 text-right max-w-[140px] break-words">
-                        {v === null ? <span className="text-slate-600">null</span> :
+                      <span className="text-[#44403C] text-right max-w-[140px] break-words">
+                        {v === null ? <span className="text-[#A8A29E]">null</span> :
                          typeof v === 'boolean' ? (v ? '✓ true' : '✗ false') : String(v)}
                       </span>
                     } />
@@ -411,11 +411,11 @@ export default function CallDetailPage() {
 
             {/* Topics */}
             {meta.topics?.length > 0 && (
-              <div className="bg-[#12141f] rounded-xl border border-[#1f2235] p-5">
-                <h2 className="text-sm font-medium text-white mb-3">Topics</h2>
+              <div className="bg-white rounded-xl border border-[#E8E5E2] p-5">
+                <h2 className="text-base font-medium text-[#1A1816] mb-3">Topics</h2>
                 <div className="flex flex-wrap gap-1.5">
                   {meta.topics.map(t => (
-                    <span key={t} className="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">{t}</span>
+                    <span key={t} className="text-sm text-[#2563EB] bg-[#2563EB]/10 px-2 py-0.5 rounded">{t}</span>
                   ))}
                 </div>
               </div>
@@ -429,18 +429,18 @@ export default function CallDetailPage() {
 
 function MetaCard({ label, value, sub }) {
   return (
-    <div className="bg-[#12141f] rounded-xl border border-[#1f2235] px-4 py-3.5">
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className="text-sm font-medium text-slate-200">{value}</p>
-      {sub && <p className="text-xs text-slate-600 mt-0.5">{sub}</p>}
+    <div className="bg-white rounded-xl border border-[#E8E5E2] px-4 py-3.5">
+      <p className="text-sm text-[#A8A29E] mb-1">{label}</p>
+      <p className="text-base font-medium text-[#44403C]">{value}</p>
+      {sub && <p className="text-sm text-[#A8A29E] mt-0.5">{sub}</p>}
     </div>
   )
 }
 function InfoRow({ label, value }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <dt className="text-xs text-slate-500 shrink-0">{label}</dt>
-      <dd className="text-xs text-slate-300 text-right">{value}</dd>
+      <dt className="text-sm text-[#A8A29E] shrink-0">{label}</dt>
+      <dd className="text-sm text-[#44403C] text-right">{value}</dd>
     </div>
   )
 }
@@ -454,5 +454,5 @@ function fmtDuration(sec) {
   return `${Math.floor(sec / 60)}m ${sec % 60}s`
 }
 function sentimentColor(s) {
-  return { positive: 'text-emerald-400', negative: 'text-red-400', neutral: 'text-slate-400' }[s] || 'text-slate-500'
+  return { positive: 'text-emerald-400', negative: 'text-red-400', neutral: 'text-[#78716C]' }[s] || 'text-[#A8A29E]'
 }

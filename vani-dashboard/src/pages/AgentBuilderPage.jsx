@@ -101,19 +101,19 @@ export default function AgentBuilderPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-6 py-3.5 border-b border-[#1a1d2e] shrink-0 bg-[#080a12]">
+      <div className="flex items-center justify-between px-6 py-3.5 border-b border-[#E8E5E2] shrink-0 bg-[#FAFAF9]">
         <div className="flex items-center gap-2.5">
           <button onClick={() => navigate('/agents')}
-            className="text-slate-500 hover:text-slate-300 text-sm transition-colors flex items-center gap-1.5">
+            className="text-[#A8A29E] hover:text-[#44403C] text-base transition-colors flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="15 18 9 12 15 6" />
             </svg>
             Back to Agents
           </button>
         </div>
-        <div className="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg px-3 py-1.5">
+        <div className="flex items-center gap-1.5 bg-[#2563EB]/10 border border-indigo-500/20 rounded-lg px-3 py-1.5">
           <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-          <span className="text-xs font-medium text-indigo-300">AI Agent Builder</span>
+          <span className="text-sm font-medium text-[#3B82F6]">AI Agent Builder</span>
         </div>
       </div>
 
@@ -125,13 +125,13 @@ export default function AgentBuilderPage() {
           {!started && (
             <div className="space-y-8">
               <div className="text-center">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-500/15 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-7 h-7 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <div className="w-14 h-14 rounded-2xl bg-[#2563EB]/15 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-semibold text-white mb-2">What kind of agent do<br/>you want to build?</h2>
-                <p className="text-sm text-slate-500 max-w-md mx-auto">
+                <h2 className="text-2xl font-semibold text-[#1A1816] mb-2">What kind of agent do<br/>you want to build?</h2>
+                <p className="text-base text-[#A8A29E] max-w-md mx-auto">
                   I'll guide you through a quick conversation — one question at a time — then generate a production-ready voice agent you can deploy instantly.
                 </p>
               </div>
@@ -139,11 +139,11 @@ export default function AgentBuilderPage() {
               <div className="grid grid-cols-2 gap-3">
                 {TEMPLATES.map(t => (
                   <button key={t.id} onClick={() => handleTemplate(t)}
-                    className="flex items-start gap-3 p-4 rounded-xl border border-[#1f2235] bg-[#0d0f18] hover:border-indigo-500/30 hover:bg-indigo-500/5 text-left transition-all group">
-                    <span className="text-2xl mt-0.5">{t.icon}</span>
+                    className="flex items-start gap-3 p-4 rounded-xl border border-[#E8E5E2] bg-[#FAFAF9] hover:border-indigo-500/30 hover:bg-[#2563EB]/5 text-left transition-all group">
+                    <span className="text-3xl mt-0.5">{t.icon}</span>
                     <div>
-                      <p className="text-sm font-medium text-slate-200 group-hover:text-white">{t.title}</p>
-                      <p className="text-[11px] text-slate-600 mt-0.5">{t.desc}</p>
+                      <p className="text-base font-medium text-[#44403C] group-hover:text-[#1A1816]">{t.title}</p>
+                      <p className="text-[13px] text-[#A8A29E] mt-0.5">{t.desc}</p>
                     </div>
                   </button>
                 ))}
@@ -156,19 +156,19 @@ export default function AgentBuilderPage() {
             <div className="space-y-4">
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                  <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-base leading-relaxed ${
                     msg.role === 'user'
-                      ? 'bg-indigo-500 text-white rounded-br-md'
-                      : 'bg-[#12141f] border border-[#1f2235] text-slate-300 rounded-bl-md'
+                      ? 'bg-[#2563EB] text-white rounded-br-md'
+                      : 'bg-white border border-[#E8E5E2] text-[#44403C] rounded-bl-md'
                   }`}>
                     {msg.role === 'assistant' && (
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                          <svg className="w-3 h-3 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <div className="w-5 h-5 rounded-full bg-[#2563EB]/20 flex items-center justify-center">
+                          <svg className="w-3 h-3 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M12 2L2 7l10 5 10-5-10-5z" />
                           </svg>
                         </div>
-                        <span className="text-[10px] font-semibold text-indigo-400 uppercase tracking-wider">Builder</span>
+                        <span className="text-[10px] font-semibold text-[#2563EB] uppercase tracking-wider">Builder</span>
                       </div>
                     )}
                     <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -179,11 +179,11 @@ export default function AgentBuilderPage() {
               {/* Typing / scanning indicator */}
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-[#12141f] border border-[#1f2235] rounded-2xl rounded-bl-md px-5 py-4">
+                  <div className="bg-white border border-[#E8E5E2] rounded-2xl rounded-bl-md px-5 py-4">
                     {scanning ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-xs text-indigo-300">Scanning your website...</span>
+                        <span className="text-sm text-[#3B82F6]">Scanning your website...</span>
                       </div>
                     ) : (
                       <div className="flex gap-1.5">
@@ -201,7 +201,7 @@ export default function AgentBuilderPage() {
                 <div className="flex flex-wrap gap-2 pl-2 pt-1">
                   {options.map((opt, i) => (
                     <button key={i} onClick={() => handleOption(opt)}
-                      className="px-4 py-2.5 text-sm font-medium text-indigo-300 bg-indigo-500/8 border border-indigo-500/25 rounded-xl hover:bg-indigo-500/15 hover:border-indigo-500/40 transition-all">
+                      className="px-4 py-2.5 text-base font-medium text-[#3B82F6] bg-[#2563EB]/8 border border-indigo-500/25 rounded-xl hover:bg-[#2563EB]/15 hover:border-indigo-500/40 transition-all">
                       {opt}
                     </button>
                   ))}
@@ -218,48 +218,48 @@ export default function AgentBuilderPage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-emerald-300">Agent Ready</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Review and deploy your new voice agent</p>
+                      <p className="text-base font-semibold text-emerald-300">Agent Ready</p>
+                      <p className="text-sm text-[#A8A29E] mt-0.5">Review and deploy your new voice agent</p>
                     </div>
                   </div>
 
-                  <div className="bg-[#080a12] rounded-xl p-4 space-y-2.5">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">Name</span>
-                      <span className="text-white font-medium">{agentConfig.name}</span>
+                  <div className="bg-[#FAFAF9] rounded-xl p-4 space-y-2.5">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#A8A29E]">Name</span>
+                      <span className="text-[#1A1816] font-medium">{agentConfig.name}</span>
                     </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">Tone</span>
-                      <span className="text-slate-300 capitalize">{agentConfig.behavior?.tone || 'friendly'}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#A8A29E]">Tone</span>
+                      <span className="text-[#44403C] capitalize">{agentConfig.behavior?.tone || 'friendly'}</span>
                     </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">Objective</span>
-                      <span className="text-slate-300 capitalize">{agentConfig.behavior?.objective || 'support'}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#A8A29E]">Objective</span>
+                      <span className="text-[#44403C] capitalize">{agentConfig.behavior?.objective || 'support'}</span>
                     </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">Language</span>
-                      <span className="text-slate-300">{agentConfig.language === 'hi' ? 'Hindi' : agentConfig.language === 'multi' ? 'Multilingual' : 'English'}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#A8A29E]">Language</span>
+                      <span className="text-[#44403C]">{agentConfig.language === 'hi' ? 'Hindi' : agentConfig.language === 'multi' ? 'Multilingual' : 'English'}</span>
                     </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-slate-500">LLM</span>
-                      <span className="text-slate-300">{agentConfig.llm_provider || 'gpt-4o-mini'}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#A8A29E]">LLM</span>
+                      <span className="text-[#44403C]">{agentConfig.llm_provider || 'gpt-4o-mini'}</span>
                     </div>
-                    <div className="border-t border-[#1f2235] pt-2.5 mt-1">
-                      <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Greeting</p>
-                      <p className="text-xs text-slate-400 italic">"{agentConfig.greeting}"</p>
+                    <div className="border-t border-[#E8E5E2] pt-2.5 mt-1">
+                      <p className="text-[12px] text-[#A8A29E] uppercase tracking-wider mb-1">Greeting</p>
+                      <p className="text-sm text-[#78716C] italic">"{agentConfig.greeting}"</p>
                     </div>
                   </div>
 
                   <div className="flex gap-3">
                     <button onClick={handleDeploy}
-                      className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-xl text-sm transition-colors">
+                      className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-xl text-base transition-colors">
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M22 2L11 13M22 2l-7 20-4-9-9-4z" />
                       </svg>
                       Deploy Agent
                     </button>
                     <button onClick={() => { setAgentConfig(null); send('I want to change something.') }}
-                      className="px-4 py-2.5 text-sm text-slate-400 hover:text-white bg-white/5 border border-[#2a2d3a] rounded-xl transition-colors">
+                      className="px-4 py-2.5 text-base text-[#78716C] hover:text-[#1A1816] bg-[#F5F5F4] border border-[#E8E5E2] rounded-xl transition-colors">
                       Edit
                     </button>
                   </div>
@@ -267,7 +267,7 @@ export default function AgentBuilderPage() {
               )}
 
               {creating && (
-                <div className="flex items-center justify-center gap-2 py-6 text-sm text-indigo-300">
+                <div className="flex items-center justify-center gap-2 py-6 text-base text-[#3B82F6]">
                   <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
                   Creating your agent...
                 </div>
@@ -281,7 +281,7 @@ export default function AgentBuilderPage() {
 
       {/* Input area */}
       {started && (
-        <div className="border-t border-[#1a1d2e] bg-[#080a12] px-6 py-4">
+        <div className="border-t border-[#E8E5E2] bg-[#FAFAF9] px-6 py-4">
           <div className="max-w-2xl mx-auto flex gap-3">
             <input
               ref={inputRef}
@@ -290,12 +290,12 @@ export default function AgentBuilderPage() {
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input) } }}
               placeholder={options.length > 0 ? 'Pick an option above or type your own...' : 'Type your answer...'}
               disabled={loading || creating}
-              className="flex-1 bg-[#12141f] border border-[#2a2d3a] focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none transition-colors disabled:opacity-50"
+              className="flex-1 bg-white border border-[#E8E5E2] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors disabled:opacity-50"
             />
             <button
               onClick={() => send(input)}
               disabled={!input.trim() || loading || creating}
-              className="bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-3 rounded-xl transition-colors shrink-0">
+              className="bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-3 rounded-xl transition-colors shrink-0">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 2L11 13M22 2l-7 20-4-9-9-4z" strokeLinejoin="round" strokeLinecap="round" />
               </svg>
