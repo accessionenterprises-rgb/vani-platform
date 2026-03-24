@@ -514,8 +514,13 @@ def admin_hunter_scans(country: Optional[str] = None):
 
 @router.get("/hunter/status", dependencies=[Depends(_verify_token)])
 def admin_hunter_status():
-    from app.routers.number_hunter import _scan_running, _scan_progress, NANP_COUNTRIES
+    from app.routers.number_hunter import _scan_running, _scan_progress, NANP_COUNTRIES, _search_errors
     running = {c: _scan_progress.get(c, {}) for c in _scan_running if _scan_running[c]}
+    # Attach search errors to progress so frontend can display them
+    for c in running:
+        if _search_errors:
+            running[c]["search_errors"] = _search_errors.get("count", 0)
+            running[c]["last_error"] = _search_errors.get("last", "")
 
     # Clean up orphaned DB scans: if no in-memory state but DB says "running",
     # the container restarted mid-scan — mark them as failed immediately

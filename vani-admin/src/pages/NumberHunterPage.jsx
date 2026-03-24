@@ -508,13 +508,14 @@ export default function NumberHunterPage() {
                     <span className="text-xs text-slate-500 font-normal">
                       {p.error ? <span className="text-red-400">error</span>
                         : p.total
-                          ? `${p.searched?.toLocaleString() ?? 0} / ${p.total.toLocaleString()} patterns${p.found ? ` · ${p.found} found` : ''}`
+                          ? `${p.searched?.toLocaleString() ?? 0} / ${p.total.toLocaleString()} patterns${p.found ? ` · ${p.found} found` : ''}${p.search_errors ? ` · ${p.search_errors} failed` : ''}`
                           : 'queued…'}
                     </span>
                   </span>
                   <span className="text-xs text-slate-500">{pct}% {etaStr && `· ${etaStr}`}</span>
                 </div>
                 {p.error && <div className="text-xs text-red-400 mb-1 font-mono">{p.error}</div>}
+                {p.last_error && !p.error && <div className="text-xs text-amber-400/70 mb-1 font-mono truncate">Last fail: {p.last_error}</div>}
                 <div className="h-1.5 bg-[#1f2235] rounded-full overflow-hidden">
                   {p.error
                     ? <div className="h-full bg-red-500/50 rounded-full w-full" />

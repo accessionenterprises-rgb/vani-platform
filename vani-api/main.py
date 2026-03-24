@@ -241,7 +241,7 @@ def debug_clear():
 @app.get("/debug/hunter")
 def debug_hunter():
     """Temporary debug endpoint — remove after scan is working."""
-    from app.routers.number_hunter import _scan_running, _scan_progress, NANP_COUNTRIES
+    from app.routers.number_hunter import _scan_running, _scan_progress, NANP_COUNTRIES, _search_errors
     from app.config import settings as s
     from app.db import get_db as _gdb
     db = _gdb()
@@ -266,6 +266,7 @@ def debug_hunter():
         "sample_results": sample,
         "best_numbers": best,
         "tier_breakdown": dict(sorted(tier_counts.items(), key=lambda x: -x[1])),
+        "search_errors": dict(_search_errors),
         "twilio_configured": bool(s.twilio_account_sid and s.twilio_auth_token),
         "anthropic_configured": bool(s.anthropic_api_key),
     }

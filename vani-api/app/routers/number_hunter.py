@@ -336,7 +336,11 @@ def _twilio_search(country: str, pattern: str, is_tollfree: bool = False, prefix
         else:
             results = client.available_phone_numbers(country).local.list(**kwargs)
         return [n.phone_number for n in results]
-    except Exception:
+    except Exception as exc:
+        _search_errors["count"] = _search_errors.get("count", 0) + 1
+        _search_errors["last"] = f"{pattern}: {exc}"
+        if len(_search_errors.get("patterns", [])) < 20:
+            _search_errors.setdefault("patterns", []).append({"pattern": pattern, "error": str(exc)})
         return []
 
 
@@ -367,13 +371,15 @@ def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False, prefix
         r.raise_for_status()
         return [n["phone_number"] for n in r.json().get("data", [])]
     except Exception as exc:
-        logger.debug("Telnyx search failed for %s: %s", pattern, exc)
+        _search_errors["count"] = _search_errors.get("count", 0) + 1
+        _search_errors["last"] = f"{pattern}: {exc}"
+        if len(_search_errors.get("patterns", [])) < 20:
+            _search_errors.setdefault("patterns", []).append({"pattern": pattern, "error": str(exc)})
         return []
 
 
-# Track Telnyx errors for debugging
-_telnyx_error_count = 0
-_telnyx_last_error = ""
+# Track search errors — visible in status endpoint
+_search_errors: dict = {}
 
 
 def _search_numbers(service: str, country: str, pattern: str, is_tollfree: bool = False, prefix: bool = False) -> list[str]:
@@ -388,6 +394,7 @@ def _search_numbers(service: str, country: str, pattern: str, is_tollfree: bool 
 async def scan_country(country: str, npas: list[int], tiers_filter: Optional[list[str]] = None, service: str = "twilio") -> dict:
     db = get_db()
     scan_id: Optional[str] = None
+    _search_errors.clear()
 
     try:
         patterns = build_patterns(npas, tiers_filter=tiers_filter)
