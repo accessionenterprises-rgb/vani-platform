@@ -79,6 +79,28 @@ async def receive_event(event: EngineEvent):
                 duration_sec=data.get("duration_sec"),
                 transcript=data.get("transcript"),
             )
+
+            # Save provider latency metrics
+            latency = data.get("latency_profile")
+            if latency and latency.get("samples", 0) > 0:
+                try:
+                    db = get_db()
+                    db.table("provider_latency").insert({
+                        "tenant_id":    call.tenant_id,
+                        "stt_provider": data.get("stt_provider", ""),
+                        "llm_provider": data.get("llm_provider", ""),
+                        "tts_provider": data.get("tts_provider", ""),
+                        "avg_ms":       latency.get("avg_ms"),
+                        "p50_ms":       latency.get("p50_ms"),
+                        "p95_ms":       latency.get("p95_ms"),
+                        "min_ms":       latency.get("min_ms"),
+                        "max_ms":       latency.get("max_ms"),
+                        "samples":      latency.get("samples"),
+                        "duration_sec": data.get("duration_sec", 0),
+                    }).execute()
+                except Exception as e:
+                    log.warning("latency_save_failed", error=str(e))
+
             await update_status(event.call_id, CallStatus.POST_PROCESSING)
             await update_status(event.call_id, CallStatus.COMPLETED)
             log.info("call_completed",
