@@ -28,7 +28,7 @@ async def twiml_webhook(
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Dial>
-    <Sip>sip:{to_number}@{SIP_HOST};transport=tcp</Sip>
+    <Sip username="{SIP_USER}" password="{SIP_PASS}">sip:{to_number}@{SIP_HOST};transport=tcp</Sip>
   </Dial>
 </Response>"""
 
