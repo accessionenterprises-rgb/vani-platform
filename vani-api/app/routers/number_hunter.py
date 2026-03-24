@@ -351,13 +351,10 @@ def _telnyx_search(country: str, pattern: str, is_tollfree: bool = False, prefix
             "filter[country_code]": country,
             "filter[limit]": 20,
         }
-        # Telnyx hard limit: contains max 6 chars, starts_with also ~6 chars
+        # Telnyx hard limit: contains max 6 chars
         if len(pattern) > 6:
             return []  # skip — can't search this pattern on Telnyx
         params["filter[phone_number][contains]"] = pattern
-        # For prefix patterns, also filter by NPA to reduce false matches
-        if prefix and len(pattern) >= 3:
-            params["filter[national_destination_code]"] = pattern[:3]
         if is_tollfree:
             params["filter[number_type]"] = "toll-free"
         params["filter[limit]"] = 10
