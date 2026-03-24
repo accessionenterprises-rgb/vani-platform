@@ -309,11 +309,21 @@ def _build_tts(tts_provider: str, voice: str, language: str):
 
     if tts_provider.startswith("cartesia"):
         try:
-            from providers.tts.cartesia import get_cartesia_tts
             cartesia_key = os.getenv("CARTESIA_API_KEY", "")
+            print(f">>> Cartesia check: key={'SET' if cartesia_key else 'EMPTY'} len={len(cartesia_key)} provider={tts_provider} voice={voice}", flush=True)
             if cartesia_key:
-                model = "sonic-2-2025-03-07" if language in ("hi", "multi") else "sonic-2"
-                return get_cartesia_tts(language=language, model=model)
+                # Prefer official livekit-plugins-cartesia (streaming WebSocket, lowest latency)
+                try:
+                    from livekit.plugins import cartesia as cartesia_plugin
+                    vid = voice or "f786b574-daa5-4673-aa0c-cbe3e8534c02"  # Katie default
+                    model = "sonic-2"
+                    print(f">>> Using official Cartesia plugin: voice={vid} model={model}", flush=True)
+                    return cartesia_plugin.TTS(model=model, voice=vid, api_key=cartesia_key, language="en")
+                except ImportError:
+                    print(">>> Official Cartesia plugin not installed, using custom", flush=True)
+                    from providers.tts.cartesia import get_cartesia_tts
+                    model = "sonic-2-2025-03-07" if language in ("hi", "multi") else "sonic-2"
+                    return get_cartesia_tts(voice_id=voice, language=language, model=model)
             else:
                 print(">>> CARTESIA_API_KEY not set, falling back to OpenAI TTS", flush=True)
         except Exception as e:
