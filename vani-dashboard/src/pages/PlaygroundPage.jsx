@@ -30,22 +30,62 @@ export default function PlaygroundPage() {
           <p className="text-base text-[#A8A29E] mt-0.5">Test agents before going live</p>
         </div>
 
-        {/* Agent selector */}
-        <div className="bg-white rounded-xl border border-[#E8E5E2] p-4 mb-5 flex items-center gap-4">
-          <label className="text-sm font-medium text-[#78716C] shrink-0">Agent</label>
-          <select
-            value={selectedAgent}
-            onChange={e => setSelectedAgent(e.target.value)}
-            className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-base text-[#1A1816] focus:outline-none focus:border-[#2563EB] min-w-[220px]">
-            {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
+        {/* Agent selector + quick stack controls */}
+        <div className="bg-white rounded-xl border border-[#E8E5E2] p-4 mb-5 space-y-3">
+          <div className="flex items-center gap-4">
+            <label className="text-sm font-medium text-[#78716C] shrink-0">Agent</label>
+            <select
+              value={selectedAgent}
+              onChange={e => setSelectedAgent(e.target.value)}
+              className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-base text-[#1A1816] focus:outline-none focus:border-[#2563EB] min-w-[220px]">
+              {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+          </div>
           {agent && (
-            <div className="flex gap-3 ml-2">
-              {[['STT', agent.stt_provider], ['LLM', agent.llm_provider], ['TTS', agent.tts_provider]].map(([k, v]) => (
-                <span key={k} className="text-sm text-[#A8A29E]">
-                  <span className="text-[#A8A29E]">{k}:</span> {v}
-                </span>
-              ))}
+            <div className="flex items-center gap-3 flex-wrap">
+              <StackDropdown label="STT" field="stt_provider" value={agent.stt_provider} agentId={agent.id}
+                options={[
+                  { id: 'deepgram-nova-3', name: 'Nova-3', cost: '₹0.16' },
+                  { id: 'deepgram-nova-2', name: 'Nova-2', cost: '₹0.13' },
+                  { id: 'sarvam-saaras', name: 'Saaras v2', cost: '₹0.46' },
+                  { id: 'openai-whisper', name: 'Whisper', cost: '₹0.23' },
+                ]}
+                onUpdate={(field, val) => setAgents(prev => prev.map(a => a.id === agent.id ? {...a, [field]: val} : a))}
+              />
+              <StackDropdown label="LLM" field="llm_provider" value={agent.llm_provider} agentId={agent.id}
+                options={[
+                  { id: 'gpt-5-nano', name: 'GPT-5 Nano', cost: '₹0.07' },
+                  { id: 'gpt-5-mini', name: 'GPT-5 Mini', cost: '₹0.35' },
+                  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', cost: '₹0.16' },
+                  { id: 'gpt-5', name: 'GPT-5', cost: '₹1.76' },
+                  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', cost: '₹0.16' },
+                  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', cost: '₹0.10' },
+                  { id: 'gemini-2.0-flash-lite', name: 'Flash Lite', cost: '₹0.08' },
+                  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku', cost: '₹0.93' },
+                ]}
+                onUpdate={(field, val) => setAgents(prev => prev.map(a => a.id === agent.id ? {...a, [field]: val} : a))}
+              />
+              <StackDropdown label="TTS" field="tts_provider" value={agent.tts_provider} agentId={agent.id}
+                options={[
+                  { id: 'cartesia', name: 'Cartesia Sonic 3', cost: '₹0.20' },
+                  { id: 'openai', name: 'OpenAI', cost: '₹1.28' },
+                  { id: 'sarvam', name: 'Sarvam', cost: '₹0.30' },
+                  { id: 'elevenlabs', name: 'ElevenLabs', cost: '₹4.24' },
+                ]}
+                onUpdate={(field, val) => setAgents(prev => prev.map(a => a.id === agent.id ? {...a, [field]: val} : a))}
+              />
+              <div className="ml-auto text-right">
+                <span className="text-xs text-[#A8A29E]">Est. cost</span>
+                <p className="text-sm font-bold text-[#1A1816]">~₹{(() => {
+                  const costs = { 'deepgram-nova-3': 0.16, 'deepgram-nova-2': 0.13, 'sarvam-saaras': 0.46, 'openai-whisper': 0.23,
+                    'gpt-5-nano': 0.07, 'gpt-5-mini': 0.35, 'gpt-4o-mini': 0.16, 'gpt-5': 1.76, 'gemini-2.5-flash': 0.16, 'gemini-2.0-flash': 0.10, 'gemini-2.0-flash-lite': 0.08, 'claude-haiku-4-5-20251001': 0.93,
+                    'cartesia': 0.20, 'openai': 1.28, 'sarvam': 0.30, 'elevenlabs': 4.24 }
+                  const stt = costs[agent.stt_provider] || 0.16
+                  const llm = costs[agent.llm_provider] || 0.16
+                  const tts = costs[agent.tts_provider] || 0.20
+                  return (stt + llm + tts + 0.95 + 0.81).toFixed(1)
+                })()}/min</p>
+              </div>
             </div>
           )}
         </div>
@@ -77,6 +117,35 @@ export default function PlaygroundPage() {
 // ── Text Chat Tab ─────────────────────────────────────────────────────────────
 
 // ── Voice Call Tab (WebRTC) ───────────────────────────────────────────────────
+
+function StackDropdown({ label, field, value, agentId, options, onUpdate }) {
+  const [saving, setSaving] = useState(false)
+  const handleChange = async (e) => {
+    const val = e.target.value
+    setSaving(true)
+    try {
+      await api.updateAgent(agentId, { [field]: val })
+      onUpdate(field, val)
+    } catch (err) {
+      console.error(err)
+    }
+    setSaving(false)
+  }
+  const opt = options.find(o => o.id === value || value?.startsWith(o.id))
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-[11px] font-bold text-[#A8A29E] uppercase tracking-wider">{label}</span>
+      <select value={value || ''} onChange={handleChange} disabled={saving}
+        className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-md px-2 py-1 text-[13px] text-[#1A1816] focus:outline-none focus:border-[#2563EB] disabled:opacity-50">
+        {options.map(o => (
+          <option key={o.id} value={o.id}>{o.name} ({o.cost}/min)</option>
+        ))}
+      </select>
+      {saving && <div className="w-3 h-3 border border-[#2563EB] border-t-transparent rounded-full animate-spin" />}
+    </div>
+  )
+}
+
 
 function VoiceCallTab({ selectedAgent, agent }) {
   const [status, setStatus] = useState('idle') // idle | connecting | connected | ended
