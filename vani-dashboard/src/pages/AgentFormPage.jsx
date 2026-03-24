@@ -14,12 +14,16 @@ const STT_PROVIDERS = [
 ]
 
 const LLM_PROVIDERS = [
-  // OpenAI
-  { id: 'gpt-4.1-nano',              name: 'GPT-4.1 Nano',     vendor: 'OpenAI',    desc: 'Fastest, ultra-low cost',           badge: 'Speed',       latency: '~200ms', cost: '$0.0011/min' },
-  { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',      vendor: 'OpenAI',    desc: 'Fast, cost-efficient, reliable',    badge: 'Recommended', latency: '~300ms', cost: '$0.0017/min' },
-  { id: 'gpt-4.1-mini',              name: 'GPT-4.1 Mini',     vendor: 'OpenAI',    desc: 'Smarter than 4o-mini, fast',        badge: 'Best Value',  latency: '~280ms', cost: '$0.0046/min' },
-  { id: 'gpt-4.1',                   name: 'GPT-4.1',          vendor: 'OpenAI',    desc: 'Most capable, coding & reasoning',  badge: 'Premium',     latency: '~400ms', cost: '$0.0216/min' },
-  { id: 'gpt-4o',                    name: 'GPT-4o',           vendor: 'OpenAI',    desc: 'Multimodal, high quality',          badge: null,          latency: '~500ms', cost: '$0.0285/min' },
+  // OpenAI — GPT-5 family
+  { id: 'gpt-5-nano',                name: 'GPT-5 Nano',       vendor: 'OpenAI',    desc: 'Cheapest GPT-5, ultra-fast',        badge: 'Speed',       latency: '~150ms', cost: '$0.0007/min' },
+  { id: 'gpt-5-mini',                name: 'GPT-5 Mini',       vendor: 'OpenAI',    desc: 'Balanced speed & intelligence',     badge: 'Best Value',  latency: '~250ms', cost: '$0.0037/min' },
+  { id: 'gpt-5',                     name: 'GPT-5',            vendor: 'OpenAI',    desc: 'Highly capable, strong reasoning',  badge: null,          latency: '~400ms', cost: '$0.0185/min' },
+  { id: 'gpt-5.4',                   name: 'GPT-5.4',          vendor: 'OpenAI',    desc: 'Latest — most intelligent',         badge: 'Premium',     latency: '~500ms', cost: '$0.0327/min' },
+  // OpenAI — GPT-4 family
+  { id: 'gpt-4.1-nano',              name: 'GPT-4.1 Nano',     vendor: 'OpenAI',    desc: 'Legacy fast, ultra-low cost',       badge: null,          latency: '~200ms', cost: '$0.0011/min' },
+  { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',      vendor: 'OpenAI',    desc: 'Legacy fast, cost-efficient',       badge: 'Recommended', latency: '~300ms', cost: '$0.0017/min' },
+  { id: 'gpt-4.1-mini',              name: 'GPT-4.1 Mini',     vendor: 'OpenAI',    desc: 'Legacy — smarter than 4o-mini',     badge: null,          latency: '~280ms', cost: '$0.0046/min' },
+  { id: 'gpt-4.1',                   name: 'GPT-4.1',          vendor: 'OpenAI',    desc: 'Legacy — coding & reasoning',       badge: null,          latency: '~400ms', cost: '$0.0216/min' },
   // Google
   { id: 'gemini-2.5-flash',          name: 'Gemini 2.5 Flash', vendor: 'Google',    desc: 'Latest — thinking + fast',          badge: 'New',         latency: '~250ms', cost: '$0.0017/min' },
   { id: 'gemini-2.0-flash',          name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast',        latency: '~250ms', cost: '$0.0011/min' },
