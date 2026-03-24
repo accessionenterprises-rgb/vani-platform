@@ -16,7 +16,7 @@ from config import settings
 
 logger = structlog.get_logger()
 
-POLL_INTERVAL_SEC = 1.5
+POLL_INTERVAL_SEC = 0.5
 MAX_ATTEMPTS = 3
 JOIN_WAIT_SEC = 4
 
@@ -85,6 +85,10 @@ async def sip_bridge() -> None:
     while True:
         try:
             rooms = await _list_rooms()
+
+            if rooms:
+                logger.info("sip_bridge_poll", room_count=len(rooms),
+                            rooms=[{"name": r["name"], "p": r["participants"]} for r in rooms])
 
             for room in rooms:
                 name = room["name"]
