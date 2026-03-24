@@ -18,7 +18,7 @@ RUN uv pip install --system \
     "python-multipart>=0.0.12" "pypdf>=4.3" \
     "python-dotenv" "structlog>=24.4" "httpx>=0.27" \
     "python-jose[cryptography]" "bcrypt>=4.0" \
-    "twilio>=9.0"
+    "twilio>=9.0" "livekit-api>=0.7" "anthropic>=0.40"
 
 EXPOSE 8000
 
