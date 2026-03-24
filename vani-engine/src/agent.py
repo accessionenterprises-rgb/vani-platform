@@ -591,11 +591,10 @@ async def vani_agent(ctx: JobContext):
             language=dg_language,
             smart_format=True,
             filler_words=False,
-            endpointing_ms=25,
+            endpointing_ms=200,
         ),
         llm=llm,
         tts=tts,
-        preemptive_generation=True,
     )
 
     filler = FillerSystem(session, language=language, delay_ms=100)
