@@ -565,7 +565,7 @@ async def vani_agent(ctx: JobContext):
             language=dg_language,
             smart_format=True,
             filler_words=False,
-            endpointing_ms=500,
+            endpointing_ms=300,
         ),
         llm=llm,
         tts=tts,
