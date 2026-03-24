@@ -14,17 +14,26 @@ const STT_PROVIDERS = [
 ]
 
 const LLM_PROVIDERS = [
+  // OpenAI
+  { id: 'gpt-4.1-nano',              name: 'GPT-4.1 Nano',     vendor: 'OpenAI',    desc: 'Fastest, ultra-low cost',           badge: 'Speed',       latency: '~200ms', cost: '$0.0011/min' },
   { id: 'gpt-4o-mini',               name: 'GPT-4o Mini',      vendor: 'OpenAI',    desc: 'Fast, cost-efficient, reliable',    badge: 'Recommended', latency: '~300ms', cost: '$0.0017/min' },
-  { id: 'gemini-3.0-flash',           name: 'Gemini 3.0 Flash', vendor: 'Google',    desc: 'Latest — fastest & smartest',       badge: 'Best Value',  latency: '~200ms', cost: '$0.0017/min' },
-  { id: 'gemini-2.0-flash',           name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast',        latency: '~250ms', cost: '$0.0011/min' },
-  { id: 'gemini-flash-lite',          name: 'Flash Lite',       vendor: 'Google',    desc: 'Ultra-fast, lowest cost',           badge: null,          latency: '~150ms', cost: '$0.0009/min' },
-  { id: 'claude-haiku-4-5-20251001',  name: 'Claude Haiku',     vendor: 'Anthropic', desc: 'Nuanced instruction-following',     badge: null,          latency: '~400ms', cost: '$0.0098/min' },
-  { id: 'gpt-4o',                     name: 'GPT-4o',           vendor: 'OpenAI',    desc: 'Most capable, higher cost',         badge: 'Premium',     latency: '~500ms', cost: '$0.0285/min' },
-  { id: 'gpt-4o-mini-realtime',      name: 'GPT-4o Mini RT',   vendor: 'OpenAI',    desc: 'Speech-to-speech, low latency',     badge: 'Realtime',    latency: '~150ms', cost: '$0.096/min' },
+  { id: 'gpt-4.1-mini',              name: 'GPT-4.1 Mini',     vendor: 'OpenAI',    desc: 'Smarter than 4o-mini, fast',        badge: 'Best Value',  latency: '~280ms', cost: '$0.0046/min' },
+  { id: 'gpt-4.1',                   name: 'GPT-4.1',          vendor: 'OpenAI',    desc: 'Most capable, coding & reasoning',  badge: 'Premium',     latency: '~400ms', cost: '$0.0216/min' },
+  { id: 'gpt-4o',                    name: 'GPT-4o',           vendor: 'OpenAI',    desc: 'Multimodal, high quality',          badge: null,          latency: '~500ms', cost: '$0.0285/min' },
+  // Google
+  { id: 'gemini-2.5-flash',          name: 'Gemini 2.5 Flash', vendor: 'Google',    desc: 'Latest — thinking + fast',          badge: 'New',         latency: '~250ms', cost: '$0.0017/min' },
+  { id: 'gemini-2.0-flash',          name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast',        latency: '~250ms', cost: '$0.0011/min' },
+  { id: 'gemini-2.0-flash-lite',     name: 'Gemini Flash Lite',vendor: 'Google',    desc: 'Ultra-fast, cheapest LLM',          badge: null,          latency: '~150ms', cost: '$0.0008/min' },
+  // Anthropic
+  { id: 'claude-haiku-4-5-20251001', name: 'Claude 4.5 Haiku', vendor: 'Anthropic', desc: 'Fast, nuanced, instruction-following', badge: null,       latency: '~400ms', cost: '$0.0098/min' },
+  { id: 'claude-sonnet-4-20250514',  name: 'Claude 4 Sonnet',  vendor: 'Anthropic', desc: 'Best reasoning, highest quality',   badge: 'Premium',     latency: '~600ms', cost: '$0.0369/min' },
+  // Realtime (Speech-to-Speech)
+  { id: 'gpt-4o-mini-realtime',      name: 'GPT-4o Mini RT',   vendor: 'OpenAI',    desc: 'Speech-to-speech, replaces STT+TTS',badge: 'Realtime',   latency: '~150ms', cost: '$0.096/min' },
   { id: 'gpt-4o-realtime',           name: 'GPT-4o Realtime',  vendor: 'OpenAI',    desc: 'Speech-to-speech, most capable',    badge: 'Realtime',    latency: '~150ms', cost: '$0.39/min' },
-  { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',    vendor: 'Meta',      desc: 'Open-source, self-hostable',        badge: null,          latency: '~400ms', cost: '$0.0054/min' },
+  // Open Source / Other
+  { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',    vendor: 'Groq',      desc: 'Open-source via Groq — ultra-fast', badge: 'Fast',       latency: '~200ms', cost: '$0.0054/min' },
+  { id: 'deepseek-chat',             name: 'DeepSeek V3',      vendor: 'DeepSeek',  desc: 'Cost-effective, strong reasoning',  badge: null,          latency: '~300ms', cost: '$0.0031/min' },
   { id: 'mistral-large',             name: 'Mistral Large',    vendor: 'Mistral',   desc: 'EU data-resident option',           badge: null,          latency: '~350ms', cost: '$0.0211/min' },
-  { id: 'deepseek-chat',             name: 'DeepSeek Chat',    vendor: 'DeepSeek',  desc: 'Cost-effective, fast responses',    badge: null,          latency: '~300ms', cost: '$0.0031/min' },
 ]
 
 const TTS_PROVIDERS = [
@@ -50,6 +59,33 @@ const OPENAI_VOICES = [
   { id: 'openai-sage',     name: 'Sage',     accent: 'American', age: 'Young',       src: 'Provider' },
   { id: 'openai-shimmer',  name: 'Shimmer',  accent: 'American', age: 'Mature',      src: 'Provider' },
   { id: 'openai-verse',    name: 'Verse',    accent: 'American', age: 'Mid',         src: 'Provider' },
+]
+
+const CARTESIA_VOICES = [
+  { id: 'a167e0f3-df7e-4d52-a9c3-f949145efdab', name: 'Blake',      desc: 'Helpful Agent',       gender: 'M', accent: 'American' },
+  { id: 'e07c00bc-4134-4eae-9ea4-1a55fb45746b', name: 'Brooke',     desc: 'Big Sister',          gender: 'F', accent: 'American' },
+  { id: 'f9836c6e-a0bd-460e-9d3c-f7299fa60f94', name: 'Caroline',   desc: 'Southern Guide',      gender: 'F', accent: 'American' },
+  { id: 'e8e5fffb-252c-436d-b842-8879b84445b6', name: 'Cathy',      desc: 'Coworker',            gender: 'F', accent: 'American' },
+  { id: '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc', name: 'Jacqueline', desc: 'Reassuring Agent',    gender: 'F', accent: 'American' },
+  { id: 'f786b574-daa5-4673-aa0c-cbe3e8534c02', name: 'Katie',      desc: 'Friendly Fixer',      gender: 'F', accent: 'American' },
+  { id: '5ee9feff-1265-424a-9d7f-8e4d431a12c7', name: 'Ronald',     desc: 'Thinker',             gender: 'M', accent: 'American' },
+  { id: '79f8b5fb-2cc8-479a-80df-29f7a7cf1a3e', name: 'Theo',       desc: 'Modern Narrator',     gender: 'M', accent: 'American' },
+]
+
+const ELEVENLABS_VOICES = [
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah',    desc: 'Mature, Reassuring',     gender: 'F', accent: 'American' },
+  { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica',  desc: 'Playful, Bright',        gender: 'F', accent: 'American' },
+  { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice',    desc: 'Clear, Engaging',        gender: 'F', accent: 'British' },
+  { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda',  desc: 'Professional',           gender: 'F', accent: 'American' },
+  { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily',     desc: 'Velvety Actress',        gender: 'F', accent: 'British' },
+  { id: 'hpp4J3VqNfWAUOO0d1Us', name: 'Bella',    desc: 'Professional, Warm',     gender: 'F', accent: 'American' },
+  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura',    desc: 'Enthusiast, Quirky',     gender: 'F', accent: 'American' },
+  { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger',    desc: 'Laid-Back, Casual',      gender: 'M', accent: 'American' },
+  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie',  desc: 'Deep, Confident',        gender: 'M', accent: 'Australian' },
+  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George',   desc: 'Warm, Captivating',      gender: 'M', accent: 'British' },
+  { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric',     desc: 'Smooth, Trustworthy',    gender: 'M', accent: 'American' },
+  { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian',    desc: 'Deep, Comforting',       gender: 'M', accent: 'American' },
+  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel',   desc: 'Steady Broadcaster',     gender: 'M', accent: 'British' },
 ]
 
 const VOICE_STEPS = [
@@ -565,6 +601,30 @@ function StackStep({ form, set }) {
         <SarvamVoicePicker
           selected={form.tts_provider?.startsWith('sarvam-') ? form.tts_provider : 'sarvam-priya'}
           onSelect={v => set('tts_provider', v)}
+        />
+      )}
+
+      {/* Cartesia voice picker */}
+      {form.tts_provider === 'cartesia' && (
+        <VoiceGrid
+          title="Cartesia Sonic 3"
+          subtitle="Ultra-low latency — ~40ms"
+          voices={CARTESIA_VOICES}
+          selected={form.voice}
+          onSelect={v => { set('tts_provider', 'cartesia'); set('voice', v) }}
+          previewPrefix="cartesia"
+        />
+      )}
+
+      {/* ElevenLabs voice picker */}
+      {form.tts_provider === 'elevenlabs' && (
+        <VoiceGrid
+          title="ElevenLabs"
+          subtitle="Ultra-realistic, expressive"
+          voices={ELEVENLABS_VOICES}
+          selected={form.voice}
+          onSelect={v => { set('tts_provider', 'elevenlabs'); set('voice', v) }}
+          previewPrefix="elevenlabs"
         />
       )}
     </div>
@@ -1298,6 +1358,70 @@ const SARVAM_VOICES = [
   { id: 'sarvam-rehan',    name: 'Rehan',    gender: 'Male',   lang: 'Hi · En' },
   { id: 'sarvam-soham',    name: 'Soham',    gender: 'Male',   lang: 'Hi · En' },
 ]
+
+function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix }) {
+  const [playing, setPlaying] = useState(null)
+  const audioRef = useRef(null)
+  const [genderFilter, setGenderFilter] = useState('All')
+
+  const filtered = genderFilter === 'All' ? voices : voices.filter(v => v.gender === genderFilter)
+
+  const playPreview = (voice) => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
+    if (playing === voice.id) { setPlaying(null); return }
+    const nameLower = voice.name.toLowerCase()
+    const url = `https://api.vani.live/static/voice-previews/${previewPrefix}-${nameLower}.mp3`
+    const audio = new Audio(url)
+    audio.onended = () => setPlaying(null)
+    audio.onerror = () => setPlaying(null)
+    audio.play()
+    audioRef.current = audio
+    setPlaying(voice.id)
+  }
+
+  return (
+    <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold text-slate-300">{title}</p>
+          <p className="text-[10px] text-slate-500">{subtitle}</p>
+        </div>
+        <div className="flex gap-1">
+          {['All', 'F', 'M'].map(g => (
+            <button key={g} type="button" onClick={() => setGenderFilter(g)}
+              className={`px-2 py-0.5 text-[9px] font-medium rounded transition-colors ${
+                genderFilter === g ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-500 hover:text-slate-300'
+              }`}>{g === 'All' ? 'All' : g === 'F' ? 'Female' : 'Male'}</button>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {filtered.map(v => (
+          <button key={v.id} type="button"
+            onClick={() => onSelect(v.id)}
+            className={`relative text-left p-3 rounded-lg border transition-all ${
+              selected === v.id
+                ? 'bg-indigo-500/10 border-indigo-500/40'
+                : 'bg-[#12141f] border-[#2a2d3a] hover:border-[#3a3d4a]'
+            }`}>
+            <p className={`text-[11px] font-semibold ${selected === v.id ? 'text-indigo-300' : 'text-white'}`}>{v.name}</p>
+            <p className="text-[9px] text-slate-500">{v.desc}</p>
+            <p className="text-[9px] text-slate-600">{v.accent} {v.gender === 'F' ? '♀' : '♂'}</p>
+            <button type="button" onClick={(e) => { e.stopPropagation(); playPreview(v) }}
+              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1f2235] hover:bg-[#2a2d3a] flex items-center justify-center transition-colors">
+              {playing === v.id ? (
+                <div className="w-2 h-2 rounded-sm bg-indigo-400" />
+              ) : (
+                <svg className="w-2.5 h-2.5 text-slate-400 ml-0.5" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,0 12,6 2,12" /></svg>
+              )}
+            </button>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 
 function SarvamVoicePicker({ selected, onSelect }) {
   const [previewLang, setPreviewLang] = useState('en')
