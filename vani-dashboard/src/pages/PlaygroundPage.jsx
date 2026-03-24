@@ -52,7 +52,7 @@ export default function PlaygroundPage() {
 
         {/* Tabs */}
         <div className="flex gap-1 mb-5 bg-[#0d0f18] rounded-lg p-1 w-fit border border-[#1f2235]">
-          {[['chat', 'Text Chat'], ['phone', 'Phone Test'], ['sim', 'Simulation']].map(([key, label]) => (
+          {[['voice', 'Voice Call'], ['chat', 'Text Chat'], ['phone', 'Phone Test'], ['sim', 'Simulation']].map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
@@ -64,10 +64,183 @@ export default function PlaygroundPage() {
           ))}
         </div>
 
+        {tab === 'voice' && <VoiceCallTab selectedAgent={selectedAgent} agent={agent} />}
         {tab === 'chat' && <TextChatTab selectedAgent={selectedAgent} agent={agent} />}
         {tab === 'phone' && <PhoneTestTab selectedAgent={selectedAgent} />}
         {tab === 'sim' && <SimulationTab selectedAgent={selectedAgent} agent={agent} />}
       </div>
+    </div>
+  )
+}
+
+
+// ── Text Chat Tab ─────────────────────────────────────────────────────────────
+
+// ── Voice Call Tab (WebRTC) ───────────────────────────────────────────────────
+
+function VoiceCallTab({ selectedAgent, agent }) {
+  const [status, setStatus] = useState('idle') // idle | connecting | connected | ended
+  const [duration, setDuration] = useState(0)
+  const [error, setError] = useState('')
+  const roomRef = useRef(null)
+  const timerRef = useRef(null)
+  const audioRef = useRef(null)
+
+  const startCall = async () => {
+    if (!selectedAgent) return
+    setStatus('connecting')
+    setError('')
+
+    try {
+      const data = await api.startVoiceTest(selectedAgent)
+
+      const { Room, RoomEvent, Track } = await import('livekit-client')
+      const room = new Room()
+      roomRef.current = room
+
+      // Handle remote audio (agent's voice)
+      room.on(RoomEvent.TrackSubscribed, (track) => {
+        if (track.kind === Track.Kind.Audio) {
+          const el = track.attach()
+          el.id = 'agent-audio'
+          document.body.appendChild(el)
+          audioRef.current = el
+        }
+      })
+
+      room.on(RoomEvent.TrackUnsubscribed, (track) => {
+        track.detach().forEach(el => el.remove())
+      })
+
+      room.on(RoomEvent.Disconnected, () => {
+        setStatus('ended')
+        if (timerRef.current) clearInterval(timerRef.current)
+      })
+
+      room.on(RoomEvent.ParticipantConnected, () => {
+        setStatus('connected')
+        const start = Date.now()
+        timerRef.current = setInterval(() => setDuration(Math.floor((Date.now() - start) / 1000)), 1000)
+      })
+
+      await room.connect(data.livekit_url, data.token)
+
+      // Publish microphone
+      await room.localParticipant.setMicrophoneEnabled(true)
+
+      // If agent already in room
+      if (room.remoteParticipants.size > 0) {
+        setStatus('connected')
+        const start = Date.now()
+        timerRef.current = setInterval(() => setDuration(Math.floor((Date.now() - start) / 1000)), 1000)
+      }
+
+    } catch (err) {
+      setError(err.message)
+      setStatus('idle')
+    }
+  }
+
+  const endCall = () => {
+    if (roomRef.current) {
+      roomRef.current.disconnect()
+      roomRef.current = null
+    }
+    if (timerRef.current) clearInterval(timerRef.current)
+    if (audioRef.current) {
+      audioRef.current.remove()
+      audioRef.current = null
+    }
+    setStatus('ended')
+    setDuration(0)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (roomRef.current) roomRef.current.disconnect()
+      if (timerRef.current) clearInterval(timerRef.current)
+      if (audioRef.current) audioRef.current.remove()
+    }
+  }, [])
+
+  const fmtTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+
+  return (
+    <div className="bg-[#12141f] rounded-2xl border border-[#1f2235] p-8 flex flex-col items-center justify-center min-h-[400px] gap-6">
+      {/* Waveform visualization */}
+      <div className="w-32 h-32 rounded-full border-2 border-[#2a2d3a] flex items-center justify-center relative">
+        {status === 'connected' && (
+          <div className="absolute inset-0 rounded-full border-2 border-indigo-500/30 animate-ping" />
+        )}
+        <div className={`w-24 h-24 rounded-full flex items-center justify-center transition-colors ${
+          status === 'connected' ? 'bg-indigo-500/15' :
+          status === 'connecting' ? 'bg-amber-500/15' :
+          'bg-[#0d0f18]'
+        }`}>
+          {status === 'idle' || status === 'ended' ? (
+            <svg className="w-10 h-10 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          ) : status === 'connecting' ? (
+            <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <div className="flex items-center gap-0.5">
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="w-1 bg-indigo-400 rounded-full animate-pulse"
+                  style={{ height: `${12 + Math.random() * 20}px`, animationDelay: `${i * 0.1}s` }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Status text */}
+      <div className="text-center">
+        <p className="text-lg font-semibold text-white">
+          {status === 'idle' && 'Ready to test'}
+          {status === 'connecting' && 'Connecting...'}
+          {status === 'connected' && fmtTime(duration)}
+          {status === 'ended' && 'Call ended'}
+        </p>
+        <p className="text-xs text-slate-500 mt-1">
+          {status === 'idle' && (agent?.name || 'Select an agent')}
+          {status === 'connecting' && 'Setting up voice channel...'}
+          {status === 'connected' && `Speaking with ${agent?.name || 'Agent'}`}
+          {status === 'ended' && `Duration: ${fmtTime(duration)}`}
+        </p>
+      </div>
+
+      {/* Controls */}
+      <div className="flex gap-3">
+        {(status === 'idle' || status === 'ended') && (
+          <button onClick={startCall} disabled={!selectedAgent}
+            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 text-white font-medium px-6 py-3 rounded-full text-sm transition-colors">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
+            </svg>
+            Start Voice Test
+          </button>
+        )}
+        {(status === 'connecting' || status === 'connected') && (
+          <button onClick={endCall}
+            className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-medium px-6 py-3 rounded-full text-sm transition-colors">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08a.956.956 0 01-.29-.7c0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28a11.27 11.27 0 00-2.67-1.85.996.996 0 01-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
+            </svg>
+            End Call
+          </button>
+        )}
+      </div>
+
+      {error && (
+        <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">{error}</p>
+      )}
+
+      <p className="text-[10px] text-slate-600 max-w-xs text-center">
+        Uses your browser microphone + WebRTC. No phone call needed. Zero telephony cost.
+      </p>
     </div>
   )
 }

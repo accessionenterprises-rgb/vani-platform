@@ -215,4 +215,7 @@ export const api = {
   hunterStatus:  () => request('GET', '/hunter/status'),
   hunterScan:    (country = 'US') => request('POST', '/hunter/scan', { country }),
   hunterPurchase:(number) => request('POST', '/hunter/purchase', { number }),
+
+  // Playground voice
+  startVoiceTest: (agent_id) => request('POST', '/playground/voice/start', { agent_id }),
 }
