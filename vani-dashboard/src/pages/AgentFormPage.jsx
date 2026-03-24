@@ -608,14 +608,23 @@ function ProviderSection({ title, stepTag, subtitle, providers, selected, onSele
 }
 
 function LatencyEstimator({ stt, llm, tts }) {
+  const [currency, setCurrency] = useState('USD')
+  const INR_RATE = 85
+
+  // Match provider by exact ID or prefix (e.g. tts "sarvam-priya" matches provider "sarvam")
+  const findProvider = (providers, id) => {
+    if (!id) return null
+    return providers.find(x => id === x.id) || providers.find(x => id.startsWith(x.id + '-') || id.startsWith(x.id))
+  }
+
   const getMs = (providers, id) => {
-    const p = providers.find(x => id === x.id)
+    const p = findProvider(providers, id)
     if (!p?.latency) return 0
     const match = p.latency.match(/(\d+)/)
     return match ? parseInt(match[1]) : 0
   }
   const getCostPerMin = (providers, id) => {
-    const p = providers.find(x => id === x.id)
+    const p = findProvider(providers, id)
     if (!p?.cost) return 0
     const match = p.cost.match(/\$([\d.]+)/)
     return match ? parseFloat(match[1]) : 0
@@ -639,6 +648,13 @@ function LatencyEstimator({ stt, llm, tts }) {
   const barColor = total <= 500 ? 'bg-emerald-500' : total <= 800 ? 'bg-emerald-500' : total <= 1200 ? 'bg-amber-500' : 'bg-red-500'
   const barWidth = Math.min(100, Math.max(10, (total / 2000) * 100))
 
+  const sym = currency === 'INR' ? '₹' : '$'
+  const rate = currency === 'INR' ? INR_RATE : 1
+  const fmtCost = (v) => {
+    const c = v * rate
+    return c < 0.01 ? c.toFixed(4) : c < 1 ? c.toFixed(3) : c.toFixed(2)
+  }
+
   return (
     <div className="bg-[#0d0f18] border border-[#1f2235] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -660,14 +676,22 @@ function LatencyEstimator({ stt, llm, tts }) {
 
       {totalCostMin > 0 && (
         <div className="flex items-center justify-between pt-2 border-t border-[#1f2235]">
-          <p className="text-[11px] font-semibold text-slate-300">Estimated AI Cost</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[11px] font-semibold text-slate-300">Estimated AI Cost</p>
+            <div className="flex rounded-md border border-[#2a2d3a] overflow-hidden">
+              <button type="button" onClick={() => setCurrency('USD')}
+                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'USD' ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>USD</button>
+              <button type="button" onClick={() => setCurrency('INR')}
+                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'INR' ? 'bg-indigo-500/20 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>INR</button>
+            </div>
+          </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <span className="text-sm font-bold font-mono text-white">${totalCostMin < 0.01 ? totalCostMin.toFixed(4) : totalCostMin.toFixed(3)}</span>
+              <span className="text-sm font-bold font-mono text-white">{sym}{fmtCost(totalCostMin)}</span>
               <span className="text-[9px] text-slate-500 ml-1">/min</span>
             </div>
             <div className="text-right">
-              <span className="text-xs font-semibold font-mono text-slate-400">${totalCostHr.toFixed(2)}</span>
+              <span className="text-xs font-semibold font-mono text-slate-400">{sym}{fmtCost(totalCostHr)}</span>
               <span className="text-[9px] text-slate-500 ml-1">/hr</span>
             </div>
           </div>
