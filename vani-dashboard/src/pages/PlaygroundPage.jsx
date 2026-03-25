@@ -75,16 +75,31 @@ export default function PlaygroundPage() {
                 onUpdate={(field, val) => setAgents(prev => prev.map(a => a.id === agent.id ? {...a, [field]: val} : a))}
               />
               <div className="ml-auto text-right">
-                <span className="text-xs text-[#A8A29E]">Est. cost</span>
-                <p className="text-sm font-bold text-[#1A1816]">~₹{(() => {
-                  const costs = { 'deepgram-nova-3': 0.16, 'deepgram-nova-2': 0.13, 'sarvam-saaras': 0.46, 'openai-whisper': 0.23,
-                    'gpt-5-nano': 0.07, 'gpt-5-mini': 0.35, 'gpt-4o-mini': 0.16, 'gpt-5': 1.76, 'gemini-2.5-flash': 0.16, 'gemini-2.0-flash': 0.10, 'gemini-2.0-flash-lite': 0.08, 'claude-haiku-4-5-20251001': 0.93,
-                    'cartesia': 0.20, 'openai': 1.28, 'sarvam': 0.30, 'elevenlabs': 4.24 }
-                  const stt = costs[agent.stt_provider] || 0.16
-                  const llm = costs[agent.llm_provider] || 0.16
-                  const tts = costs[agent.tts_provider] || 0.20
-                  return (stt + llm + tts + 0.95 + 0.81).toFixed(1)
-                })()}/min</p>
+                {(() => {
+                  // Real measured costs per min (from actual call data, ₹95/USD)
+                  const sttCosts = { 'deepgram-nova-3': 0.37, 'deepgram-nova-2': 0.32, 'sarvam-saaras': 0.46, 'openai-whisper': 0.23, 'google': 0.61, 'azure': 0.64 }
+                  const llmCosts = { 'gpt-5-nano': 0.07, 'gpt-5-mini': 0.06, 'gpt-4o-mini': 0.06, 'gpt-5': 1.76, 'gpt-5.4': 3.11,
+                    'gpt-4.1-nano': 0.10, 'gpt-4.1-mini': 0.43, 'gpt-4.1': 2.05, 'gpt-4o': 2.56,
+                    'gemini-2.5-flash': 0.16, 'gemini-2.0-flash': 0.10, 'gemini-2.0-flash-lite': 0.08,
+                    'claude-haiku-4-5-20251001': 0.93, 'claude-sonnet-4-20250514': 3.51,
+                    'llama-3.3-70b': 0.51, 'deepseek-chat': 0.29, 'mistral-large': 2.00 }
+                  const ttsCosts = { 'cartesia': 0.20, 'openai': 0.89, 'sarvam': 0.30, 'elevenlabs': 4.24, 'google-wavenet': 1.37 }
+                  const stt = sttCosts[agent.stt_provider] || 0.37
+                  const llm = llmCosts[agent.llm_provider] || 0.06
+                  const tts = ttsCosts[agent.tts_provider] || 0.20
+                  const engine = 1.33   // Vani engine (transport + SIP)
+                  const telephony = 0.81  // Telephony provider
+                  const total = stt + llm + tts + engine + telephony
+                  return (
+                    <div>
+                      <span className="text-[10px] text-[#A8A29E]">Est. total cost</span>
+                      <p className="text-base font-bold text-[#1A1816]">₹{total.toFixed(1)}/min</p>
+                      <div className="text-[9px] text-[#A8A29E] font-mono mt-0.5 space-y-px">
+                        <p>AI: ₹{(stt+llm+tts).toFixed(2)} | Engine: ₹{engine.toFixed(2)} | Tel: ₹{telephony.toFixed(2)}</p>
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           )}
