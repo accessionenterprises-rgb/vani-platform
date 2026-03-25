@@ -1,12 +1,9 @@
 """
 SIP → Agent Bridge
 
-Watches for rooms created by SIP inbound calls (LiveKit dispatch rules
-don't auto-dispatch agents for external SIP trunks). When a new SIP room
+Watches for rooms created by SIP inbound calls. When a new SIP room
 appears with 1 participant (caller) and no agent, dispatches vani-agent.
-
 Also logs calls to Supabase for dashboard visibility.
-Uses LiveKit Python SDK — no lk CLI dependency.
 """
 import asyncio
 import time
@@ -23,8 +20,16 @@ POLL_INTERVAL_SEC = 0.5
 MAX_ATTEMPTS = 3
 JOIN_WAIT_SEC = 4
 
-_active_rooms: dict[str, int] = {}           # room_name -> attempt count
-_room_calls: dict[str, dict] = {}            # room_name -> {call_id, started_at, phone, agent_id}
+_active_rooms: dict[str, int] = {}
+_room_calls: dict[str, dict] = {}
+
+
+def _extract_phone(room_name: str) -> str:
+    parts = room_name.split("_")
+    for p in parts:
+        if p.startswith("+") and len(p) > 5:
+            return p
+    return ""
 
 
 def _make_client() -> lk_api.LiveKitAPI:
@@ -33,78 +38,6 @@ def _make_client() -> lk_api.LiveKitAPI:
         settings.livekit_api_key,
         settings.livekit_api_secret,
     )
-
-
-def _extract_phone(room_name: str) -> str:
-    """Extract phone number from room name like call_+917569289812_abc123."""
-    parts = room_name.split("_")
-    for p in parts:
-        if p.startswith("+") and len(p) > 5:
-            return p
-    return ""
-
-
-async def _lookup_agent_for_number(phone: str) -> dict | None:
-    """Look up which agent is assigned to the called number."""
-    try:
-        db = get_db()
-        result = (
-            db.table("phone_numbers")
-            .select("agent_id, tenant_id")
-            .eq("status", "active")
-            .maybe_single()
-            .execute()
-        )
-        return result.data
-    except Exception as e:
-        logger.warning("sip_bridge_agent_lookup_failed", error=str(e))
-    return None
-
-
-async def _create_call_record(room_name: str, phone: str) -> str | None:
-    """Create a call record in Supabase. Returns call_id."""
-    try:
-        assignment = await _lookup_agent_for_number(phone)
-        agent_id = assignment["agent_id"] if assignment else None
-        tenant_id = assignment["tenant_id"] if assignment else None
-
-        from datetime import datetime, timezone
-        db = get_db()
-        result = db.table("calls").insert({
-            "phone": phone,
-            "agent_id": agent_id,
-            "tenant_id": tenant_id,
-            "status": "active",
-            "direction": "inbound",
-            "livekit_room": room_name,
-            "started_at": datetime.now(timezone.utc).isoformat(),
-        }).execute()
-
-        call_id = result.data[0]["id"] if result.data else None
-        logger.info("sip_bridge_call_created", call_id=call_id, phone=phone, room=room_name)
-        return call_id
-    except Exception as e:
-        logger.warning("sip_bridge_call_create_failed", error=str(e))
-        return None
-
-
-async def _end_call_record(room_name: str):
-    """Mark a call as completed when room empties."""
-    info = _room_calls.pop(room_name, None)
-    if not info:
-        return
-    try:
-        from datetime import datetime, timezone
-        db = get_db()
-        duration = int(time.time() - info["started_at"])
-        db.table("calls").update({
-            "status": "completed",
-            "duration_sec": duration,
-            "ended_at": datetime.now(timezone.utc).isoformat(),
-        }).eq("id", info["call_id"]).execute()
-        logger.info("sip_bridge_call_ended", call_id=info["call_id"], duration=duration)
-    except Exception as e:
-        logger.warning("sip_bridge_call_end_failed", error=str(e))
 
 
 async def _list_rooms() -> list[dict]:
@@ -123,7 +56,6 @@ async def _list_rooms() -> list[dict]:
 
 
 async def _dispatch_agent(room_name: str) -> bool:
-    """Dispatch vani-agent to room via SDK. Returns True if agent joined."""
     client = _make_client()
     try:
         await client.agent_dispatch.create_dispatch(
@@ -139,8 +71,6 @@ async def _dispatch_agent(room_name: str) -> bool:
         return False
 
     await client.aclose()
-
-    # Wait and verify agent joined
     await asyncio.sleep(JOIN_WAIT_SEC)
 
     rooms = await _list_rooms()
@@ -154,8 +84,53 @@ def _is_sip_room(name: str) -> bool:
     return name.startswith("call") and ("+" in name or name.count("_") >= 2)
 
 
+async def _create_call_record(room_name: str, phone: str) -> str | None:
+    try:
+        from datetime import datetime, timezone
+        db = get_db()
+
+        # Get first active phone number's agent
+        pn = db.table("phone_numbers").select("agent_id, tenant_id").eq("status", "active").limit(1).execute()
+        agent_id = pn.data[0]["agent_id"] if pn.data else None
+        tenant_id = pn.data[0]["tenant_id"] if pn.data else None
+
+        result = db.table("calls").insert({
+            "phone": phone,
+            "agent_id": agent_id,
+            "tenant_id": tenant_id,
+            "status": "active",
+            "direction": "inbound",
+            "livekit_room": room_name,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+        }).execute()
+
+        call_id = result.data[0]["id"] if result.data else None
+        logger.info("sip_bridge_call_created", call_id=call_id, phone=phone)
+        return call_id
+    except Exception as e:
+        logger.error("sip_bridge_call_create_failed", error=str(e), phone=phone)
+        return None
+
+
+async def _end_call_record(room_name: str):
+    info = _room_calls.pop(room_name, None)
+    if not info or not info.get("call_id"):
+        return
+    try:
+        from datetime import datetime, timezone
+        db = get_db()
+        duration = int(time.time() - info["started_at"])
+        db.table("calls").update({
+            "status": "completed",
+            "duration_sec": duration,
+            "ended_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("id", info["call_id"]).execute()
+        logger.info("sip_bridge_call_ended", call_id=info["call_id"], duration=duration)
+    except Exception as e:
+        logger.warning("sip_bridge_call_end_failed", error=str(e))
+
+
 async def sip_bridge() -> None:
-    """Main loop — polls for SIP rooms needing agent dispatch."""
     logger.info("sip_bridge_started")
 
     while True:
@@ -173,19 +148,16 @@ async def sip_bridge() -> None:
                 if not _is_sip_room(name):
                     continue
 
-                # Agent already joined
                 if participants > 1:
                     _active_rooms.pop(name, None)
                     continue
 
-                # Caller left — end the call record
                 if participants == 0:
                     _active_rooms.pop(name, None)
                     if name in _room_calls:
                         await _end_call_record(name)
                     continue
 
-                # 1 participant = SIP caller waiting for agent
                 attempts = _active_rooms.get(name, 0)
 
                 if attempts >= MAX_ATTEMPTS:
@@ -197,7 +169,6 @@ async def sip_bridge() -> None:
 
                 if attempts == 0:
                     logger.info("sip_bridge_detected", room=name)
-                    # Create call record on first detection
                     phone = _extract_phone(name)
                     call_id = await _create_call_record(name, phone)
                     if call_id:
@@ -216,7 +187,7 @@ async def sip_bridge() -> None:
                 else:
                     logger.warning("sip_bridge_retry", room=name, attempt=attempts + 1)
 
-            # Clean up ended calls — rooms that disappeared
+            # Clean up ended calls
             active_room_names = {r["name"] for r in rooms}
             for room_name in list(_room_calls.keys()):
                 if room_name not in active_room_names:
