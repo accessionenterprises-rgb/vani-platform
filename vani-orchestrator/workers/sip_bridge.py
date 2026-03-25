@@ -191,15 +191,17 @@ async def sip_bridge() -> None:
                     continue
 
                 if attempts == 0:
+                    # Skip if already tracked (prevents duplicates from multiple replicas)
+                    if name in _room_calls:
+                        continue
                     logger.info("sip_bridge_detected", room=name)
                     phone = _extract_phone(name)
                     call_id = await _create_call_record(name, phone)
-                    if call_id:
-                        _room_calls[name] = {
-                            "call_id": call_id,
-                            "started_at": time.time(),
-                            "phone": phone,
-                        }
+                    _room_calls[name] = {
+                        "call_id": call_id,
+                        "started_at": time.time(),
+                        "phone": phone,
+                    }
 
                 _active_rooms[name] = attempts + 1
                 joined = await _dispatch_agent(name)

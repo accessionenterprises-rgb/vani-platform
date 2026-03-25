@@ -8,10 +8,13 @@ const PAGE_SIZE = 25
 
 export default function CallsPage() {
   const [calls, setCalls]   = useState([])
+  const [agents, setAgents] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [page, setPage]     = useState(1)
+
+  const agentName = (id) => agents.find(a => a.id === id)?.name || id?.slice(0, 8) + '…'
 
   function load() {
     api.listCalls({ limit: 200 })
@@ -20,7 +23,7 @@ export default function CallsPage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load(); api.listAgents().then(setAgents).catch(() => {}) }, [])
 
   // Auto-refresh every 5 s when active calls exist
   useEffect(() => {
@@ -102,7 +105,7 @@ export default function CallsPage() {
                 {pageData.map(call => (
                   <tr key={call.id} className="hover:bg-[#FAFAF9] transition-colors">
                     <td className="px-5 py-3.5 text-[#44403C] font-medium">{call.phone || '—'}</td>
-                    <td className="px-5 py-3.5 text-[#A8A29E] font-mono text-sm">{call.agent_id?.slice(0,8)}…</td>
+                    <td className="px-5 py-3.5 text-[#A8A29E] font-mono text-sm">{agentName(call.agent_id)}</td>
                     <td className="px-5 py-3.5"><StatusBadge status={call.status} /></td>
                     <td className="px-5 py-3.5"><StatusBadge status={call.direction} /></td>
                     <td className="px-5 py-3.5 text-[#78716C]">{call.duration_sec ? `${call.duration_sec}s` : '—'}</td>
