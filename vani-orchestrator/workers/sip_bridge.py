@@ -84,13 +84,36 @@ def _is_sip_room(name: str) -> bool:
     return name.startswith("call") and ("+" in name or name.count("_") >= 2)
 
 
+async def _get_called_number(room_name: str) -> str | None:
+    """Get the called number (sip.trunkPhoneNumber) from the SIP participant."""
+    client = _make_client()
+    try:
+        resp = await client.room.list_participants(lk_api.ListParticipantsRequest(room=room_name))
+        for p in resp.participants:
+            trunk_num = p.attributes.get("sip.trunkPhoneNumber")
+            if trunk_num:
+                return trunk_num
+    except Exception as e:
+        logger.warning("sip_bridge_get_called_number_failed", error=str(e))
+    finally:
+        await client.aclose()
+    return None
+
+
 async def _create_call_record(room_name: str, phone: str) -> str | None:
     try:
         from datetime import datetime, timezone
         db = get_db()
 
-        # Get first active phone number's agent
-        pn = db.table("phone_numbers").select("agent_id, tenant_id").eq("status", "active").limit(1).execute()
+        # Get the number that was called (from SIP participant attributes)
+        called_number = await _get_called_number(room_name)
+
+        # Look up agent/tenant from the called number
+        if called_number:
+            pn = db.table("phone_numbers").select("agent_id, tenant_id").eq("number", called_number).eq("status", "active").limit(1).execute()
+        else:
+            # Fallback — get from known SIP numbers
+            pn = db.table("phone_numbers").select("agent_id, tenant_id").in_("number", ["+19209209967", "+12064158862"]).eq("status", "active").limit(1).execute()
         agent_id = pn.data[0]["agent_id"] if pn.data else None
         tenant_id = pn.data[0]["tenant_id"] if pn.data else None
 
