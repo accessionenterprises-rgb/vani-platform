@@ -613,11 +613,17 @@ function StackStep({ form, set }) {
           set('tts_provider', v)
           // Auto-set default voice for each provider
           const defaults = {
-            'openai': 'openai-nova',
-            'cartesia': 'f786b574-daa5-4673-aa0c-cbe3e8534c02',
+            'openai': 'nova',
+            'cartesia': 'e07c00bc-4134-4eae-9ea4-1a55fb45746b',
             'elevenlabs': 'EXAVITQu4vr4xnSDxMaL',
-            'sarvam': 'priya',
+            'sarvam': 'manisha',
+            'sarvam-v3': 'shreya',
+            'google-standard': 'en-US-Standard-F',
             'google-wavenet': 'en-US-Wavenet-F',
+            'google-neural2': 'en-US-Neural2-F',
+            'amazon-standard': 'Joanna',
+            'amazon-neural': 'Joanna',
+            'azure-neural': 'en-US-JennyNeural',
           }
           if (defaults[v]) set('voice', defaults[v])
         }}
