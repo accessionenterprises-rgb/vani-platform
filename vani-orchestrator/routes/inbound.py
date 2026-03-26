@@ -202,6 +202,23 @@ async def inbound(
     if engine == "agora":
         # Store agent config in Redis so the WebSocket handler can load it
         import json as _json
+        # Fetch KB context for this agent (first 5 docs, max 3000 chars total)
+        kb_context = ""
+        try:
+            kb_docs = db.table("agent_kb").select("content").eq("agent_id", mapping["agent_id"]).limit(5).execute()
+            if kb_docs.data:
+                chunks = []
+                total = 0
+                for doc in kb_docs.data:
+                    text = (doc.get("content") or "")[:1000]
+                    if total + len(text) > 3000:
+                        break
+                    chunks.append(text)
+                    total += len(text)
+                kb_context = "\n\n".join(chunks)
+        except Exception:
+            pass
+
         await r_client.setex(
             f"agent_config:{call_id}",
             3600,
@@ -209,6 +226,7 @@ async def inbound(
                 "name":         agent_row["name"],
                 "greeting":     agent_row.get("greeting", ""),
                 "prompt":       agent_row.get("prompt", ""),
+                "kb_context":   kb_context,
                 "language":     agent_row.get("language", "en"),
                 "voice":        agent_row.get("voice", "nova"),
                 "stt":          agent_row.get("stt_provider", "deepgram-nova-3"),

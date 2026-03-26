@@ -507,12 +507,17 @@ async def media_stream(ws: WebSocket, call_id: str):
 
     cfg          = json.loads(raw)
     prompt       = cfg.get("prompt", "You are a helpful assistant.")
+    kb_context   = cfg.get("kb_context", "")
     greeting     = cfg.get("greeting", "Hello! How can I help you today?")
     llm_model    = cfg.get("llm", "gpt-4o-mini")
     tts_provider = cfg.get("tts", "openai")
     stt_provider = cfg.get("stt", "deepgram-nova-3")
     language     = cfg.get("language", "en")
     voice_raw    = cfg.get("voice", "alloy")
+
+    # Inject KB context into prompt
+    if kb_context:
+        prompt = prompt + f"\n\nKNOWLEDGE BASE (use this to answer questions):\n{kb_context}"
 
     log.info("media_stream_starting",
              stt=stt_provider, llm=llm_model, tts=tts_provider, voice=voice_raw)
@@ -864,6 +869,9 @@ async def media_stream(ws: WebSocket, call_id: str):
         await asyncio.gather(recv_twilio_w(), whisper_worker())
 
     # ── Run ───────────────────────────────────────────────────────────────────
+    import time as _time
+    _call_start = _time.time()
+
     try:
         await update_status(call_id, CallStatus.CONNECTING)
     except Exception:
@@ -877,14 +885,28 @@ async def media_stream(ws: WebSocket, call_id: str):
     except Exception as e:
         log.error("media_stream_error", error=str(e))
     finally:
-        log.info("media_stream_ended", call_id=call_id)
+        duration_sec = int(_time.time() - _call_start)
+        log.info("media_stream_ended", call_id=call_id, duration=duration_sec)
         playback.stop()
+
+        # Count agent chars for cost calculation
+        agent_chars = sum(len(line[6:].strip()) for line in messages_log if line.startswith("AGENT:"))
+
         try:
             db = get_db()
             db.table("calls").update({
                 "transcript": "\n".join(messages_log),
                 "status": "completed",
-                "engine": "agora",
+                "duration_sec": duration_sec,
+                "engine": "media_stream",
+                "llm_provider": llm_model,
+                "stt_provider": stt_provider,
+                "tts_provider": tts_provider,
+                "metadata": {
+                    "voice": voice_raw,
+                    "agent_chars": agent_chars,
+                    "turns": len([l for l in messages_log if l.startswith("USER:")]),
+                },
             }).eq("id", call_id).execute()
             await update_status(call_id, CallStatus.COMPLETED)
         except Exception:
