@@ -637,11 +637,23 @@ function StackStep({ form, set }) {
         />
       )}
 
-      {/* Sarvam voice picker */}
-      {(form.tts_provider === 'sarvam' || form.tts_provider?.startsWith('sarvam-')) && (
+      {/* Sarvam v2 voice picker */}
+      {form.tts_provider === 'sarvam' && (
         <SarvamVoicePicker
-          selected={form.tts_provider?.startsWith('sarvam-') ? form.tts_provider : 'sarvam-priya'}
-          onSelect={v => { set('tts_provider', v); set('voice', v.replace('sarvam-', '')) }}
+          voices={SARVAM_V2_VOICES}
+          selected={form.voice ? `sarvam-${form.voice}` : 'sarvam-manisha'}
+          onSelect={v => { set('tts_provider', 'sarvam'); set('voice', v.replace('sarvam-', '')) }}
+          title="Sarvam v2 Voices (₹0.83/min)"
+        />
+      )}
+
+      {/* Sarvam v3 voice picker */}
+      {form.tts_provider === 'sarvam-v3' && (
+        <SarvamVoicePicker
+          voices={SARVAM_V3_VOICES}
+          selected={form.voice ? `sarvam-${form.voice}` : 'sarvam-shreya'}
+          onSelect={v => { set('tts_provider', 'sarvam-v3'); set('voice', v.replace('sarvam-', '')) }}
+          title="Sarvam v3 Voices (₹1.65/min)"
         />
       )}
 
@@ -1471,14 +1483,14 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
 }
 
 
-function SarvamVoicePicker({ selected, onSelect }) {
+function SarvamVoicePicker({ selected, onSelect, voices = SARVAM_VOICES, title = "Choose Sarvam Voice" }) {
   const [previewLang, setPreviewLang] = useState('en')
   const [genderFilter, setGenderFilter] = useState('All')
-  const filtered = genderFilter === 'All' ? SARVAM_VOICES : SARVAM_VOICES.filter(v => v.gender === genderFilter)
+  const filtered = genderFilter === 'All' ? voices : voices.filter(v => v.gender === genderFilter)
   return (
     <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-[#78716C]">Choose Sarvam Voice</p>
+        <p className="text-sm font-semibold text-[#78716C]">{title}</p>
         <div className="flex gap-2">
           <div className="flex rounded-lg border border-[#E8E5E2] overflow-hidden">
             {['All', 'Female', 'Male'].map(g => (
