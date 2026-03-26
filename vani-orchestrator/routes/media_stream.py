@@ -228,7 +228,10 @@ async def _tts_cartesia(text: str, voice_id: str) -> bytes:
 
 async def _tts_sarvam(text: str, voice: str, language: str = "en-IN", provider: str = "sarvam") -> bytes:
     """Sarvam AI TTS → WAV → resample → mulaw 8 kHz."""
-    speaker = voice.replace("sarvam-", "") if voice.startswith("sarvam-") else voice or "anushka"
+    speaker = voice.replace("sarvam-", "") if voice.startswith("sarvam-") else voice
+    # Reject invalid speaker names (provider names, empty, etc)
+    if not speaker or speaker in ("sarvam", "sarvam-v3", "openai", "elevenlabs", "cartesia"):
+        speaker = "anushka"
     # v2 voices: anushka, abhilash, manisha, vidya, arya, karun, hitesh
     _V2_VOICES = {"anushka", "abhilash", "manisha", "vidya", "arya", "karun", "hitesh"}
     model = "bulbul:v2" if speaker in _V2_VOICES else "bulbul:v3"
@@ -266,8 +269,10 @@ async def _tts_sarvam(text: str, voice: str, language: str = "en-IN", provider: 
 async def _tts_elevenlabs(text: str, voice_id: str) -> bytes:
     """ElevenLabs TTS → MP3 → decode → resample → mulaw 8 kHz."""
     el_key = getattr(settings, "elevenlabs_api_key", "") or ""
-    if not voice_id or len(voice_id) < 10:
-        voice_id = "EXAVITQu4vr4xnSDxMaL"  # Rachel default
+    # ElevenLabs voice IDs are 20+ char alphanumeric. Reject anything else.
+    _EL_DEFAULT = "EXAVITQu4vr4xnSDxMaL"  # Sarah
+    if not voice_id or len(voice_id) < 15 or voice_id in ("elevenlabs", "openai", "cartesia", "sarvam"):
+        voice_id = _EL_DEFAULT
     async with httpx.AsyncClient(timeout=20) as client:
         r = await client.post(
             f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
