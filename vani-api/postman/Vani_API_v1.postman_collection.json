@@ -1,0 +1,160 @@
+{
+  "info": {
+    "name": "Vani API v1",
+    "description": "Vani Voice AI Platform — Public API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{VANI_API_KEY}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "https://api.vani.live/v1" },
+    { "key": "VANI_API_KEY", "value": "vani_YOUR_KEY_HERE" },
+    { "key": "AGENT_ID", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": \"you@example.com\", \"password\": \"your_password\" }"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agents",
+      "item": [
+        {
+          "name": "List Agents",
+          "request": { "method": "GET", "url": "{{BASE_URL}}/agents" }
+        },
+        {
+          "name": "Create Agent",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/agents",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sales Agent\",\n  \"greeting\": \"Hi, how can I help?\",\n  \"prompt\": \"You are a helpful sales assistant.\",\n  \"llm_provider\": \"llama-3.3-70b\",\n  \"stt_provider\": \"deepgram-nova-3\",\n  \"tts_provider\": \"openai\",\n  \"voice\": \"nova\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Agent",
+          "request": { "method": "GET", "url": "{{BASE_URL}}/agents/{{AGENT_ID}}" }
+        },
+        {
+          "name": "Update Agent",
+          "request": {
+            "method": "PATCH",
+            "url": "{{BASE_URL}}/agents/{{AGENT_ID}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"prompt\": \"Updated prompt here\" }"
+            }
+          }
+        },
+        {
+          "name": "Delete Agent",
+          "request": { "method": "DELETE", "url": "{{BASE_URL}}/agents/{{AGENT_ID}}" }
+        }
+      ]
+    },
+    {
+      "name": "Calls",
+      "item": [
+        {
+          "name": "List Calls",
+          "request": { "method": "GET", "url": "{{BASE_URL}}/calls" }
+        },
+        {
+          "name": "Get Call",
+          "request": { "method": "GET", "url": "{{BASE_URL}}/calls/CALL_ID" }
+        },
+        {
+          "name": "Make Outbound Call",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/calls/outbound",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"to\": \"+919876543210\", \"agent_id\": \"{{AGENT_ID}}\" }"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Knowledge Base",
+      "item": [
+        {
+          "name": "List KB Documents",
+          "request": { "method": "GET", "url": "{{BASE_URL}}/agents/{{AGENT_ID}}/kb" }
+        },
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/agents/{{AGENT_ID}}/kb",
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Numbers",
+      "item": [
+        {
+          "name": "List Numbers",
+          "request": { "method": "GET", "url": "{{BASE_URL}}/numbers" }
+        }
+      ]
+    },
+    {
+      "name": "API Keys",
+      "item": [
+        {
+          "name": "List API Keys",
+          "request": { "method": "GET", "url": "{{BASE_URL}}/api-keys" }
+        },
+        {
+          "name": "Create API Key",
+          "request": {
+            "method": "POST",
+            "url": "{{BASE_URL}}/api-keys",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"name\": \"My App\" }"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Analytics",
+          "request": { "method": "GET", "url": "{{BASE_URL}}/analytics" }
+        }
+      ]
+    }
+  ]
+}

@@ -10,16 +10,22 @@ from fastapi.responses import FileResponse
 
 from app.config import settings
 from app.routers import admin, agent_builder, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, latency, number_hunter, numbers, outbound, playground_chat, playground_voice, products, qa_tester, qa_reports, team, telephony, tools, tts_preview, webhooks, widget
+from app.middleware.usage import UsageMeteringMiddleware, periodic_flush
+from app.middleware.rate_limit import RateLimitMiddleware
+from app.middleware.errors import install_error_handlers
 
 logger = structlog.get_logger()
 
 app = FastAPI(
     title="Vani API",
     version="2.0.0",
-    docs_url="/docs" if settings.environment == "development" else None,
-    redoc_url=None,
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
+app.add_middleware(UsageMeteringMiddleware)
+app.add_middleware(RateLimitMiddleware, redis_url=getattr(settings, "redis_url", None))
+install_error_handlers(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all origins — widget embed needs cross-origin
@@ -28,7 +34,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(admin.router)
+# ── Public API routes (versioned /v1/) ────────────────────────────────────────
+V1 = "/v1"
+app.include_router(auth.router,             prefix=V1)
+app.include_router(agents.router,           prefix=V1)
+app.include_router(kb.router,               prefix=V1)
+app.include_router(tools.router,            prefix=V1)
+app.include_router(products.router,         prefix=V1)
+app.include_router(calls.router,            prefix=V1)
+app.include_router(outbound.router,         prefix=V1)
+app.include_router(campaigns.router,        prefix=V1)
+app.include_router(analytics.router,        prefix=V1)
+app.include_router(api_keys.router,         prefix=V1)
+app.include_router(numbers.router,          prefix=V1)
+app.include_router(number_hunter.router,    prefix=V1)
+app.include_router(webhooks.router,         prefix=V1)
+app.include_router(dnc.router,              prefix=V1)
+app.include_router(dialer.router,           prefix=V1)
+app.include_router(team.router,             prefix=V1)
+app.include_router(agent_builder.router,    prefix=V1)
+app.include_router(tts_preview.router,      prefix=V1)
+app.include_router(playground_chat.router,  prefix=V1)
+app.include_router(playground_voice.router, prefix=V1)
+app.include_router(qa_tester.router,        prefix=V1)
+app.include_router(qa_reports.router,       prefix=V1)
+app.include_router(latency.router,          prefix=V1)
+
+# ── Backwards compatibility — mount same routes without /v1/ prefix ──────────
+# Dashboard and existing integrations use unprefixed routes.
+# Remove these once dashboard is updated to use /v1/.
 app.include_router(auth.router)
 app.include_router(agents.router)
 app.include_router(kb.router)
@@ -43,17 +77,20 @@ app.include_router(numbers.router)
 app.include_router(number_hunter.router)
 app.include_router(webhooks.router)
 app.include_router(dnc.router)
-app.include_router(playground_chat.router)
 app.include_router(dialer.router)
 app.include_router(team.router)
-app.include_router(widget.router)
 app.include_router(agent_builder.router)
 app.include_router(tts_preview.router)
-app.include_router(telephony.router)
-app.include_router(latency.router)
+app.include_router(playground_chat.router)
 app.include_router(playground_voice.router)
 app.include_router(qa_tester.router)
 app.include_router(qa_reports.router)
+app.include_router(latency.router)
+
+# ── Internal routes (no versioning) ──────────────────────────────────────────
+app.include_router(admin.router)
+app.include_router(widget.router)
+app.include_router(telephony.router)
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -97,6 +134,7 @@ async def start_number_hunter_scheduler() -> None:
 
     asyncio.create_task(_hunter_scheduler())
     asyncio.create_task(_schedule_checker())
+    asyncio.create_task(periodic_flush())
 
 
 async def _hunter_scheduler() -> None:
