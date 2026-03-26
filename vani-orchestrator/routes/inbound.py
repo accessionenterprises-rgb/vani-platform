@@ -242,6 +242,26 @@ async def inbound(
   </Connect>
 </Response>"""
         log.info("media_stream_twiml_served", call_id=call_id, engine="agora")
+
+        # Start Twilio recording via REST API (non-blocking)
+        async def _start_recording():
+            try:
+                import httpx as _httpx
+                async with _httpx.AsyncClient(timeout=10) as _client:
+                    await _client.post(
+                        f"https://api.twilio.com/2010-04-01/Accounts/{settings.twilio_account_sid}/Calls/{CallSid}/Recordings.json",
+                        auth=(settings.twilio_account_sid, settings.twilio_auth_token),
+                        data={
+                            "RecordingStatusCallback": f"{settings.orchestrator_public_url}/telephony/recording-status",
+                            "RecordingStatusCallbackEvent": "completed",
+                        },
+                    )
+                    log.info("twilio_recording_started", call_id=call_id)
+            except Exception as e:
+                log.warning("twilio_recording_failed", error=str(e))
+        import asyncio as _asyncio
+        _asyncio.create_task(_start_recording())
+
         return _twiml_response(stream_twiml)
 
     # ── LiveKit engine → queue-based worker ───────────────────────────────────
