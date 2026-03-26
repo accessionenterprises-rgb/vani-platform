@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
-from routes import inbound, internal, transfer, kiosk
+from routes import inbound, internal, transfer, kiosk, agora_events, agora_twiml, livekit_twiml, media_stream
 from routes import outbound_twiml
 from telephony import exotel
 from services.worker import connecting_watchdog, worker
@@ -20,7 +20,7 @@ logger = structlog.get_logger()
 
 app = FastAPI(
     title="Vani Orchestrator",
-    version="2.0.0",
+    version="2.2.0",
     docs_url="/docs" if settings.environment == "development" else None,
     redoc_url=None,
 )
@@ -38,6 +38,10 @@ app.include_router(kiosk.router)
 app.include_router(exotel.router)
 app.include_router(outbound_twiml.router)
 app.include_router(transfer.router)
+app.include_router(agora_events.router)
+app.include_router(agora_twiml.router)
+app.include_router(livekit_twiml.router)
+app.include_router(media_stream.router)
 
 
 @app.on_event("startup")
@@ -70,11 +74,20 @@ def health():
     return {
         "ok": True,
         "service": "vani-orchestrator",
-        "version": "2.0.1",
+        "version": "2.2.0",
         "workers": settings.worker_count,
+        "engines": ["livekit", "agora"] if settings.agora_app_id else ["livekit"],
         "sip_bridge": True,
         "sip_active_rooms": dict(_active_rooms),
     }
+
+
+@app.post("/sip-bridge/cleanup")
+async def sip_bridge_cleanup():
+    """Force-cleanup stale active calls (for admin use)."""
+    from workers.sip_bridge import _cleanup_stale_calls
+    await _cleanup_stale_calls()
+    return {"ok": True, "message": "Stale calls cleaned up"}
 
 
 @app.get("/sip-bridge/test")

@@ -43,7 +43,11 @@ async def _run(cmd: list[str]) -> str:
 async def create_room() -> str:
     """Create a LiveKit room and return its name."""
     room_name = _make_room_name()
-    await _run([*_LK_BASE, "room", "create", room_name])
+    client = lk_api.LiveKitAPI(settings.livekit_url, settings.livekit_api_key, settings.livekit_api_secret)
+    try:
+        await client.room.create_room(lk_api.CreateRoomRequest(name=room_name))
+    finally:
+        await client.aclose()
     return room_name
 
 
@@ -63,9 +67,14 @@ def generate_caller_token(room_name: str, identity: str = "caller") -> str:
 async def dispatch_agent(room_name: str, agent_payload: dict) -> None:
     """Dispatch vani-agent to room with full config as metadata."""
     metadata = json.dumps(agent_payload)
-    await _run([
-        *_LK_BASE, "dispatch", "create",
-        "--agent-name", settings.livekit_agent_name,
-        "--room", room_name,
-        "--metadata", metadata,
-    ])
+    client = lk_api.LiveKitAPI(settings.livekit_url, settings.livekit_api_key, settings.livekit_api_secret)
+    try:
+        await client.agent_dispatch.create_dispatch(
+            lk_api.CreateAgentDispatchRequest(
+                agent_name=settings.livekit_agent_name,
+                room=room_name,
+                metadata=metadata,
+            )
+        )
+    finally:
+        await client.aclose()

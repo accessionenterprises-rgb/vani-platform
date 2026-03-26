@@ -1,0 +1,13 @@
+vani-engine/
+vani-dashboard/
+vani-admin/
+vani-website/
+vani_app/
+design-reference/
+supabase/
+test-server.py
+test.html
+*.png
+node_modules/
+.venv/
+__pycache__/

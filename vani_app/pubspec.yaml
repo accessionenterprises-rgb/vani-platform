@@ -1,0 +1,49 @@
+name: vani_app
+description: "Vani — AI Voice Agent for your business"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Voice / WebRTC (add back after flutter upgrade)
+  # livekit_client: ^2.7.0
+  permission_handler: ^11.3.0
+
+  # Animation
+  # rive: ^0.13.16  # removed — native C++ build too slow, using custom painter instead
+  flutter_animate: ^4.5.0
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # Networking
+  dio: ^5.4.3
+
+  # Storage
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.2
+
+  # Files / Media
+  file_picker: ^8.1.2
+  image_picker: ^1.1.2
+
+  # UI
+  google_fonts: ^6.2.1
+  url_launcher: ^6.3.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/animations/
+    - assets/images/

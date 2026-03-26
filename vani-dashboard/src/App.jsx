@@ -21,12 +21,14 @@ import PlaygroundPage  from './pages/PlaygroundPage'
 import KioskPage       from './pages/KioskPage'
 import DialerPage      from './pages/DialerPage'
 import AgentBuilderPage from './pages/AgentBuilderPage'
+import QAPage          from './pages/QAPage'
+import LatencyPage     from './pages/LatencyPage'
 
 function AppShell() {
   return (
-    <div className="flex flex-1 min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
         <Routes>
           <Route path="/"              element={<DashboardPage />} />
           <Route path="/agents"        element={<AgentsPage />} />
@@ -46,6 +48,8 @@ function AppShell() {
           <Route path="/integrations"  element={<IntegrationsPage />} />
           <Route path="/channels"      element={<ChannelsPage />} />
           <Route path="/flow-builder"  element={<FlowBuilderPage />} />
+          <Route path="/qa"            element={<QAPage />} />
+          <Route path="/latency"       element={<LatencyPage />} />
           <Route path="*"              element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -36,7 +36,10 @@ class CallState:
     agent_id:        str
     phone:           str
     status:          CallStatus
+    engine:          str = "livekit"  # "livekit" | "agora"
     livekit_room:    Optional[str] = None
+    agora_channel:   Optional[str] = None
+    agora_agent_id:  Optional[str] = None
     twilio_call_sid: Optional[str] = None
     worker_id:       Optional[int] = None
     error:           Optional[str] = None
@@ -59,7 +62,10 @@ class CallState:
             "agent_id":        self.agent_id,
             "phone":           self.phone,
             "status":          self.status.value,
+            "engine":          self.engine,
             "livekit_room":    self.livekit_room,
+            "agora_channel":   self.agora_channel,
+            "agora_agent_id":  self.agora_agent_id,
             "twilio_call_sid": self.twilio_call_sid,
             "worker_id":       self.worker_id,
             "error":           self.error,
@@ -75,7 +81,10 @@ class CallState:
             agent_id        = d["agent_id"],
             phone           = d["phone"],
             status          = CallStatus(d["status"]),
+            engine          = d.get("engine", "livekit"),
             livekit_room    = d.get("livekit_room"),
+            agora_channel   = d.get("agora_channel"),
+            agora_agent_id  = d.get("agora_agent_id"),
             twilio_call_sid = d.get("twilio_call_sid"),
             worker_id       = d.get("worker_id"),
             error           = d.get("error"),

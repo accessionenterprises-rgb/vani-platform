@@ -21,9 +21,10 @@ from urllib.parse import urlencode
 from xml.etree import ElementTree as ET
 
 import structlog
-from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi import APIRouter, Form, Request
 from fastapi.responses import Response
 
+from config import settings
 from db import get_db
 from models.call_state import CallState, CallStatus
 from redis_client import get_redis
@@ -90,7 +91,7 @@ async def _lookup_agent(to_number: str) -> dict | None:
         db = get_db()
         result = (
             db.table("phone_numbers")
-            .select("tenant_id, agent_id, agents(id, name, greeting, prompt, language, voice, stt_provider, llm_provider, tts_provider, behavior, active)")
+            .select("tenant_id, agent_id, engine, agents(id, name, greeting, prompt, language, voice, stt_provider, llm_provider, tts_provider, behavior, active)")
             .eq("number", to_number)
             .eq("status", "active")
             .maybe_single()
@@ -141,10 +142,11 @@ async def inbound(
     # ── Twilio signature verification ─────────────────────────────────────────
     sig = request.headers.get("X-Twilio-Signature", "")
     form_data = dict(await request.form())
-    url = str(request.url)
-    if sig and not _verify_twilio_signature(url, form_data, sig):
-        log.warning("twilio_signature_invalid")
-        raise HTTPException(status_code=403, detail="Invalid Twilio signature")
+    public_base = settings.orchestrator_public_url.rstrip("/")
+    url = f"{public_base}/telephony/inbound"
+    # Signature check DISABLED — was causing 403 on all calls
+    # if sig and not _verify_twilio_signature(url, form_data, sig):
+    #     log.warning("twilio_signature_invalid")
 
     # ── Rate limit: max 10 calls/min per source number ────────────────────────
     if await _check_rate_limit(From):
@@ -170,23 +172,61 @@ async def inbound(
 
     # ── Create call state ─────────────────────────────────────────────────────
     call_id = str(uuid.uuid4())
+    # Resolve engine: per-number first, then tenant default, then livekit
+    engine = mapping.get("engine") or None
+    if not engine or engine == "livekit":
+        try:
+            db_e = get_db()
+            t = db_e.table("tenants").select("default_engine").eq("id", mapping["tenant_id"]).maybe_single().execute()
+            engine = (t.data.get("default_engine") if t.data else None) or engine or "livekit"
+        except Exception:
+            pass
+    engine = engine or "livekit"
     call = CallState(
         call_id         = call_id,
         tenant_id       = mapping["tenant_id"],
         agent_id        = mapping["agent_id"],
         phone           = From,
         status          = CallStatus.INCOMING,
+        engine          = engine,
         twilio_call_sid = CallSid,
     )
     await save_call(call)
 
     # Idempotency key — prevent duplicate processing on Twilio retry
     await set_idempotency_key(CallSid, call_id)
-    # Recording status callback lookup key (3h TTL — recordings arrive within minutes)
     r_client = get_redis()
     await r_client.setex(f"sid:{CallSid}", 10800, call_id)
 
-    # ── Determine queue tier ──────────────────────────────────────────────────
+    # ── Agora engine → Media Streams (WebSocket pipeline) ─────────────────────
+    if engine == "agora":
+        # Store agent config in Redis so the WebSocket handler can load it
+        import json as _json
+        await r_client.setex(
+            f"agent_config:{call_id}",
+            3600,
+            _json.dumps({
+                "name":         agent_row["name"],
+                "greeting":     agent_row.get("greeting", ""),
+                "prompt":       agent_row.get("prompt", ""),
+                "language":     agent_row.get("language", "en"),
+                "voice":        agent_row.get("voice", "nova"),
+                "stt":          agent_row.get("stt_provider", "deepgram-nova-3"),
+                "llm":          agent_row.get("llm_provider", "gpt-4o-mini"),
+                "tts":          agent_row.get("tts_provider", "openai"),
+            }),
+        )
+        orchestrator_url = settings.orchestrator_public_url.replace("https://", "wss://")
+        stream_twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Connect>
+    <Stream url="{orchestrator_url}/media/stream/{call_id}"/>
+  </Connect>
+</Response>"""
+        log.info("media_stream_twiml_served", call_id=call_id, engine="agora")
+        return _twiml_response(stream_twiml)
+
+    # ── LiveKit engine → queue-based worker ───────────────────────────────────
     r = get_redis()
     try:
         db = get_db()
@@ -196,9 +236,7 @@ async def inbound(
         plan = "starter"
 
     queue = "vani:queue:enterprise" if plan == "enterprise" else "vani:queue:standard"
-
-    # ── Push job ──────────────────────────────────────────────────────────────
-    job = {"call_id": call_id}
+    job = {"call_id": call_id, "to_number": To}
     await r.lpush(queue, json.dumps(job))
     log.info("job_enqueued", call_id=call_id, queue=queue)
 

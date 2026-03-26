@@ -78,6 +78,15 @@ async def receive_event(event: EngineEvent):
                 call_id=event.call_id,
                 duration_sec=data.get("duration_sec"),
                 transcript=data.get("transcript"),
+                extra={
+                    "engine": "livekit",
+                    "llm_provider": data.get("llm_provider"),
+                    "stt_provider": data.get("stt_provider"),
+                    "tts_provider": data.get("tts_provider"),
+                    "direction": data.get("direction"),
+                    "latency_profile": data.get("latency_profile"),
+                    "usage": data.get("usage"),
+                },
             )
 
             # Save provider latency metrics
@@ -186,14 +195,37 @@ async def _execute_transfer(call_id: str, transfer_number: str,
         logger.error("escalation_transfer_failed", call_id=call_id, error=str(exc))
 
 
-def _save_call_result(call_id: str, duration_sec: int | None, transcript: str | None) -> None:
+def _save_call_result(call_id: str, duration_sec: int | None, transcript: str | None, extra: dict | None = None) -> None:
     try:
+        from datetime import datetime, timezone
         db = get_db()
-        update = {"status": "completed"}
+        update = {
+            "status": "completed",
+            "ended_at": datetime.now(timezone.utc).isoformat(),
+        }
         if duration_sec is not None:
             update["duration_sec"] = duration_sec
         if transcript:
             update["transcript"] = transcript
+
+        # Save provider + engine info
+        if extra:
+            for field in ("engine", "llm_provider", "stt_provider", "tts_provider", "direction"):
+                if extra.get(field):
+                    update[field] = extra[field]
+            if extra.get("latency_profile"):
+                update["metadata"] = {"latency_profile": extra["latency_profile"], "usage": extra.get("usage", {})}
+
+        # If no provider info in extra, look up from agent
+        if "llm_provider" not in update:
+            call_row = db.table("calls").select("agent_id").eq("id", call_id).maybe_single().execute()
+            if call_row.data and call_row.data.get("agent_id"):
+                agent = db.table("agents").select("llm_provider,stt_provider,tts_provider").eq("id", call_row.data["agent_id"]).maybe_single().execute()
+                if agent.data:
+                    update["llm_provider"] = agent.data.get("llm_provider")
+                    update["stt_provider"] = agent.data.get("stt_provider")
+                    update["tts_provider"] = agent.data.get("tts_provider")
+
         db.table("calls").update(update).eq("id", call_id).execute()
     except Exception as exc:
         logger.error("call_result_save_failed", call_id=call_id, error=str(exc))

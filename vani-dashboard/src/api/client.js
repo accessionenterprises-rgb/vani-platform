@@ -218,4 +218,15 @@ export const api = {
 
   // Playground voice
   startVoiceTest: (agent_id) => request('POST', '/playground/voice/start', { agent_id }),
+
+  // QA Testing & Reports
+  qaRunTest:           (agentId, method = 'chat') => request('POST', '/qa/test', { agent_id: agentId, method }),
+  qaListTests:         ()          => request('GET', '/qa/tests'),
+  qaGetTest:           (id)        => request('GET', `/qa/test/${id}`),
+  qaListScenarios:     ()          => request('GET', '/qa/scenarios'),
+  qaAgentOverview:     (agentId, days = 7) => request('GET', `/qa/reports/agent/${agentId}/overview?days=${days}`),
+  qaAnalyzeTranscripts:(agentId, days = 7) => request('POST', `/qa/reports/agent/${agentId}/analyze-transcripts?days=${days}`),
+  qaScoreCall:         (callId)    => request('POST', `/qa/reports/call/${callId}/score`),
+  qaGetSuggestions:    (agentId)   => request('GET', `/qa/reports/agent/${agentId}/suggestions`),
+  qaGetTrend:          (agentId, days = 30) => request('GET', `/qa/reports/agent/${agentId}/trend?days=${days}`),
 }

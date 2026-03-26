@@ -25,9 +25,12 @@ const LLM_PROVIDERS = [
   { id: 'gpt-4.1-mini',              name: 'GPT-4.1 Mini',     vendor: 'OpenAI',    desc: 'Legacy — smarter than 4o-mini',     badge: null,          latency: '~280ms', cost: '$0.0046/min' },
   { id: 'gpt-4.1',                   name: 'GPT-4.1',          vendor: 'OpenAI',    desc: 'Legacy — coding & reasoning',       badge: null,          latency: '~400ms', cost: '$0.0216/min' },
   // Google
-  { id: 'gemini-2.5-flash',          name: 'Gemini 2.5 Flash', vendor: 'Google',    desc: 'Latest — thinking + fast',          badge: 'New',         latency: '~250ms', cost: '$0.0017/min' },
-  { id: 'gemini-2.0-flash',          name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: 'Fast',        latency: '~250ms', cost: '$0.0011/min' },
-  { id: 'gemini-2.0-flash-lite',     name: 'Gemini Flash Lite',vendor: 'Google',    desc: 'Ultra-fast, cheapest LLM',          badge: null,          latency: '~150ms', cost: '$0.0008/min' },
+  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash Lite', vendor: 'Google', desc: 'Fastest from India — 635ms',    badge: 'Fastest',     latency: '~635ms', cost: '$0.0008/min' },
+  { id: 'gemini-3-flash-preview',    name: 'Gemini 3.0 Flash', vendor: 'Google',    desc: 'Latest gen — fast + smart',         badge: 'New',         latency: '~728ms', cost: '$0.0012/min' },
+  { id: 'gemini-3.1-pro-preview',    name: 'Gemini 3.1 Pro',   vendor: 'Google',    desc: 'Best quality, still fast',          badge: 'Premium',     latency: '~649ms', cost: '$0.0025/min' },
+  { id: 'gemini-2.5-flash',          name: 'Gemini 2.5 Flash', vendor: 'Google',    desc: 'Stable — thinking + fast',          badge: null,          latency: '~852ms', cost: '$0.0017/min' },
+  { id: 'gemini-2.5-flash-lite',     name: 'Gemini 2.5 Flash Lite', vendor: 'Google', desc: 'Ultra-fast, cheapest',            badge: null,          latency: '~761ms', cost: '$0.0008/min' },
+  { id: 'gemini-2.0-flash',          name: 'Gemini 2.0 Flash', vendor: 'Google',    desc: 'Balanced speed & quality',          badge: null,          latency: '~562ms', cost: '$0.0011/min' },
   // Anthropic
   { id: 'claude-haiku-4-5-20251001', name: 'Claude 4.5 Haiku', vendor: 'Anthropic', desc: 'Fast, nuanced, instruction-following', badge: null,       latency: '~400ms', cost: '$0.0098/min' },
   { id: 'claude-sonnet-4-20250514',  name: 'Claude 4 Sonnet',  vendor: 'Anthropic', desc: 'Best reasoning, highest quality',   badge: 'Premium',     latency: '~600ms', cost: '$0.0369/min' },
@@ -41,11 +44,20 @@ const LLM_PROVIDERS = [
 ]
 
 const TTS_PROVIDERS = [
-  { id: 'openai',         name: 'OpenAI',     vendor: 'OpenAI',    desc: '6 voices — warm, crisp, natural',  badge: 'Recommended', latency: '~300ms', cost: '$0.0135/min' },
-  { id: 'sarvam',         name: 'Sarvam',     vendor: 'Sarvam AI', desc: '39 Indian voices — Hi & En',       badge: 'India',       latency: '~400ms', cost: '$0.0053/min' },
-  { id: 'elevenlabs',     name: 'ElevenLabs', vendor: 'ElevenLabs',desc: 'Most expressive, ultra-realistic', badge: 'Expressive',  latency: '~400ms', cost: '$0.0446/min' },
-  { id: 'google-wavenet', name: 'WaveNet',    vendor: 'Google',    desc: 'Natural, multilingual support',    badge: null,          latency: '~350ms', cost: '$0.0144/min' },
-  { id: 'cartesia',       name: 'Cartesia',   vendor: 'Cartesia',  desc: 'Ultra-low latency synthesis',      badge: 'Speed',       latency: '~40ms',  cost: '$0.004/min' },
+  // Cheapest
+  { id: 'google-standard', name: 'Google Standard', vendor: 'Google',   desc: 'Cheapest — basic quality',          badge: 'Cheapest',    latency: '~300ms', cost: '₹0.18/min' },
+  { id: 'google-wavenet',  name: 'Google WaveNet',  vendor: 'Google',   desc: 'Natural, multilingual',             badge: null,          latency: '~350ms', cost: '₹0.74/min' },
+  { id: 'google-neural2',  name: 'Google Neural2',  vendor: 'Google',   desc: 'Best Google voice quality',         badge: null,          latency: '~400ms', cost: '₹0.74/min' },
+  { id: 'amazon-standard', name: 'Amazon Polly',    vendor: 'AWS',      desc: 'Cheapest — Mumbai servers',         badge: 'Cheapest',    latency: '~400ms', cost: '₹0.18/min' },
+  { id: 'amazon-neural',   name: 'Amazon Neural',   vendor: 'AWS',      desc: 'High quality — Mumbai servers',     badge: 'India',       latency: '~500ms', cost: '₹0.74/min' },
+  { id: 'azure-neural',    name: 'Azure Speech',    vendor: 'Microsoft',desc: 'Premium quality — Chennai servers', badge: null,          latency: '~350ms', cost: '₹0.74/min' },
+  // Mid-range
+  { id: 'openai',          name: 'OpenAI',          vendor: 'OpenAI',   desc: '13 voices — warm, natural',         badge: 'Recommended', latency: '~300ms', cost: '₹0.70/min' },
+  { id: 'sarvam',          name: 'Sarvam v2',       vendor: 'Sarvam AI',desc: '7 Indian voices — Hi & En',         badge: 'India',       latency: '~400ms', cost: '₹0.83/min' },
+  { id: 'sarvam-v3',       name: 'Sarvam v3',       vendor: 'Sarvam AI',desc: '46 voices — Shreya, Amelia & more', badge: 'India',       latency: '~500ms', cost: '₹1.65/min' },
+  // Premium
+  { id: 'cartesia',        name: 'Cartesia',        vendor: 'Cartesia', desc: 'Best quality — Brooke voice',       badge: 'Premium',     latency: '~500ms', cost: '₹3.00/min' },
+  { id: 'elevenlabs',      name: 'ElevenLabs',      vendor: 'ElevenLabs',desc: 'Most expressive, voice cloning',   badge: 'Premium',     latency: '~400ms', cost: '₹4.07/min' },
 ]
 
 const OPENAI_VOICES = [
@@ -77,19 +89,27 @@ const CARTESIA_VOICES = [
 ]
 
 const ELEVENLABS_VOICES = [
-  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah',    desc: 'Mature, Reassuring',     gender: 'F', accent: 'American' },
-  { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica',  desc: 'Playful, Bright',        gender: 'F', accent: 'American' },
-  { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice',    desc: 'Clear, Engaging',        gender: 'F', accent: 'British' },
-  { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda',  desc: 'Professional',           gender: 'F', accent: 'American' },
-  { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily',     desc: 'Velvety Actress',        gender: 'F', accent: 'British' },
-  { id: 'hpp4J3VqNfWAUOO0d1Us', name: 'Bella',    desc: 'Professional, Warm',     gender: 'F', accent: 'American' },
-  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura',    desc: 'Enthusiast, Quirky',     gender: 'F', accent: 'American' },
-  { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger',    desc: 'Laid-Back, Casual',      gender: 'M', accent: 'American' },
-  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie',  desc: 'Deep, Confident',        gender: 'M', accent: 'Australian' },
-  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George',   desc: 'Warm, Captivating',      gender: 'M', accent: 'British' },
-  { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric',     desc: 'Smooth, Trustworthy',    gender: 'M', accent: 'American' },
-  { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian',    desc: 'Deep, Comforting',       gender: 'M', accent: 'American' },
-  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel',   desc: 'Steady Broadcaster',     gender: 'M', accent: 'British' },
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah',    desc: 'Mature, Reassuring, Confident', gender: 'F', accent: 'American' },
+  { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica',  desc: 'Playful, Bright, Warm',         gender: 'F', accent: 'American' },
+  { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice',    desc: 'Clear, Engaging Educator',      gender: 'F', accent: 'British' },
+  { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda',  desc: 'Knowledgeable, Professional',   gender: 'F', accent: 'American' },
+  { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily',     desc: 'Velvety Actress',               gender: 'F', accent: 'British' },
+  { id: 'hpp4J3VqNfWAUOO0d1Us', name: 'Bella',    desc: 'Professional, Bright, Warm',    gender: 'F', accent: 'American' },
+  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura',    desc: 'Enthusiast, Quirky Attitude',   gender: 'F', accent: 'American' },
+  { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger',    desc: 'Laid-Back, Casual, Resonant',   gender: 'M', accent: 'American' },
+  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie',  desc: 'Deep, Confident, Energetic',    gender: 'M', accent: 'Australian' },
+  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George',   desc: 'Warm, Captivating Storyteller', gender: 'M', accent: 'British' },
+  { id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum',   desc: 'Husky Trickster',               gender: 'M', accent: 'American' },
+  { id: 'SAz9YHcvj6GT2YYXdXww', name: 'River',    desc: 'Relaxed, Neutral, Informative', gender: 'N', accent: 'American' },
+  { id: 'SOYHLrjzK2X1ezoPC6cr', name: 'Harry',    desc: 'Fierce Warrior',                gender: 'M', accent: 'British' },
+  { id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam',     desc: 'Energetic, Social Media',       gender: 'M', accent: 'American' },
+  { id: 'bIHbv24MWmeRgasZH58o', name: 'Will',     desc: 'Relaxed Optimist',              gender: 'M', accent: 'American' },
+  { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric',     desc: 'Smooth, Trustworthy',           gender: 'M', accent: 'American' },
+  { id: 'iP95p4xoKVk53GoZ742B', name: 'Chris',    desc: 'Charming, Down-to-Earth',       gender: 'M', accent: 'American' },
+  { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian',    desc: 'Deep, Resonant, Comforting',    gender: 'M', accent: 'American' },
+  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel',   desc: 'Steady Broadcaster',            gender: 'M', accent: 'British' },
+  { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam',     desc: 'Dominant, Firm',                gender: 'M', accent: 'American' },
+  { id: 'pqHfZKP75CvOlQylNhV4', name: 'Bill',     desc: 'Wise, Mature, Balanced',        gender: 'M', accent: 'American' },
 ]
 
 const VOICE_STEPS = [
@@ -1330,49 +1350,56 @@ function OpenAIVoicePicker({ selected, onSelect }) {
 
 // ─── Sarvam Voice Picker ───────────────────────────────────────────────────
 
-const SARVAM_VOICES = [
-  // Female
-  { id: 'sarvam-priya',    name: 'Priya',    gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-neha',     name: 'Neha',     gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-shreya',   name: 'Shreya',   gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-kavya',    name: 'Kavya',    gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-simran',   name: 'Simran',   gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-ritu',     name: 'Ritu',     gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-pooja',    name: 'Pooja',    gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-ishita',   name: 'Ishita',   gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-roopa',    name: 'Roopa',    gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-tanya',    name: 'Tanya',    gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-shruti',   name: 'Shruti',   gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-suhani',   name: 'Suhani',   gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-rupali',   name: 'Rupali',   gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-kavitha',  name: 'Kavitha',  gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-amelia',   name: 'Amelia',   gender: 'Female', lang: 'Hi · En' },
-  { id: 'sarvam-sophia',   name: 'Sophia',   gender: 'Female', lang: 'Hi · En' },
-  // Male
-  { id: 'sarvam-rahul',    name: 'Rahul',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-amit',     name: 'Amit',     gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-dev',      name: 'Dev',      gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-rohan',    name: 'Rohan',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-kabir',    name: 'Kabir',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-aditya',   name: 'Aditya',   gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-ashutosh', name: 'Ashutosh', gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-ratan',    name: 'Ratan',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-varun',    name: 'Varun',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-manan',    name: 'Manan',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-sumit',    name: 'Sumit',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-aayan',    name: 'Aayan',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-shubh',    name: 'Shubh',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-advait',   name: 'Advait',   gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-anand',    name: 'Anand',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-tarun',    name: 'Tarun',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-sunny',    name: 'Sunny',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-mani',     name: 'Mani',     gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-gokul',    name: 'Gokul',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-vijay',    name: 'Vijay',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-mohit',    name: 'Mohit',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-rehan',    name: 'Rehan',    gender: 'Male',   lang: 'Hi · En' },
-  { id: 'sarvam-soham',    name: 'Soham',    gender: 'Male',   lang: 'Hi · En' },
+// Sarvam Bulbul v2 voices (₹15/10K chars = ₹0.83/min)
+const SARVAM_V2_VOICES = [
+  { id: 'sarvam-anushka',  name: 'Anushka',  gender: 'Female', lang: 'Hi · En', model: 'v2' },
+  { id: 'sarvam-manisha',  name: 'Manisha',  gender: 'Female', lang: 'Hi · En', model: 'v2' },
+  { id: 'sarvam-vidya',    name: 'Vidya',    gender: 'Female', lang: 'Hi · En', model: 'v2' },
+  { id: 'sarvam-arya',     name: 'Arya',     gender: 'Female', lang: 'Hi · En', model: 'v2' },
+  { id: 'sarvam-abhilash', name: 'Abhilash', gender: 'Male',   lang: 'Hi · En', model: 'v2' },
+  { id: 'sarvam-karun',    name: 'Karun',    gender: 'Male',   lang: 'Hi · En', model: 'v2' },
+  { id: 'sarvam-hitesh',   name: 'Hitesh',   gender: 'Male',   lang: 'Hi · En', model: 'v2' },
 ]
+
+// Sarvam Bulbul v3 voices (₹30/10K chars = ₹1.65/min) — all v1 voices + more
+const SARVAM_V3_VOICES = [
+  { id: 'sarvam-shreya',   name: 'Shreya',   gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-amelia',   name: 'Amelia',   gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-sophia',   name: 'Sophia',   gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-priya',    name: 'Priya',    gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-neha',     name: 'Neha',     gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-kavya',    name: 'Kavya',    gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-simran',   name: 'Simran',   gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-ritu',     name: 'Ritu',     gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-pooja',    name: 'Pooja',    gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-ishita',   name: 'Ishita',   gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-tanya',    name: 'Tanya',    gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-shruti',   name: 'Shruti',   gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-roopa',    name: 'Roopa',    gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-suhani',   name: 'Suhani',   gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-rupali',   name: 'Rupali',   gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-kavitha',  name: 'Kavitha',  gender: 'Female', lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-rahul',    name: 'Rahul',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-amit',     name: 'Amit',     gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-dev',      name: 'Dev',      gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-rohan',    name: 'Rohan',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-kabir',    name: 'Kabir',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-aditya',   name: 'Aditya',   gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-ratan',    name: 'Ratan',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-varun',    name: 'Varun',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-anand',    name: 'Anand',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-tarun',    name: 'Tarun',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-sunny',    name: 'Sunny',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-mani',     name: 'Mani',     gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-gokul',    name: 'Gokul',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-vijay',    name: 'Vijay',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-mohit',    name: 'Mohit',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-rehan',    name: 'Rehan',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+  { id: 'sarvam-soham',    name: 'Soham',    gender: 'Male',   lang: 'Hi · En', model: 'v3' },
+]
+
+// Combined for display — provider picker shows which model
+const SARVAM_VOICES = [...SARVAM_V2_VOICES, ...SARVAM_V3_VOICES]
 
 function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix }) {
   const [playing, setPlaying] = useState(null)

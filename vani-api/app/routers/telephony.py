@@ -30,7 +30,7 @@ async def twiml_webhook(
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Dial timeout="30">
-    <Sip>sip:{sip_number}@{SIP_HOST};transport=tcp</Sip>
+    <Sip>sip:{sip_number}@{SIP_HOST}</Sip>
   </Dial>
 </Response>"""
 

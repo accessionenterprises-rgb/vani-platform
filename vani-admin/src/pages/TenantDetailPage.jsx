@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { adminApi } from '../api/client'
 
 const PLANS = ['starter', 'growth', 'enterprise']
+const ENGINES = ['livekit', 'agora']
 
 export default function TenantDetailPage() {
   const { id } = useParams()
@@ -35,6 +36,27 @@ export default function TenantDetailPage() {
       setTenant(prev => ({ ...prev, plan: updated.plan }))
     } catch (e) { alert(e.message) }
     finally { setSaving(false) }
+  }
+
+  async function changeEngine(engine) {
+    setSaving(true)
+    try {
+      const updated = await adminApi.updateTenantEngine(id, engine)
+      setTenant(prev => ({ ...prev, default_engine: updated.default_engine }))
+    } catch (e) { alert(e.message) }
+    finally { setSaving(false) }
+  }
+
+  async function changeNumberEngine(numberId, engine) {
+    try {
+      const updated = await adminApi.updateNumberEngine(numberId, engine)
+      setTenant(prev => ({
+        ...prev,
+        phone_numbers: prev.phone_numbers.map(n =>
+          n.id === numberId ? { ...n, engine: updated.engine } : n
+        ),
+      }))
+    } catch (e) { alert(e.message) }
   }
 
   async function impersonate() {
@@ -119,6 +141,20 @@ export default function TenantDetailPage() {
               className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-base text-gray-900 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 transition-colors"
             >
               {PLANS.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+
+            {/* Engine selector */}
+            <select
+              value={tenant.default_engine || 'livekit'}
+              disabled={saving}
+              onChange={e => changeEngine(e.target.value)}
+              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-base text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-colors"
+            >
+              {ENGINES.map(e => (
+                <option key={e} value={e}>
+                  {e === 'livekit' ? 'LiveKit' : 'Agora'}
+                </option>
+              ))}
             </select>
 
             {/* Active toggle */}
@@ -264,7 +300,7 @@ export default function TenantDetailPage() {
             <table className="w-full text-base">
               <thead>
                 <tr className="border-b border-gray-100">
-                  {['Number', 'Provider', 'Status', 'SIP URI'].map(h => (
+                  {['Number', 'Provider', 'Engine', 'Status', 'SIP URI'].map(h => (
                     <th key={h} className="text-left text-sm font-medium text-gray-500 px-4 py-3">{h}</th>
                   ))}
                 </tr>
@@ -274,6 +310,16 @@ export default function TenantDetailPage() {
                   <tr key={n.id} className="border-b border-gray-100 last:border-0">
                     <td className="px-4 py-3 font-mono text-gray-900">{n.number}</td>
                     <td className="px-4 py-3 text-gray-500 capitalize">{n.provider}</td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={n.engine || 'livekit'}
+                        onChange={e => changeNumberEngine(n.id, e.target.value)}
+                        className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-sm text-gray-900 outline-none focus:border-blue-500 transition-colors"
+                      >
+                        <option value="livekit">LiveKit</option>
+                        <option value="agora">Agora</option>
+                      </select>
+                    </td>
                     <td className="px-4 py-3 text-gray-500">{n.status}</td>
                     <td className="px-4 py-3 text-gray-400 text-sm truncate max-w-48">{n.sip_uri || '—'}</td>
                   </tr>

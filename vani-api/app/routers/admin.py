@@ -276,18 +276,23 @@ class UpdateTenantBody(BaseModel):
     plan: Optional[str] = None
     active: Optional[bool] = None
     name: Optional[str] = None
+    default_engine: Optional[str] = None  # "livekit" | "agora"
 
 
 @router.patch("/tenants/{tenant_id}", dependencies=[Depends(_verify_token)])
 def update_tenant(tenant_id: str, body: UpdateTenantBody):
     db = get_db()
     updates = {k: v for k, v in body.model_dump().items() if v is not None}
+    # Validate engine value
+    if "default_engine" in updates and updates["default_engine"] not in ("livekit", "agora"):
+        raise HTTPException(status_code=400, detail="Invalid engine. Must be 'livekit' or 'agora'")
     if not updates:
         raise HTTPException(status_code=400, detail="No fields to update")
-    result = db.table("tenants").update(updates).eq("id", tenant_id).execute()
-    if not result.data:
+    db.table("tenants").update(updates).eq("id", tenant_id).execute()
+    row = db.table("tenants").select("*").eq("id", tenant_id).maybe_single().execute()
+    if not row.data:
         raise HTTPException(status_code=404, detail="Tenant not found")
-    return result.data[0]
+    return row.data
 
 
 @router.delete("/tenants/{tenant_id}", dependencies=[Depends(_verify_token)])
@@ -329,10 +334,11 @@ def admin_update_agent(agent_id: str, body: dict):
     updates = {k: v for k, v in body.items() if k in allowed}
     if not updates:
         raise HTTPException(status_code=400, detail="No valid fields")
-    result = db.table("agents").update(updates).eq("id", agent_id).execute()
-    if not result.data:
+    db.table("agents").update(updates).eq("id", agent_id).execute()
+    row = db.table("agents").select("*").eq("id", agent_id).maybe_single().execute()
+    if not row.data:
         raise HTTPException(status_code=404, detail="Agent not found")
-    return result.data[0]
+    return row.data
 
 
 @router.delete("/agents/{agent_id}", dependencies=[Depends(_verify_token)])
@@ -340,6 +346,24 @@ def admin_delete_agent(agent_id: str):
     db = get_db()
     db.table("agents").delete().eq("id", agent_id).execute()
     return {"deleted": True}
+
+
+# ─── Phone Number Engine ──────────────────────────────────────────────────────
+
+class UpdateNumberEngineBody(BaseModel):
+    engine: str  # "livekit" | "agora"
+
+
+@router.patch("/numbers/{number_id}/engine", dependencies=[Depends(_verify_token)])
+def update_number_engine(number_id: str, body: UpdateNumberEngineBody):
+    if body.engine not in ("livekit", "agora"):
+        raise HTTPException(status_code=400, detail="Invalid engine. Must be 'livekit' or 'agora'")
+    db = get_db()
+    db.table("phone_numbers").update({"engine": body.engine}).eq("id", number_id).execute()
+    row = db.table("phone_numbers").select("*").eq("id", number_id).maybe_single().execute()
+    if not row.data:
+        raise HTTPException(status_code=404, detail="Number not found")
+    return row.data
 
 
 # ─── Calls (cross-tenant) ─────────────────────────────────────────────────────

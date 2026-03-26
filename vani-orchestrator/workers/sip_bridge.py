@@ -55,16 +55,69 @@ async def _list_rooms() -> list[dict]:
         await client.aclose()
 
 
-async def _dispatch_agent(room_name: str) -> bool:
+async def _lookup_agent_config(called_number: str) -> dict:
+    """Look up agent config from DB by phone number. Returns full metadata for dispatch."""
+    try:
+        db = get_db()
+        _agent_select = "tenant_id,agent_id,agents(id,name,greeting,prompt,language,voice,stt_provider,llm_provider,tts_provider,behavior,active)"
+
+        pn = None
+        if called_number:
+            pn = db.table("phone_numbers").select(_agent_select).eq("number", called_number).eq("status", "active").limit(1).execute()
+
+        if not pn or not pn.data:
+            # Fallback — try all active numbers for this SIP trunk
+            pn = db.table("phone_numbers").select(_agent_select).eq("status", "active").in_("number", ["+19209209967", "+12064158862", "+12402128622"]).limit(1).execute()
+
+        if not pn.data:
+            return {}
+
+        row = pn.data[0]
+        agent = row.get("agents") or {}
+        if not agent.get("active"):
+            return {}
+
+        return {
+            "agent_config": {
+                "name": agent.get("name", ""),
+                "greeting": agent.get("greeting", ""),
+                "prompt": agent.get("prompt", ""),
+                "language": agent.get("language", "en"),
+                "voice": agent.get("voice", "nova"),
+                "stt": agent.get("stt_provider", "deepgram-nova-3"),
+                "llm": agent.get("llm_provider", "gpt-4o-mini"),
+                "tts": agent.get("tts_provider", "openai"),
+                "behavior": agent.get("behavior") or {},
+            },
+            "agent_id": str(agent.get("id", "")),
+            "tenant_id": row.get("tenant_id", ""),
+        }
+    except Exception as e:
+        logger.error("sip_bridge_agent_lookup_failed", error=str(e))
+        return {}
+
+
+async def _dispatch_agent(room_name: str, called_number: str = "") -> bool:
+    """Dispatch agent with full config metadata — no Supabase needed on engine side."""
+    import json
+
+    # Look up agent config from DB — always try, even without called_number
+    metadata = await _lookup_agent_config(called_number or "")
+    if metadata:
+        logger.info("sip_bridge_agent_loaded", agent=metadata.get("agent_config", {}).get("name", "?"))
+    else:
+        logger.warning("sip_bridge_no_agent_config", called_number=called_number)
+
     client = _make_client()
     try:
         await client.agent_dispatch.create_dispatch(
             lk_api.CreateAgentDispatchRequest(
                 agent_name=settings.livekit_agent_name,
                 room=room_name,
+                metadata=json.dumps(metadata) if metadata else "",
             )
         )
-        logger.info("sip_bridge_dispatched", room=room_name)
+        logger.info("sip_bridge_dispatched", room=room_name, has_metadata=bool(metadata))
     except Exception as e:
         logger.error("sip_bridge_dispatch_failed", room=room_name, error=str(e))
         await client.aclose()
@@ -153,8 +206,28 @@ async def _end_call_record(room_name: str):
         logger.warning("sip_bridge_call_end_failed", error=str(e))
 
 
+async def _cleanup_stale_calls():
+    """Mark any calls stuck as 'active' for >10 min as completed (orphaned by restart)."""
+    try:
+        from datetime import datetime, timezone, timedelta
+        db = get_db()
+        cutoff = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+        result = db.table("calls").update({
+            "status": "completed",
+            "ended_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("status", "active").lt("started_at", cutoff).execute()
+        count = len(result.data) if result.data else 0
+        if count > 0:
+            logger.info("sip_bridge_cleaned_stale_calls", count=count)
+    except Exception as e:
+        logger.warning("sip_bridge_cleanup_failed", error=str(e))
+
+
 async def sip_bridge() -> None:
     logger.info("sip_bridge_started")
+
+    # Clean up any orphaned active calls from previous restart
+    await _cleanup_stale_calls()
 
     while True:
         try:
@@ -196,15 +269,18 @@ async def sip_bridge() -> None:
                         continue
                     logger.info("sip_bridge_detected", room=name)
                     phone = _extract_phone(name)
+                    called_number = await _get_called_number(name) or ""
                     call_id = await _create_call_record(name, phone)
                     _room_calls[name] = {
                         "call_id": call_id,
                         "started_at": time.time(),
                         "phone": phone,
+                        "called_number": called_number,
                     }
 
                 _active_rooms[name] = attempts + 1
-                joined = await _dispatch_agent(name)
+                called = _room_calls.get(name, {}).get("called_number", "")
+                joined = await _dispatch_agent(name, called_number=called)
 
                 if joined:
                     logger.info("sip_bridge_success", room=name, attempt=attempts + 1)

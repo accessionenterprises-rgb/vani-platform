@@ -105,6 +105,10 @@ export const adminApi = {
   hunterClearScans:   ()   => request('DELETE', '/admin/hunter/scans'),
   hunterClearResults: ()   => request('DELETE', '/admin/hunter/results'),
 
+  // Engine config
+  updateTenantEngine: (id, engine) => request('PATCH', `/admin/tenants/${id}`, { default_engine: engine }),
+  updateNumberEngine: (id, engine) => request('PATCH', `/admin/numbers/${id}/engine`, { engine }),
+
   // Schedules
   listSchedules:   ()         => request('GET',    '/admin/hunter/schedules'),
   createSchedule:  (data)     => request('POST',   '/admin/hunter/schedules', data),

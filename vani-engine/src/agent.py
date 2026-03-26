@@ -47,8 +47,10 @@ SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
 server = AgentServer()
 
 _DEFAULT_INSTRUCTIONS = (
-    "You are a helpful voice AI assistant. Keep responses short and conversational. "
-    "No markdown, no emojis, no asterisks. Speak naturally."
+    "You are a helpful voice assistant on a phone call. "
+    "Talk like a real person — warm, natural, conversational. "
+    "Keep answers short but helpful. No corporate speak. "
+    "No markdown, no emojis, no bullet points, no asterisks."
 )
 
 ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_URL", "http://localhost:8001")
@@ -267,15 +269,26 @@ def _build_llm(llm_model: str, custom_llm_url: str = None, custom_llm_model: str
             print(">>> livekit-plugins-anthropic not installed, falling back to GPT-4o-mini", flush=True)
             return openai.LLM(model="gpt-4o-mini")
 
-    if model.startswith("llama") or model.startswith("groq"):
+    if model.startswith("llama") or model.startswith("groq") or model.startswith("gemma") or model.startswith("mixtral"):
         groq_key = os.getenv("GROQ_API_KEY", "")
-        groq_model = model.replace("groq-", "").replace("llama-", "llama-")
+        groq_model = model.replace("groq-", "")
+        # Map short names to full Groq model IDs
+        groq_map = {
+            "llama-3.3-70b": "llama-3.3-70b-versatile",
+            "llama-3.1-8b": "llama-3.1-8b-instant",
+            "gemma2-9b": "gemma2-9b-it",
+        }
+        groq_model = groq_map.get(groq_model, groq_model)
+        if not groq_model:
+            groq_model = "llama-3.3-70b-versatile"
+        print(f">>> GROQ: key={'SET' if groq_key else 'EMPTY'} model={groq_model}", flush=True)
         if groq_key:
             return openai.LLM(
-                model=groq_model or "llama-3.3-70b-versatile",
+                model=groq_model,
                 base_url="https://api.groq.com/openai/v1",
                 api_key=groq_key,
             )
+        print(">>> GROQ_API_KEY not set, falling back to gpt-4o-mini", flush=True)
 
     if model.startswith("mistral") or model.startswith("open-mistral"):
         mistral_key = os.getenv("MISTRAL_API_KEY", "")
@@ -470,19 +483,38 @@ async def vani_agent(ctx: JobContext):
 
     # If no metadata (direct SIP dispatch), look up agent by called number
     if not metadata.get("agent_config"):
-        # Find the SIP participant to get the called number
+        called_number = ""
+        caller_number = ""
         for p in ctx.room.remote_participants.values():
             attrs = p.attributes or {}
             called_number = attrs.get("sip.trunkPhoneNumber", "")
             caller_number = attrs.get("sip.phoneNumber", "")
             if called_number:
-                print(f">>> SIP call: {caller_number} → {called_number}", flush=True)
-                db_config = await _lookup_agent_by_phone(called_number)
-                if db_config:
-                    metadata.update(db_config)
-                    metadata["phone"] = caller_number
-                    metadata["direction"] = "inbound"
                 break
+
+        print(f">>> SIP lookup: called={called_number or 'EMPTY'} caller={caller_number or 'EMPTY'}", flush=True)
+
+        # Try by called number first
+        db_config = None
+        if called_number:
+            db_config = await _lookup_agent_by_phone(called_number)
+
+        # Fallback: try all known numbers
+        if not db_config:
+            print(">>> Trying fallback: all known numbers", flush=True)
+            for num in ["+19209209967", "+12402128622", "+12064158862"]:
+                db_config = await _lookup_agent_by_phone(num)
+                if db_config:
+                    print(f">>> Fallback matched: {num}", flush=True)
+                    break
+
+        if db_config:
+            metadata.update(db_config)
+            metadata["phone"] = caller_number
+            metadata["direction"] = "inbound"
+            print(f">>> Loaded agent: {db_config.get('agent_config', {}).get('name', '?')}", flush=True)
+        else:
+            print(">>> NO AGENT FOUND — using defaults", flush=True)
 
     cfg       = metadata.get("agent_config", {})
     call_id   = metadata.get("call_id", "unknown")
@@ -569,8 +601,9 @@ async def vani_agent(ctx: JobContext):
         }
         tools_config = [escalation_tool] + tools_config
 
-    # Build full system prompt with KB
-    full_instructions = instructions
+    # Build full system prompt — add voice call context
+    _CALL_CONTEXT = "[You are on a live phone call. Be conversational. No markdown or formatting. Wait for the caller to finish before responding.]\n\n"
+    full_instructions = _CALL_CONTEXT + instructions
     if kb_context:
         full_instructions = (
             f"{instructions}\n\n"
@@ -587,6 +620,15 @@ async def vani_agent(ctx: JobContext):
     llm = _build_llm(llm_model, custom_llm_url=custom_llm_url, custom_llm_model=custom_llm_model)
     tts = _build_tts(tts_provider, voice, dg_language)
 
+    # ── Telephone audio preprocessing ──────────────────────────────────────
+    # Disabled for now — wrapper causes crash on session teardown.
+    # TODO: re-enable once wrapper is compatible with SDK v1.5 session lifecycle
+    is_sip_call = any(
+        p.attributes.get("sip.trunkPhoneNumber") or p.attributes.get("sip.phoneNumber")
+        for p in ctx.room.remote_participants.values()
+    ) or ctx.room.name.startswith("call")
+    print(f">>> Call type: {'SIP/phone' if is_sip_call else 'browser/WebRTC'} (audio preprocessing disabled)", flush=True)
+
     # ── LLM tools: external + built-in product tools ──────────────────────────
     lk_tools = build_livekit_tools(tools_config) + build_product_tools(products)
 
@@ -596,13 +638,13 @@ async def vani_agent(ctx: JobContext):
             language=dg_language,
             smart_format=True,
             filler_words=False,
-            endpointing_ms=200,
+            endpointing_ms=300,
         ),
         llm=llm,
         tts=tts,
     )
 
-    filler = FillerSystem(session, language=language, delay_ms=100)
+    filler = FillerSystem(session, language=language, delay_ms=9999)  # effectively disabled — fillers make it worse
     limits = CallLimits(session, language=language)
     transcript_lines = []
     language_locked = [language in ("en", "hi")]

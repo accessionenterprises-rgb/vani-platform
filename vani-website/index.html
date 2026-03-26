@@ -537,47 +537,81 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   DOT MATRIX — Full-viewport halftone world map (Cregg style)
-   Regular grid of dots, brightness sampled from earth texture.
-   Dots assemble from scattered → grid. Mouse parallax + glow.
+   DOT MATRIX → GLOBE TRANSITION
+   Phase 1: scattered → flat world map (Cregg style)
+   Phase 2: flat map → 3D rotating globe, slides to the right
    ═══════════════════════════════════════════════════════════════ */
 (function() {
   const canvas = document.getElementById('heroCanvas');
   const ctx = canvas.getContext('2d');
   const dpr = Math.min(window.devicePixelRatio, 2);
 
-  let W, H, cols, rows, dots = [], assembled = false;
-  const DOT_GAP = 7; // px between dot centers
-  const MAX_R = 3.2; // max dot radius
+  let W, H, cols, rows, dots = [];
+  const DOT_GAP = 7;
+  const MAX_R = 3.2;
   let mx = -9999, my = -9999;
-  let progress = 0; // 0 = scattered, 1 = assembled
 
-  // Load earth texture
+  // State machine: 0=init, 1=assembling flat, 2=hold flat, 3=morphing to globe, 4=globe steady
+  // Starfield — persistent universe backdrop
+  let stars = [];
+  function initStars() {
+    stars = [];
+    const count = Math.floor((W * H) / 1800);
+    for (let i = 0; i < count; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 0.8 + 0.2,
+        a: Math.random() * 0.5 + 0.05,
+        twinkleSpeed: 0.5 + Math.random() * 2,
+        twinkleOffset: Math.random() * Math.PI * 2,
+      });
+    }
+  }
+
+  function drawStars(time) {
+    for (const s of stars) {
+      const twinkle = 0.5 + 0.5 * Math.sin(time * s.twinkleSpeed + s.twinkleOffset);
+      const alpha = s.a * (0.4 + twinkle * 0.6);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(200,210,255,${alpha})`;
+      ctx.fill();
+    }
+  }
+
+  // 0=init, 1=assembling flat, 2=hold flat + arcs fade in, 3=morph to globe, 4=globe steady
+  let phase = 0;
+  let flatProgress = 0;
+  let globeProgress = 0;
+  // Start rotation so India (lon ~77°) faces front
+  // Camera looks at z+, so lon=0 faces us. To show lon=77°, start at -77° in radians
+  let globeAngle = -77 * Math.PI / 180;
+  let holdTimer = 0;
+  let arcFade = 0;
+
+  // Globe params
+  let globeR, globeCx, globeCy;
+
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.src = 'https://unpkg.com/three-globe@2.31.1/example/img/earth-dark.jpg';
-
-  let imgCanvas, imgCtx, imgData, imgW, imgH;
+  let imgData, imgW, imgH;
 
   img.onload = function() {
-    imgCanvas = document.createElement('canvas');
+    const c2 = document.createElement('canvas');
     imgW = img.width; imgH = img.height;
-    imgCanvas.width = imgW; imgCanvas.height = imgH;
-    imgCtx = imgCanvas.getContext('2d');
-    imgCtx.drawImage(img, 0, 0);
-    imgData = imgCtx.getImageData(0, 0, imgW, imgH).data;
+    c2.width = imgW; c2.height = imgH;
+    const x2 = c2.getContext('2d');
+    x2.drawImage(img, 0, 0);
+    imgData = x2.getImageData(0, 0, imgW, imgH).data;
     resize();
-    // Start assembly animation after splash
-    setTimeout(() => { assembled = true; }, 1400);
+    setTimeout(() => { phase = 1; }, 1400);
   };
 
-  img.onerror = function() {
-    // Fallback: just show random dot field
-    resize();
-    setTimeout(() => { assembled = true; }, 1400);
-  };
+  img.onerror = function() { resize(); setTimeout(() => { phase = 1; }, 1400); };
 
-  function sampleBrightness(u, v) {
+  function sampleB(u, v) {
     if (!imgData) return 0.1;
     const x = Math.floor(u * imgW) % imgW;
     const y = Math.floor(v * imgH) % imgH;
@@ -592,75 +626,276 @@
     canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
+    // Globe: right side, vertically centered
+    globeR = Math.min(W, H) * 0.42;
+    globeCx = W * 0.75;
+    globeCy = H * 0.55;
+
     cols = Math.ceil(W / DOT_GAP) + 1;
     rows = Math.ceil(H / DOT_GAP) + 1;
 
     dots = [];
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
-        // Target position (grid)
         const tx = col * DOT_GAP;
         const ty = row * DOT_GAP;
-
-        // Sample brightness from earth texture — boosted so all dots visible
         const u = col / cols;
         const v = row / rows;
-        const raw = sampleBrightness(u, v);
-        // Boost: ocean dim but visible, land very bright
+        const raw = sampleB(u, v);
         const brightness = 0.08 + Math.pow(raw, 0.5) * 0.92;
 
-        // Scattered start position (random across viewport)
+        // Globe position: equirectangular UV → sphere → 2D projection
+        // lat: +90 (top) to -90 (bottom), lon: -180 (left) to +180 (right)
+        const lat = (0.5 - v) * Math.PI;      // -π/2 to π/2
+        const lon = (u - 0.5) * Math.PI * 2;  // -π to π
+
         const sx = Math.random() * W;
         const sy = Math.random() * H;
 
         dots.push({
-          sx, sy,       // scatter position
-          tx, ty,       // target grid position
-          x: sx, y: sy, // current position
+          sx, sy,         // scatter pos
+          tx, ty,         // flat grid pos
+          u, v,           // UV coords
+          lat, lon,       // sphere coords
+          x: sx, y: sy,   // current pos
           b: brightness,
+          raw,            // unmodified brightness for globe land/ocean
           targetR: 0.6 + brightness * (MAX_R - 0.6),
-          r: 0,         // current radius (starts at 0)
-          delay: Math.random() * 0.2, // quick stagger
+          r: 0,
+          delay: Math.random() * 0.2,
+          visible: true,
         });
       }
     }
-    progress = assembled ? 1 : 0;
+    if (phase >= 2) flatProgress = 1;
+    initStars();
   }
 
-  document.addEventListener('mousemove', e => {
-    mx = e.clientX;
-    my = e.clientY;
-  });
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
   document.addEventListener('mouseleave', () => { mx = -9999; my = -9999; });
-
   window.addEventListener('resize', resize);
+
+  // Project a sphere point to 2D given rotation angle
+  const TILT = 0; // no tilt
+
+  function sphereTo2D(lat, lon, angle) {
+    const rotLon = lon + angle;
+    let x3 = Math.cos(lat) * Math.sin(rotLon);
+    let y3 = Math.sin(lat);
+    let z3 = Math.cos(lat) * Math.cos(rotLon);
+
+    // Tilt around X axis (pitch down)
+    const cosT = Math.cos(TILT), sinT = Math.sin(TILT);
+    const ny = y3 * cosT - z3 * sinT;
+    const nz = y3 * sinT + z3 * cosT;
+    y3 = ny; z3 = nz;
+
+    const scale = 1 / (1 + z3 * 0.15);
+    const px = globeCx + x3 * globeR * scale;
+    const py = globeCy - y3 * globeR * scale;
+    return { x: px, y: py, z: z3, back: z3 < -0.05 };
+  }
+
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+  function easeInOutQuart(t) { return t < 0.5 ? 8*t*t*t*t : 1 - Math.pow(-2*t+2,4)/2; }
+
+  // ─── City arcs ───
+  const cities = [
+    { name:'Mumbai',    lat: 19.1, lon: 72.9 },
+    { name:'Delhi',     lat: 28.6, lon: 77.2 },
+    { name:'NewYork',   lat: 40.7, lon:-74.0 },
+    { name:'SF',        lat: 37.6, lon:-122.4 },
+    { name:'London',    lat: 51.5, lon: -0.1 },
+    { name:'Paris',     lat: 48.9, lon: 2.35 },
+    { name:'Tokyo',     lat: 35.7, lon:139.7 },
+    { name:'Shanghai',  lat: 31.2, lon:121.5 },
+    { name:'Dubai',     lat: 25.2, lon: 55.3 },
+    { name:'Sydney',    lat:-33.9, lon:151.2 },
+    { name:'SaoPaulo',  lat:-23.5, lon:-46.6 },
+    { name:'Singapore', lat: 1.35, lon:103.8 },
+    { name:'Berlin',    lat: 52.5, lon: 13.4 },
+    { name:'Moscow',    lat: 55.8, lon: 37.6 },
+    { name:'Lagos',     lat: 6.5,  lon: 3.4 },
+    { name:'Chicago',   lat: 41.9, lon:-87.6 },
+    { name:'LA',        lat: 34.0, lon:-118.0 },
+    { name:'Beijing',   lat: 39.9, lon:116.4 },
+    { name:'HK',        lat: 22.3, lon:114.2 },
+    { name:'Cairo',     lat: 30.0, lon: 31.2 },
+  ];
+  // Convert to radians
+  cities.forEach(c => { c.latR = c.lat * Math.PI / 180; c.lonR = c.lon * Math.PI / 180; });
+
+  const arcPairs = [
+    [0,2],[0,4],[1,8],[2,4],[3,7],[4,5],[5,12],[6,7],[7,11],[8,14],
+    [9,11],[10,2],[12,13],[3,16],[15,2],[17,18],[6,11],[0,19],[1,6],[14,4],
+  ];
+
+  // Convert city lat/lon to flat map screen position
+  function cityFlat(c) {
+    const u = (c.lon + 180) / 360;
+    const v = (90 - c.lat) / 180;
+    return { x: u * W, y: v * H };
+  }
+
+  function drawArcs(angle, gp, arcAlpha) {
+    const time = performance.now() * 0.001;
+
+    for (const [ai, bi] of arcPairs) {
+      const a = cities[ai], b = cities[bi];
+
+      // Flat positions
+      const fA = cityFlat(a), fB = cityFlat(b);
+
+      const gA = sphereTo2D(a.latR, a.lonR, angle);
+      const gB = sphereTo2D(b.latR, b.lonR, angle);
+
+      let pA, pB;
+      if (gp < 0.01) {
+        pA = fA; pB = fB;
+      } else {
+        pA = { x: fA.x + (gA.x - fA.x) * gp, y: fA.y + (gA.y - fA.y) * gp };
+        pB = { x: fB.x + (gB.x - fB.x) * gp, y: fB.y + (gB.y - fB.y) * gp };
+      }
+
+      // Hide arcs when both cities on back of globe
+      const anyBack = gA.back || gB.back;
+      const alpha = arcAlpha * (anyBack && gp > 0.8 ? 0.08 : 1);
+
+      const midX = (pA.x + pB.x) / 2;
+      const midY = (pA.y + pB.y) / 2;
+      const dist = Math.hypot(pA.x - pB.x, pA.y - pB.y);
+      const lift = dist * 0.2;
+
+      // Dim base arc
+      ctx.beginPath();
+      ctx.moveTo(pA.x, pA.y);
+      ctx.quadraticCurveTo(midX, midY - lift, pB.x, pB.y);
+      ctx.strokeStyle = `rgba(167,139,250,${0.08 * alpha})`;
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+
+      // Clean traveling bright arc segment
+      const t = ((time * 0.3 + ai * 0.41) % 1);
+      const segLen = 0.25;
+      const tStart = Math.max(0, t - segLen);
+      const tEnd = Math.min(1, t);
+      const steps = 20;
+      ctx.beginPath();
+      for (let s = 0; s <= steps; s++) {
+        const st = tStart + (tEnd - tStart) * (s / steps);
+        const sx = pA.x + (pB.x - pA.x) * st;
+        const sy = pA.y + (pB.y - pA.y) * st - lift * 4 * st * (1 - st);
+        s === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+      }
+      const segAlpha = Math.sin(t * Math.PI) * 0.5;
+      ctx.strokeStyle = `rgba(167,139,250,${segAlpha * alpha})`;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // City dots
+      [pA, pB].forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(167,139,250,${0.7 * alpha})`;
+        ctx.fill();
+      });
+    }
+  }
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
-
-    // Advance assembly progress
-    if (assembled && progress < 1) {
-      progress = Math.min(1, progress + 0.035);
-    }
-
     const time = performance.now() * 0.001;
 
+
+    // Phase transitions
+    if (phase === 1) {
+      flatProgress = Math.min(1, flatProgress + 0.035);
+      if (flatProgress >= 1) { phase = 2; holdTimer = time; }
+    }
+    if (phase === 2) {
+      // Fade in arcs on flat map, hold for 2s then morph
+      arcFade = Math.min(1, arcFade + 0.03);
+      if (time - holdTimer > 4.0) phase = 3;
+    }
+    if (phase === 3) {
+      arcFade = 1;
+      globeProgress = Math.min(1, globeProgress + 0.04);
+      if (globeProgress >= 1) phase = 4;
+    }
+    if (phase === 4) arcFade = 1;
+    if (phase >= 3) {
+      globeAngle += 0.003;
+    }
+
+    const gp = easeInOutQuart(globeProgress);
+
     for (const d of dots) {
-      // Ease each dot from scatter → grid based on progress + per-dot delay
-      const p = Math.max(0, Math.min(1, (progress - d.delay) / 0.3));
-      const ease = p < 1 ? 1 - Math.pow(1 - p, 3) : 1; // cubic ease out
+      // Phase 1: scatter → flat
+      const fp = Math.max(0, Math.min(1, (flatProgress - d.delay) / 0.3));
+      const flatEase = easeOutCubic(fp);
 
-      d.x = d.sx + (d.tx - d.sx) * ease;
-      d.y = d.sy + (d.ty - d.sy) * ease;
-      d.r = d.targetR * ease;
+      // Flat position
+      let fx = d.sx + (d.tx - d.sx) * flatEase;
+      let fy = d.sy + (d.ty - d.sy) * flatEase;
+      let fr = d.targetR * flatEase;
 
-      // Subtle drift when assembled
-      if (ease > 0.9) {
-        d.x += Math.sin(time * 0.3 + d.tx * 0.05) * 0.3;
-        d.y += Math.cos(time * 0.25 + d.ty * 0.04) * 0.3;
+      // Subtle drift when flat
+      if (flatEase > 0.9 && gp < 0.1) {
+        fx += Math.sin(time * 0.3 + d.tx * 0.05) * 0.3;
+        fy += Math.cos(time * 0.25 + d.ty * 0.04) * 0.3;
       }
 
-      // Mouse glow effect
+      // Phase 3+: morph toward globe
+      if (gp > 0) {
+        const proj = sphereTo2D(d.lat, d.lon, globeAngle);
+        d.visible = true;
+        d.x = fx + (proj.x - fx) * gp;
+        d.y = fy + (proj.y - fy) * gp;
+
+        const flatAlpha = 0.15 + d.b * 0.7;
+        const globeAlpha = 0.15 + d.raw * 0.85;
+        const globeRadius = 0.5 + d.raw * 2.4;
+
+        d.r = fr + (globeRadius - fr) * gp;
+        const baseAlpha = Math.max(flatAlpha, globeAlpha * gp + flatAlpha * (1 - gp));
+
+        // Back-facing: render dimmer and smaller so globe looks full
+        let depthFade = 1;
+        if (proj.back) {
+          // During transition: show at reduced opacity. Fully globe: very dim
+          const backDim = gp > 0.8 ? 0.15 : (0.5 - gp * 0.3);
+          depthFade = backDim;
+          d.r *= (gp > 0.8 ? 0.5 : 0.7);
+        } else {
+          depthFade = gp > 0.8 ? (0.4 + proj.z * 0.6) : 1;
+        }
+
+        let alpha = baseAlpha * depthFade;
+        let radius = d.r;
+
+        // Mouse glow
+        if (mx > 0) {
+          const dx = d.x - mx, dy = d.y - my;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            const glow = (1 - dist / 120);
+            alpha += glow * 0.5;
+            radius += glow * 1.2;
+          }
+        }
+
+        if (radius < 0.08) continue;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(210,210,215,${Math.min(alpha, 1)})`;
+        ctx.fill();
+        continue;
+      }
+
+      // Pure flat phase rendering
+      d.visible = true;
+      d.x = fx; d.y = fy; d.r = fr;
+
       let alpha = 0.15 + d.b * 0.7;
       let radius = d.r;
       if (mx > 0) {
@@ -674,11 +909,22 @@
       }
 
       if (radius < 0.1) continue;
-
       ctx.beginPath();
       ctx.arc(d.x, d.y, radius, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(210,210,215,${Math.min(alpha, 1)})`;
       ctx.fill();
+    }
+
+    // ─── AI ambient elements in left empty space (once globe is right) ───
+    if (phase >= 3 && globeProgress > 0.3) {
+      const aiAlpha = Math.min(1, (globeProgress - 0.3) / 0.4);
+      const leftZone = W * 0.45; // left half
+
+    }
+
+    // Draw city arcs — on flat map first, then morphs with globe
+    if (phase >= 2 && arcFade > 0) {
+      drawArcs(globeAngle, easeInOutQuart(globeProgress), arcFade);
     }
 
     requestAnimationFrame(draw);

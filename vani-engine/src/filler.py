@@ -17,20 +17,20 @@ import random
 
 FILLERS: dict[str, list[str]] = {
     "en": [
-        "Sure, one moment.",
-        "Let me check that for you.",
-        "One second.",
-        "Good question, let me think.",
+        "um",
+        "mhm",
+        "uh huh",
+        "mm",
     ],
     "hi": [
-        "एक पल रुकिए।",
-        "देखते हैं।",
-        "ठीक है, एक क्षण।",
+        "हम्म",
+        "अच्छा",
+        "हां",
     ],
     "multi": [
-        "Sure, ek second.",
-        "Let me check — ek moment.",
-        "Dekhte hain.",
+        "hmm",
+        "mm",
+        "haan",
     ],
 }
 
