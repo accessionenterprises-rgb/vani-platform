@@ -23,6 +23,7 @@ const NAV = [
     { to: '/integrations', label: 'Integrations', icon: LinkIcon },
     { to: '/webhooks',     label: 'Webhooks',     icon: WebhookIcon },
     { to: '/api-keys',     label: 'API Keys',     icon: KeyIcon },
+    { to: '/billing',      label: 'Billing',      icon: BillingIcon },
   ]},
 ]
 
@@ -150,6 +151,9 @@ function SettingsIcon({ className }) {
 }
 function KeyIcon({ className }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+}
+function BillingIcon({ className }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
 }
 function LogoutIcon({ className }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>

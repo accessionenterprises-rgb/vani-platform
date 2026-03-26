@@ -53,6 +53,21 @@ export const api = {
   createWidgetKey: (agentId)           => request('POST', `/agents/${agentId}/widget-key`),
   builderChat:     (message, history)  => request('POST', '/builder/chat', { message, history }),
   ttsPreviewUrl:   (voice)            => `${BASE}/tts/preview?voice=${encodeURIComponent(voice)}`,
+  ttsPreview:      (voice, text)     => {
+    const token = getToken()
+    return fetch(`${BASE}/tts-preview`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ voice, text: text || 'Hello, I am your AI voice assistant. How can I help you today?' }),
+    }).then(async res => {
+      if (!res.ok) throw new Error(`TTS preview failed: HTTP ${res.status}`)
+      return res.blob()
+    })
+  },
+
+  // Billing
+  getBillingPlan:     () => request('GET', '/billing/plan'),
+  getBillingInvoices: () => request('GET', '/billing/invoices'),
 
   // KB
   listKb:      (agentId)          => request('GET', `/agents/${agentId}/kb`),

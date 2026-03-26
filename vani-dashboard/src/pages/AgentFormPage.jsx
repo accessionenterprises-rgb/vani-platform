@@ -1428,22 +1428,40 @@ const SARVAM_VOICES = [...SARVAM_V2_VOICES, ...SARVAM_V3_VOICES]
 
 function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix }) {
   const [playing, setPlaying] = useState(null)
+  const [loadingVoice, setLoadingVoice] = useState(null)
   const audioRef = useRef(null)
   const [genderFilter, setGenderFilter] = useState('All')
 
   const filtered = genderFilter === 'All' ? voices : voices.filter(v => v.gender === genderFilter)
 
-  const playPreview = (voice) => {
+  const playPreview = async (voice) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
     if (playing === voice.id) { setPlaying(null); return }
-    const nameLower = voice.name.toLowerCase()
-    const url = `https://api.vani.live/static/voice-previews/${previewPrefix}-${nameLower}.mp3`
-    const audio = new Audio(url)
-    audio.onended = () => setPlaying(null)
-    audio.onerror = () => setPlaying(null)
-    audio.play()
-    audioRef.current = audio
-    setPlaying(voice.id)
+
+    setLoadingVoice(voice.id)
+    try {
+      // Try API-based TTS preview first
+      const voiceParam = previewPrefix === 'cartesia' ? `cartesia-${voice.id}` : previewPrefix === 'elevenlabs' ? `elevenlabs-${voice.id}` : voice.id
+      const blob = await api.ttsPreview(voiceParam)
+      const audio = new Audio(URL.createObjectURL(blob))
+      audio.onended = () => setPlaying(null)
+      audio.onerror = () => setPlaying(null)
+      await audio.play()
+      audioRef.current = audio
+      setPlaying(voice.id)
+    } catch {
+      // Fallback to static preview
+      const nameLower = voice.name.toLowerCase()
+      const url = `https://api.vani.live/static/voice-previews/${previewPrefix}-${nameLower}.mp3`
+      const audio = new Audio(url)
+      audio.onended = () => setPlaying(null)
+      audio.onerror = () => { setPlaying(null); setLoadingVoice(null) }
+      audio.play()
+      audioRef.current = audio
+      setPlaying(voice.id)
+    } finally {
+      setLoadingVoice(null)
+    }
   }
 
   return (
@@ -1475,8 +1493,11 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
             <p className="text-[9px] text-[#A8A29E]">{v.desc}</p>
             <p className="text-[9px] text-[#A8A29E]">{v.accent} {v.gender === 'F' ? '♀' : '♂'}</p>
             <button type="button" onClick={(e) => { e.stopPropagation(); playPreview(v) }}
-              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#F5F5F4] hover:bg-[#F5F5F4] flex items-center justify-center transition-colors">
-              {playing === v.id ? (
+              disabled={loadingVoice === v.id}
+              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#F5F5F4] hover:bg-[#E8E5E2] flex items-center justify-center transition-colors disabled:opacity-60">
+              {loadingVoice === v.id ? (
+                <div className="w-3 h-3 border-[1.5px] border-indigo-400 border-t-transparent rounded-full animate-spin" />
+              ) : playing === v.id ? (
                 <div className="w-2 h-2 rounded-sm bg-indigo-400" />
               ) : (
                 <svg className="w-2.5 h-2.5 text-[#78716C] ml-0.5" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,0 12,6 2,12" /></svg>
