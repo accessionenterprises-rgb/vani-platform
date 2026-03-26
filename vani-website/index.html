@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vani — Voice AI Agents</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    /* ── Design tokens (matched to Cregg scale) ── */
+    :root {
+      --black: #0a0a0a;
+      --white: #d9d9d9;
+      --grey: #5e5e5e;
+      --grey-light: #a9a9a9;
+      --grey-dark: #232323;
+      --accent-1-bg: #00581f; --accent-1-fg: #00ff75;
+      --accent-2-bg: #1125ff; --accent-2-fg: #00deff;
+      --accent-3-bg: #680000; --accent-3-fg: #ff1018;
+      --accent-4-bg: #232323; --accent-4-fg: #d9d9d9;
+      --grid-gap: 2rem;
+      --grid-pad: 2rem;
+      --font: 'Inter', -apple-system, sans-serif;
+    }
+    html { font-size: 62.5%; }
+    body {
+      font-family: var(--font);
+      background: var(--black);
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    ::selection { background: #a78bfa; color: #000; }
+
+    /* ── Grid system (8-col like Cregg) ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      padding-inline: 1.5rem;
+    }
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: var(--grid-gap);
+        padding-inline: var(--grid-pad);
+      }
+    }
+
+    /* ── Splash ── */
+    #splash {
+      position: fixed; inset: 0; z-index: 1000;
+      background: var(--black);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #splash .dot-loop {
+      width: 40px; height: 40px;
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 3px;
+    }
+    #splash .dot-loop i {
+      width: 100%; aspect-ratio: 1;
+      background: var(--white);
+      border-radius: 1px;
+      animation: dotPulse .8s ease-in-out infinite alternate;
+    }
+    #splash .dot-loop i:nth-child(2) { animation-delay: .1s; }
+    #splash .dot-loop i:nth-child(3) { animation-delay: .2s; }
+    #splash .dot-loop i:nth-child(4) { animation-delay: .3s; }
+    #splash .dot-loop i:nth-child(5) { animation-delay: .4s; }
+    #splash .dot-loop i:nth-child(6) { animation-delay: .5s; }
+    #splash .dot-loop i:nth-child(7) { animation-delay: .6s; }
+    #splash .dot-loop i:nth-child(8) { animation-delay: .7s; }
+    #splash .dot-loop i:nth-child(9) { animation-delay: .8s; }
+    @keyframes dotPulse { 0% { opacity:.15 } 100% { opacity:1 } }
+
+    /* ── Nav — glass pills with per-link color hover ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem var(--grid-pad);
+    }
+    .nav-pill {
+      font-family: var(--font);
+      font-size: 1.4rem; font-weight: 500;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: .005em;
+      padding: .8rem 1.5rem;
+      background: color-mix(in oklab, var(--grey-light) 12%, transparent);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: none; cursor: pointer;
+      transition: background .3s ease-in-out, color .3s ease-in-out;
+    }
+    .nav-links { display: flex; gap: 0; }
+    .nav-links a:nth-child(1):hover { background: var(--accent-1-fg); color: var(--accent-1-bg); }
+    .nav-links a:nth-child(2):hover { background: var(--accent-2-fg); color: var(--accent-2-bg); }
+    .nav-links a:nth-child(3):hover { background: var(--accent-3-fg); color: var(--accent-3-bg); }
+    .nav-links a:nth-child(4):hover { background: var(--accent-4-fg); color: var(--accent-4-bg); }
+    @media (max-width: 1023px) {
+      .nav-links { display: none; }
+    }
+    .mob-toggle {
+      display: none;
+      align-items: center; gap: .8rem;
+    }
+    @media (max-width: 1023px) { .mob-toggle { display: flex; } }
+    .dot-icon { display: inline-grid; grid-template-columns: repeat(2,1fr); gap: 3px; }
+    .dot-icon i { width: 4px; height: 4px; background: currentColor; border-radius: 1px; display: block; }
+
+    /* Mobile overlay */
+    .mob-nav {
+      position: fixed; inset: 0; z-index: 99;
+      background: var(--black);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center; gap: 1.2rem;
+      clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
+      transition: clip-path .6s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+    .mob-nav a {
+      font-size: 5.8rem; font-weight: 700; color: var(--white);
+      text-decoration: none; letter-spacing: -.03em;
+      opacity: 0; transform: translateY(30px);
+      transition: all .5s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open a { opacity: 1; transform: translateY(0); }
+    .mob-nav a:nth-child(1) { transition-delay: .1s; }
+    .mob-nav a:nth-child(2) { transition-delay: .18s; }
+    .mob-nav a:nth-child(3) { transition-delay: .26s; }
+    .mob-nav a:nth-child(4) { transition-delay: .34s; }
+
+    /* ── Hero — full viewport, text bottom-left ── */
+    .hero {
+      position: relative;
+      min-height: 100dvh;
+      display: flex;
+      overflow: hidden;
+    }
+    #heroCanvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
+    .hero-inner {
+      position: relative; z-index: 1;
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      padding: 0 1.5rem;
+      align-content: end;
+      padding-bottom: 6rem;
+    }
+    @media (min-width: 1024px) {
+      .hero-inner {
+        grid-template-columns: repeat(8, 1fr);
+        gap: var(--grid-gap);
+        padding: 0 var(--grid-pad);
+        align-content: center;
+        padding-bottom: 0;
+        min-height: 100dvh;
+      }
+    }
+    .hero h1 {
+      grid-column: 1 / -1;
+      font-size: clamp(5.2rem, 8vw, 9.6rem);
+      font-weight: 700;
+      line-height: .9;
+      letter-spacing: -.04em;
+    }
+    @media (min-width: 1024px) {
+      .hero h1 { grid-column: 1 / 8; }
+    }
+    @media (min-width: 1280px) {
+      .hero h1 { grid-column: 1 / 7; }
+    }
+    .hero h1 .ln {
+      display: block; overflow: hidden;
+    }
+    .hero h1 .ln-i {
+      display: block;
+      transform: translateY(110%);
+      will-change: transform;
+    }
+    /* Mobile gradient so text is readable over particles */
+    @media (max-width: 1023px) {
+      .hero::after {
+        content: '';
+        position: absolute; bottom: 0; left: 0; right: 0;
+        height: 50%;
+        background: linear-gradient(to top, var(--black) 25%, transparent);
+        z-index: 0;
+        pointer-events: none;
+      }
+    }
+
+    /* ── Highlight section ── */
+    .highlight {
+      padding-top: 12rem;
+      padding-bottom: 8.5rem;
+    }
+    @media (min-width: 1024px) {
+      .highlight { padding-top: 3rem; padding-bottom: 27rem; }
+    }
+    .highlight .dot-grid-deco {
+      grid-column: 1 / 2;
+      display: flex; align-items: start; padding-top: .5rem;
+    }
+    .dot-grid-svg { width: 31px; height: 31px; }
+    .highlight .hl-body {
+      grid-column: 1 / -1;
+    }
+    @media (min-width: 1024px) {
+      .highlight .hl-body { grid-column: 2 / 8; }
+    }
+    .highlight p {
+      font-size: clamp(2rem, 3vw, 4.2rem);
+      line-height: 1.12;
+      letter-spacing: -.015em;
+      font-weight: 500;
+    }
+    .highlight p .ch { display: inline; opacity: .06; transition: opacity .1s; }
+    .highlight p .ch.on { opacity: 1; }
+    .highlight .hl-link {
+      display: inline-block; margin-top: 2.4rem;
+      font-size: clamp(2rem, 2.5vw, 4.2rem);
+      color: var(--grey);
+      text-decoration: none;
+      transition: color .2s ease-out;
+    }
+    .highlight .hl-link:hover { color: var(--white); }
+
+    /* ── Features (Cregg "What We Do" style) ── */
+    .features { padding: 10rem 0; }
+    .features .sec-label {
+      grid-column: 1 / -1;
+      font-size: 1.3rem; color: var(--grey); letter-spacing: .14em;
+      text-transform: uppercase; margin-bottom: .5rem;
+    }
+    .features h2 {
+      grid-column: 1 / -1;
+      font-size: clamp(3.6rem, 5vw, 5.8rem);
+      font-weight: 700; line-height: .93;
+      letter-spacing: -.035em;
+      margin-bottom: 5rem;
+    }
+    @media (min-width: 1024px) {
+      .features h2 { grid-column: 1 / 6; }
+    }
+    .feat-grid {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: rgba(255,255,255,.04);
+    }
+    @media (min-width: 768px) {
+      .feat-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1024px) {
+      .feat-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .feat {
+      background: var(--black);
+      padding: 4rem 3rem;
+      transition: background .3s;
+    }
+    .feat:hover { background: #0e0e0e; }
+    .feat .num {
+      font-size: 1.1rem; color: var(--grey);
+      letter-spacing: .08em; margin-bottom: 2rem;
+    }
+    .feat h3 {
+      font-size: 2.4rem; font-weight: 700;
+      line-height: 1.12; letter-spacing: -.01em;
+      margin-bottom: 1rem;
+    }
+    .feat p { font-size: 1.5rem; color: var(--grey-light); line-height: 1.55; }
+
+    /* ── Conversation demo ── */
+    .demo { padding: 10rem 0; }
+    .demo .sec-label {
+      grid-column: 1 / -1;
+      font-size: 1.3rem; color: var(--grey);
+      letter-spacing: .14em; text-transform: uppercase;
+      margin-bottom: .5rem;
+    }
+    .demo h2 {
+      grid-column: 1 / -1;
+      font-size: clamp(3.4rem, 4.5vw, 5.4rem);
+      font-weight: 700; letter-spacing: -.04em;
+      line-height: .93; margin-bottom: 4rem;
+    }
+    @media (min-width: 1024px) { .demo h2 { grid-column: 1 / 6; } }
+    .demo-box {
+      grid-column: 1 / -1;
+      border: 1px solid rgba(255,255,255,.05);
+    }
+    @media (min-width: 1024px) { .demo-box { grid-column: 1 / 7; } }
+    .cv {
+      padding: 1.6rem 2.4rem;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      display: flex; gap: 1.6rem; align-items: baseline;
+    }
+    .cv:last-child { border: none; }
+    .cv .who {
+      font-size: 1rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      width: 5rem; flex-shrink: 0;
+    }
+    .cv .who.c { color: var(--grey-light); }
+    .cv .who.a { color: #a78bfa; }
+    .cv .txt { font-size: 1.5rem; color: rgba(255,255,255,.7); line-height: 1.5; }
+
+    .stats-row {
+      grid-column: 1 / -1;
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: rgba(255,255,255,.04);
+      margin-top: 4rem;
+    }
+    @media (min-width: 1024px) { .stats-row { grid-column: 1 / 7; } }
+    .stat {
+      background: var(--black); padding: 3.6rem 2rem; text-align: center;
+    }
+    .stat .v {
+      font-size: clamp(3rem, 4.5vw, 5.8rem);
+      font-weight: 700; letter-spacing: -.04em; line-height: 1;
+    }
+    .stat .l { font-size: 1.15rem; color: var(--grey); margin-top: .5rem; letter-spacing: .04em; }
+
+    /* ── Footer (Cregg style — sticky reveal) ── */
+    .footer-wrap {
+      position: relative;
+      margin-top: 10rem;
+    }
+    .footer {
+      background: var(--grey-dark);
+      padding: 12rem var(--grid-pad) 4rem;
+    }
+    .foot-top {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4rem;
+    }
+    @media (min-width: 768px) {
+      .foot-top { grid-template-columns: repeat(2, 1fr); }
+    }
+    .foot-words span {
+      display: block;
+      font-size: clamp(4.8rem, 6vw, 6.4rem);
+      font-weight: 700; line-height: 1.05;
+      letter-spacing: -.035em;
+      color: #fff;
+    }
+    .foot-desc p {
+      font-size: clamp(1.8rem, 2.2vw, 2.7rem);
+      line-height: 1.25; color: var(--grey-light);
+    }
+    .foot-desc a {
+      display: inline-block; margin-top: 1.6rem;
+      font-size: 2.2rem; color: var(--white); text-decoration: none;
+      opacity: .4; transition: opacity .2s;
+    }
+    .foot-desc a:hover { opacity: 1; }
+
+    /* Cregg big brand logo at footer bottom */
+    .foot-brand {
+      margin-top: 10rem;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 2rem;
+    }
+    .foot-logo {
+      font-size: 2.2rem; font-weight: 700; letter-spacing: -.02em;
+      display: flex; align-items: center; gap: 1rem; color: #fff;
+    }
+    .g9 { display: inline-grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .g9 i { width: 4px; height: 4px; border-radius: 1px; background: #fff; display: block; }
+    .foot-links { display: flex; gap: 2rem; }
+    .foot-links a {
+      font-size: 1.3rem; color: var(--grey-light);
+      text-decoration: none; transition: color .2s;
+    }
+    .foot-links a:hover { color: #fff; }
+    .foot-copy {
+      width: 100%; margin-top: 2rem;
+      font-size: 1.15rem; color: var(--grey);
+      display: flex; justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Splash (Cregg-style dot grid loader) -->
+<div id="splash">
+  <div class="dot-loop"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</div>
+
+<!-- Mobile nav overlay -->
+<div class="mob-nav" id="mobNav">
+  <a href="#platform" onclick="closeMob()">Platform</a>
+  <a href="#features" onclick="closeMob()">Features</a>
+  <a href="#demo" onclick="closeMob()">Demo</a>
+  <a href="https://dashboard.vani.live/login" onclick="closeMob()">Dashboard</a>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="/" class="nav-pill">Vani</a>
+  <div class="nav-links">
+    <a href="#platform" class="nav-pill">Platform</a>
+    <a href="#features" class="nav-pill">Features</a>
+    <a href="#demo" class="nav-pill">Demo</a>
+    <a href="https://dashboard.vani.live/login" class="nav-pill">Dashboard</a>
+  </div>
+  <button class="nav-pill mob-toggle" onclick="toggleMob()">
+    <span class="dot-icon"><i></i><i></i><i></i><i></i></span>
+    Menu
+  </button>
+</nav>
+
+<!-- Hero — just headline + particles, Cregg style -->
+<section class="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-inner">
+    <h1>
+      <span class="ln"><span class="ln-i">Every call,</span></span>
+      <span class="ln"><span class="ln-i">answered by AI.</span></span>
+    </h1>
+  </div>
+</section>
+
+<!-- Highlight section (Cregg "From pioneering..." equivalent) -->
+<section class="highlight" id="platform">
+  <div class="grid">
+    <div class="dot-grid-deco">
+      <svg class="dot-grid-svg" viewBox="0 0 31 31" fill="none">
+        <circle cx="2" cy="2" r="1.5" fill="#d9d9d9"/>
+        <circle cx="10" cy="2" r="1.5" fill="#d9d9d9"/>
+        <circle cx="18" cy="2" r="1.5" fill="#d9d9d9"/>
+        <circle cx="26" cy="2" r="1.5" fill="#d9d9d9"/>
+        <circle cx="2" cy="10" r="1.5" fill="#d9d9d9"/>
+        <circle cx="10" cy="10" r="1.5" fill="#d9d9d9"/>
+        <circle cx="18" cy="10" r="1.5" fill="#d9d9d9"/>
+        <circle cx="26" cy="10" r="1.5" fill="#d9d9d9"/>
+        <circle cx="2" cy="18" r="1.5" fill="#d9d9d9"/>
+        <circle cx="10" cy="18" r="1.5" fill="#d9d9d9"/>
+        <circle cx="18" cy="18" r="1.5" fill="#d9d9d9"/>
+        <circle cx="26" cy="18" r="1.5" fill="#d9d9d9"/>
+        <circle cx="2" cy="26" r="1.5" fill="#d9d9d9"/>
+        <circle cx="10" cy="26" r="1.5" fill="#d9d9d9"/>
+        <circle cx="18" cy="26" r="1.5" fill="#d9d9d9"/>
+        <circle cx="26" cy="26" r="1.5" fill="#d9d9d9"/>
+      </svg>
+    </div>
+    <div class="hl-body">
+      <p id="charReveal">From handling inbound calls to running outbound campaigns — Vani deploys voice AI agents that speak naturally, understand context, and close conversations autonomously.</p>
+      <a href="#features" class="hl-link">Learn more &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="grid">
+    <div class="sec-label">What we do</div>
+    <h2>Not just a chatbot on a phone line.</h2>
+    <div class="feat-grid">
+      <div class="feat"><div class="num">01</div><h3>Inbound & Outbound</h3><p>Handle incoming calls and run outbound campaigns. Cold outreach, reminders, follow-ups — at any scale.</p></div>
+      <div class="feat"><div class="num">02</div><h3>Multi-Provider Stack</h3><p>Deepgram, Cartesia, OpenAI, Sarvam, Mistral. Mix any STT, LLM, and TTS. Switch from the dashboard.</p></div>
+      <div class="feat"><div class="num">03</div><h3>Live Analytics</h3><p>Call volume, success rates, sentiment, cost per call. Real-time dashboards per agent, per campaign.</p></div>
+      <div class="feat"><div class="num">04</div><h3>Number Intelligence</h3><p>AI-scored memorable number hunting across carriers. Find and buy vanity numbers instantly.</p></div>
+      <div class="feat"><div class="num">05</div><h3>Enterprise Infra</h3><p>Twilio telephony, LiveKit real-time, Redis queuing, warm transfer, voicemail detection.</p></div>
+      <div class="feat"><div class="num">06</div><h3>42 Languages</h3><p>Multilingual agents that switch languages mid-conversation. Native quality across regions.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Demo -->
+<section class="demo" id="demo">
+  <div class="grid">
+    <div class="sec-label">How it sounds</div>
+    <h2>A real conversation. Fully autonomous.</h2>
+    <div class="demo-box">
+      <div class="cv"><span class="who c">Caller</span><span class="txt">Hi, I'd like to book a table for four on Friday evening.</span></div>
+      <div class="cv"><span class="who a">Agent</span><span class="txt">Of course. I have 7pm and 8:30pm. Which works better?</span></div>
+      <div class="cv"><span class="who c">Caller</span><span class="txt">7pm works. It's under the name Priya.</span></div>
+      <div class="cv"><span class="who a">Agent</span><span class="txt">Done — table for four at 7pm this Friday for Priya. Confirmation sent. Anything else?</span></div>
+      <div class="cv"><span class="who c">Caller</span><span class="txt">That's perfect. Thank you.</span></div>
+      <div class="cv"><span class="who a">Agent</span><span class="txt">You're welcome. See you Friday, Priya.</span></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="v">&lt;1s</div><div class="l">Response</div></div>
+      <div class="stat"><div class="v">42</div><div class="l">Languages</div></div>
+      <div class="stat"><div class="v">24/7</div><div class="l">Uptime</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<div class="footer-wrap">
+  <footer class="footer">
+    <div class="foot-top">
+      <div class="foot-words" id="fWords">
+        <span>Precision.</span>
+        <span>Speed.</span>
+        <span>Intelligence.</span>
+      </div>
+      <div class="foot-desc">
+        <p>Voice AI agents that handle real conversations with real people. Built for businesses that never want to miss a call again.</p>
+        <a href="https://dashboard.vani.live/login">Get started &rarr;</a>
+      </div>
+    </div>
+    <div class="foot-brand">
+      <div class="foot-logo">
+        <span class="g9"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        Vani
+      </div>
+      <div class="foot-links">
+        <a href="https://dashboard.vani.live/login">Dashboard</a>
+        <a href="mailto:hello@vani.live">Contact</a>
+        <a href="#">Privacy</a>
+      </div>
+    </div>
+    <div class="foot-copy">
+      <span>&copy; 2026 Vani. All rights reserved.</span>
+      <span>hello@vani.live</span>
+    </div>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DOT MATRIX — Full-viewport halftone world map (Cregg style)
+   Regular grid of dots, brightness sampled from earth texture.
+   Dots assemble from scattered → grid. Mouse parallax + glow.
+   ═══════════════════════════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio, 2);
+
+  let W, H, cols, rows, dots = [], assembled = false;
+  const DOT_GAP = 7; // px between dot centers
+  const MAX_R = 3.2; // max dot radius
+  let mx = -9999, my = -9999;
+  let progress = 0; // 0 = scattered, 1 = assembled
+
+  // Load earth texture
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = 'https://unpkg.com/three-globe@2.31.1/example/img/earth-dark.jpg';
+
+  let imgCanvas, imgCtx, imgData, imgW, imgH;
+
+  img.onload = function() {
+    imgCanvas = document.createElement('canvas');
+    imgW = img.width; imgH = img.height;
+    imgCanvas.width = imgW; imgCanvas.height = imgH;
+    imgCtx = imgCanvas.getContext('2d');
+    imgCtx.drawImage(img, 0, 0);
+    imgData = imgCtx.getImageData(0, 0, imgW, imgH).data;
+    resize();
+    // Start assembly animation after splash
+    setTimeout(() => { assembled = true; }, 1400);
+  };
+
+  img.onerror = function() {
+    // Fallback: just show random dot field
+    resize();
+    setTimeout(() => { assembled = true; }, 1400);
+  };
+
+  function sampleBrightness(u, v) {
+    if (!imgData) return 0.1;
+    const x = Math.floor(u * imgW) % imgW;
+    const y = Math.floor(v * imgH) % imgH;
+    const i = (y * imgW + x) * 4;
+    return (imgData[i] + imgData[i+1] + imgData[i+2]) / (3 * 255);
+  }
+
+  function resize() {
+    W = canvas.offsetWidth;
+    H = canvas.offsetHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    cols = Math.ceil(W / DOT_GAP) + 1;
+    rows = Math.ceil(H / DOT_GAP) + 1;
+
+    dots = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        // Target position (grid)
+        const tx = col * DOT_GAP;
+        const ty = row * DOT_GAP;
+
+        // Sample brightness from earth texture — boosted so all dots visible
+        const u = col / cols;
+        const v = row / rows;
+        const raw = sampleBrightness(u, v);
+        // Boost: ocean dim but visible, land very bright
+        const brightness = 0.08 + Math.pow(raw, 0.5) * 0.92;
+
+        // Scattered start position (random across viewport)
+        const sx = Math.random() * W;
+        const sy = Math.random() * H;
+
+        dots.push({
+          sx, sy,       // scatter position
+          tx, ty,       // target grid position
+          x: sx, y: sy, // current position
+          b: brightness,
+          targetR: 0.6 + brightness * (MAX_R - 0.6),
+          r: 0,         // current radius (starts at 0)
+          delay: Math.random() * 0.2, // quick stagger
+        });
+      }
+    }
+    progress = assembled ? 1 : 0;
+  }
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX;
+    my = e.clientY;
+  });
+  document.addEventListener('mouseleave', () => { mx = -9999; my = -9999; });
+
+  window.addEventListener('resize', resize);
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Advance assembly progress
+    if (assembled && progress < 1) {
+      progress = Math.min(1, progress + 0.035);
+    }
+
+    const time = performance.now() * 0.001;
+
+    for (const d of dots) {
+      // Ease each dot from scatter → grid based on progress + per-dot delay
+      const p = Math.max(0, Math.min(1, (progress - d.delay) / 0.3));
+      const ease = p < 1 ? 1 - Math.pow(1 - p, 3) : 1; // cubic ease out
+
+      d.x = d.sx + (d.tx - d.sx) * ease;
+      d.y = d.sy + (d.ty - d.sy) * ease;
+      d.r = d.targetR * ease;
+
+      // Subtle drift when assembled
+      if (ease > 0.9) {
+        d.x += Math.sin(time * 0.3 + d.tx * 0.05) * 0.3;
+        d.y += Math.cos(time * 0.25 + d.ty * 0.04) * 0.3;
+      }
+
+      // Mouse glow effect
+      let alpha = 0.15 + d.b * 0.7;
+      let radius = d.r;
+      if (mx > 0) {
+        const dx = d.x - mx, dy = d.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          const glow = (1 - dist / 120);
+          alpha += glow * 0.5;
+          radius += glow * 1.5;
+        }
+      }
+
+      if (radius < 0.1) continue;
+
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(210,210,215,${Math.min(alpha, 1)})`;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   GSAP ANIMATIONS — matched to Cregg timing
+   ═══════════════════════════════════════════════════════════════ */
+gsap.registerPlugin(ScrollTrigger);
+
+// Splash → kill
+window.addEventListener('load', () => {
+  const tl = gsap.timeline({ delay: 0.4 });
+
+  tl.to('#splash', {
+    opacity: 0, duration: 0.8, ease: 'power3.out',
+    onComplete: () => document.getElementById('splash').style.display = 'none',
+  });
+
+  // Hero lines slide up (Cregg SplitText equivalent)
+  tl.to('.ln-i', {
+    y: '0%', duration: 1.4, ease: 'expo.out',
+    stagger: { each: 0.1 },
+  }, '-=0.3');
+});
+
+// ─── Character-by-character scroll reveal (highlight section) ───
+(function(){
+  const el = document.getElementById('charReveal');
+  const txt = el.textContent;
+  el.innerHTML = txt.split('').map(c =>
+    c === ' ' ? ' ' : `<span class="ch">${c}</span>`
+  ).join('');
+  const chars = el.querySelectorAll('.ch');
+
+  ScrollTrigger.create({
+    trigger: '.highlight',
+    start: 'top 70%',
+    end: 'bottom 45%',
+    scrub: 0.6,
+    onUpdate: self => {
+      const p = self.progress;
+      chars.forEach((c, i) => {
+        c.classList.toggle('on', (i / chars.length) < p);
+      });
+    },
+  });
+})();
+
+// ─── Feature cards stagger ───
+gsap.utils.toArray('.feat').forEach((f, i) => {
+  gsap.from(f, {
+    opacity: 0, y: 40,
+    duration: 0.7, ease: 'power3.out',
+    scrollTrigger: { trigger: f, start: 'top 92%' },
+    delay: i * 0.04,
+  });
+});
+
+// ─── Section headings ───
+document.querySelectorAll('.features h2, .demo h2').forEach(el => {
+  gsap.from(el, {
+    opacity: 0, y: 30,
+    duration: 0.9, ease: 'expo.out',
+    scrollTrigger: { trigger: el, start: 'top 88%' },
+  });
+});
+
+// ─── Conversation lines ───
+gsap.utils.toArray('.cv').forEach((line, i) => {
+  gsap.from(line, {
+    opacity: 0, x: -15,
+    duration: 0.4, ease: 'power2.out',
+    scrollTrigger: { trigger: '.demo-box', start: 'top 85%' },
+    delay: i * 0.12,
+  });
+});
+
+// ─── Footer words (Cregg SplitText stagger) ───
+gsap.utils.toArray('#fWords span').forEach((s, i) => {
+  gsap.from(s, {
+    opacity: 0, y: 30,
+    duration: 0.9, ease: 'expo.out',
+    scrollTrigger: { trigger: '#fWords', start: 'top 88%' },
+    delay: i * 0.1,
+  });
+});
+
+// ─── Mobile nav ───
+function toggleMob() { document.getElementById('mobNav').classList.toggle('open'); }
+function closeMob() { document.getElementById('mobNav').classList.remove('open'); }
+</script>
+</body>
+</html>
