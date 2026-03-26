@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from app.config import settings
-from app.routers import admin, agent_builder, agents, analytics, api_keys, auth, calls, campaigns, dialer, dnc, kb, latency, number_hunter, numbers, outbound, playground_chat, playground_voice, products, qa_tester, qa_reports, team, telephony, tools, tts_preview, webhooks, widget
+from app.routers import admin, agent_builder, agents, analytics, api_keys, auth, billing, calls, campaigns, dialer, dnc, kb, latency, number_hunter, numbers, outbound, playground_chat, playground_voice, products, qa_tester, qa_reports, team, telephony, tools, tts_preview, webhook_config, webhooks, widget
 from app.middleware.usage import UsageMeteringMiddleware, periodic_flush
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.errors import install_error_handlers
@@ -49,6 +49,7 @@ app.include_router(api_keys.router,         prefix=V1)
 app.include_router(numbers.router,          prefix=V1)
 app.include_router(number_hunter.router,    prefix=V1)
 app.include_router(webhooks.router,         prefix=V1)
+app.include_router(webhook_config.router,   prefix=V1)
 app.include_router(dnc.router,              prefix=V1)
 app.include_router(dialer.router,           prefix=V1)
 app.include_router(team.router,             prefix=V1)
@@ -59,6 +60,7 @@ app.include_router(playground_voice.router, prefix=V1)
 app.include_router(qa_tester.router,        prefix=V1)
 app.include_router(qa_reports.router,       prefix=V1)
 app.include_router(latency.router,          prefix=V1)
+app.include_router(billing.router,          prefix=V1)
 
 # ── Backwards compatibility — mount same routes without /v1/ prefix ──────────
 # Dashboard and existing integrations use unprefixed routes.
@@ -76,6 +78,7 @@ app.include_router(api_keys.router)
 app.include_router(numbers.router)
 app.include_router(number_hunter.router)
 app.include_router(webhooks.router)
+app.include_router(webhook_config.router)
 app.include_router(dnc.router)
 app.include_router(dialer.router)
 app.include_router(team.router)
@@ -86,6 +89,7 @@ app.include_router(playground_voice.router)
 app.include_router(qa_tester.router)
 app.include_router(qa_reports.router)
 app.include_router(latency.router)
+app.include_router(billing.router)
 
 # ── Internal routes (no versioning) ──────────────────────────────────────────
 app.include_router(admin.router)

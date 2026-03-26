@@ -23,6 +23,7 @@ import DialerPage      from './pages/DialerPage'
 import AgentBuilderPage from './pages/AgentBuilderPage'
 import QAPage          from './pages/QAPage'
 import LatencyPage     from './pages/LatencyPage'
+import ApiKeysPage     from './pages/ApiKeysPage'
 
 function AppShell() {
   return (
@@ -50,6 +51,7 @@ function AppShell() {
           <Route path="/flow-builder"  element={<FlowBuilderPage />} />
           <Route path="/qa"            element={<QAPage />} />
           <Route path="/latency"       element={<LatencyPage />} />
+          <Route path="/api-keys"      element={<ApiKeysPage />} />
           <Route path="*"              element={<Navigate to="/" replace />} />
         </Routes>
       </main>

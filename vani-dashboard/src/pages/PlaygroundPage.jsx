@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 
 /**
@@ -8,6 +9,7 @@ import { api } from '../api/client'
  * Tab 2: Phone Test — triggers a real outbound call + live transcript
  */
 export default function PlaygroundPage() {
+  const [searchParams] = useSearchParams()
   const [tab, setTab] = useState('chat')
   const [agents, setAgents] = useState([])
   const [selectedAgent, setSelectedAgent] = useState('')
@@ -16,9 +18,14 @@ export default function PlaygroundPage() {
     api.listAgents().then(list => {
       const active = list.filter(a => a.active)
       setAgents(active)
-      if (active.length > 0) setSelectedAgent(active[0].id)
+      const preselect = searchParams.get('agent')
+      if (preselect && active.find(a => a.id === preselect)) {
+        setSelectedAgent(preselect)
+      } else if (active.length > 0) {
+        setSelectedAgent(active[0].id)
+      }
     }).catch(console.error)
-  }, [])
+  }, [searchParams])
 
   const agent = agents.find(a => a.id === selectedAgent)
 

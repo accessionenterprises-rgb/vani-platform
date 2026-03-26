@@ -199,11 +199,11 @@
 
     /* ── Highlight section ── */
     .highlight {
-      padding-top: 12rem;
+      padding-top: 30rem;
       padding-bottom: 8.5rem;
     }
     @media (min-width: 1024px) {
-      .highlight { padding-top: 3rem; padding-bottom: 27rem; }
+      .highlight { padding-top: 25rem; padding-bottom: 10rem; }
     }
     .highlight .dot-grid-deco {
       grid-column: 1 / 2;
@@ -280,40 +280,32 @@
     }
     .feat p { font-size: 1.5rem; color: var(--grey-light); line-height: 1.55; }
 
-    /* ── Conversation demo ── */
-    .demo { padding: 10rem 0; }
-    .demo .sec-label {
+    /* ── CTA section ── */
+    .cta-section { padding: 12rem 0; }
+    .cta-heading {
       grid-column: 1 / -1;
-      font-size: 1.3rem; color: var(--grey);
-      letter-spacing: .14em; text-transform: uppercase;
-      margin-bottom: .5rem;
+      font-size: clamp(4rem, 6vw, 7.2rem);
+      font-weight: 700; letter-spacing: -.045em;
+      line-height: .92;
     }
-    .demo h2 {
+    @media (min-width: 1024px) { .cta-heading { grid-column: 1 / 7; } }
+    .cta-sub {
       grid-column: 1 / -1;
-      font-size: clamp(3.4rem, 4.5vw, 5.4rem);
-      font-weight: 700; letter-spacing: -.04em;
-      line-height: .93; margin-bottom: 4rem;
+      font-size: 1.8rem; color: var(--grey-light);
+      line-height: 1.5; margin-top: 2rem;
+      max-width: 420px;
     }
-    @media (min-width: 1024px) { .demo h2 { grid-column: 1 / 6; } }
-    .demo-box {
+    @media (min-width: 1024px) { .cta-sub { grid-column: 1 / 5; } }
+    .cta-phone {
       grid-column: 1 / -1;
-      border: 1px solid rgba(255,255,255,.05);
+      display: inline-block; margin-top: 3rem;
+      font-family: var(--font);
+      font-size: clamp(2.4rem, 3.5vw, 3.6rem);
+      font-weight: 700; letter-spacing: -.02em;
+      color: #a78bfa; text-decoration: none;
+      transition: color .2s;
     }
-    @media (min-width: 1024px) { .demo-box { grid-column: 1 / 7; } }
-    .cv {
-      padding: 1.6rem 2.4rem;
-      border-bottom: 1px solid rgba(255,255,255,.04);
-      display: flex; gap: 1.6rem; align-items: baseline;
-    }
-    .cv:last-child { border: none; }
-    .cv .who {
-      font-size: 1rem; font-weight: 700;
-      letter-spacing: .1em; text-transform: uppercase;
-      width: 5rem; flex-shrink: 0;
-    }
-    .cv .who.c { color: var(--grey-light); }
-    .cv .who.a { color: #a78bfa; }
-    .cv .txt { font-size: 1.5rem; color: rgba(255,255,255,.7); line-height: 1.5; }
+    .cta-phone:hover { color: #c4b5fd; }
 
     .stats-row {
       grid-column: 1 / -1;
@@ -458,7 +450,7 @@
       </svg>
     </div>
     <div class="hl-body">
-      <p id="charReveal">From handling inbound calls to running outbound campaigns — Vani deploys voice AI agents that speak naturally, understand context, and close conversations autonomously.</p>
+      <p id="charReveal">Your customers call. An AI agent picks up in under a second — books appointments, answers questions, closes deals. No hold music. No missed calls. No humans needed.</p>
       <a href="#features" class="hl-link">Learn more &rarr;</a>
     </div>
   </div>
@@ -467,36 +459,29 @@
 <!-- Features -->
 <section class="features" id="features">
   <div class="grid">
-    <div class="sec-label">What we do</div>
-    <h2>Not just a chatbot on a phone line.</h2>
+    <div class="sec-label">Capabilities</div>
+    <h2>Your phone line, fully autonomous.</h2>
     <div class="feat-grid">
-      <div class="feat"><div class="num">01</div><h3>Inbound & Outbound</h3><p>Handle incoming calls and run outbound campaigns. Cold outreach, reminders, follow-ups — at any scale.</p></div>
-      <div class="feat"><div class="num">02</div><h3>Multi-Provider Stack</h3><p>Deepgram, Cartesia, OpenAI, Sarvam, Mistral. Mix any STT, LLM, and TTS. Switch from the dashboard.</p></div>
-      <div class="feat"><div class="num">03</div><h3>Live Analytics</h3><p>Call volume, success rates, sentiment, cost per call. Real-time dashboards per agent, per campaign.</p></div>
-      <div class="feat"><div class="num">04</div><h3>Number Intelligence</h3><p>AI-scored memorable number hunting across carriers. Find and buy vanity numbers instantly.</p></div>
-      <div class="feat"><div class="num">05</div><h3>Enterprise Infra</h3><p>Twilio telephony, LiveKit real-time, Redis queuing, warm transfer, voicemail detection.</p></div>
-      <div class="feat"><div class="num">06</div><h3>42 Languages</h3><p>Multilingual agents that switch languages mid-conversation. Native quality across regions.</p></div>
+      <div class="feat"><div class="num">01</div><h3>Inbound & Outbound</h3><p>Answer every call. Run outbound campaigns at scale. Cold outreach, appointment reminders, payment follow-ups — one platform.</p></div>
+      <div class="feat"><div class="num">02</div><h3>Any Voice, Any Brain</h3><p>Swap STT, LLM, and TTS providers from the dashboard. Deepgram, OpenAI, Cartesia, Sarvam, Mistral — your stack, your choice.</p></div>
+      <div class="feat"><div class="num">03</div><h3>Real-Time Intelligence</h3><p>Every call scored, transcribed, and analyzed. Sentiment, intent, cost per minute — all live in your dashboard.</p></div>
+      <div class="feat"><div class="num">04</div><h3>Smart Numbers</h3><p>AI hunts memorable numbers across carriers. Score, compare, and buy vanity numbers that customers actually remember.</p></div>
+      <div class="feat"><div class="num">05</div><h3>Built for Scale</h3><p>Twilio telephony. LiveKit real-time. Redis queuing. Warm transfer. Voicemail detection. Millions of minutes, zero downtime.</p></div>
+      <div class="feat"><div class="num">06</div><h3>42 Languages</h3><p>Agents switch languages mid-sentence. Hindi to English to Spanish — native quality, no delay, same call.</p></div>
     </div>
   </div>
 </section>
 
-<!-- Demo -->
-<section class="demo" id="demo">
+<!-- CTA -->
+<section class="cta-section" id="demo">
   <div class="grid">
-    <div class="sec-label">How it sounds</div>
-    <h2>A real conversation. Fully autonomous.</h2>
-    <div class="demo-box">
-      <div class="cv"><span class="who c">Caller</span><span class="txt">Hi, I'd like to book a table for four on Friday evening.</span></div>
-      <div class="cv"><span class="who a">Agent</span><span class="txt">Of course. I have 7pm and 8:30pm. Which works better?</span></div>
-      <div class="cv"><span class="who c">Caller</span><span class="txt">7pm works. It's under the name Priya.</span></div>
-      <div class="cv"><span class="who a">Agent</span><span class="txt">Done — table for four at 7pm this Friday for Priya. Confirmation sent. Anything else?</span></div>
-      <div class="cv"><span class="who c">Caller</span><span class="txt">That's perfect. Thank you.</span></div>
-      <div class="cv"><span class="who a">Agent</span><span class="txt">You're welcome. See you Friday, Priya.</span></div>
-    </div>
+    <h2 class="cta-heading">Don't read about it.<br>Call it.</h2>
+    <p class="cta-sub">Talk to a Vani agent right now. No signup. No demo form. Just dial.</p>
+    <a href="tel:+19209209967" class="cta-phone">+1 (920) 920-9967</a>
     <div class="stats-row">
-      <div class="stat"><div class="v">&lt;1s</div><div class="l">Response</div></div>
+      <div class="stat"><div class="v">&lt;1s</div><div class="l">First response</div></div>
       <div class="stat"><div class="v">42</div><div class="l">Languages</div></div>
-      <div class="stat"><div class="v">24/7</div><div class="l">Uptime</div></div>
+      <div class="stat"><div class="v">99.9%</div><div class="l">Uptime</div></div>
     </div>
   </div>
 </section>
@@ -506,13 +491,13 @@
   <footer class="footer">
     <div class="foot-top">
       <div class="foot-words" id="fWords">
-        <span>Precision.</span>
-        <span>Speed.</span>
-        <span>Intelligence.</span>
+        <span>Every voice.</span>
+        <span>Every language.</span>
+        <span>Every call.</span>
       </div>
       <div class="foot-desc">
-        <p>Voice AI agents that handle real conversations with real people. Built for businesses that never want to miss a call again.</p>
-        <a href="https://dashboard.vani.live/login">Get started &rarr;</a>
+        <p>Your customers won't know the difference — but your bottom line will.</p>
+        <a href="https://dashboard.vani.live/login">Start building &rarr;</a>
       </div>
     </div>
     <div class="foot-brand">
@@ -853,8 +838,8 @@
         d.y = fy + (proj.y - fy) * gp;
 
         const flatAlpha = 0.15 + d.b * 0.7;
-        const globeAlpha = 0.15 + d.raw * 0.85;
-        const globeRadius = 0.5 + d.raw * 2.4;
+        const globeAlpha = 0.18 + d.raw * 0.82;
+        const globeRadius = 1.0 + d.raw * 3.2;
 
         d.r = fr + (globeRadius - fr) * gp;
         const baseAlpha = Math.max(flatAlpha, globeAlpha * gp + flatAlpha * (1 - gp));
@@ -965,9 +950,9 @@ window.addEventListener('load', () => {
 
   ScrollTrigger.create({
     trigger: '.highlight',
-    start: 'top 70%',
-    end: 'bottom 45%',
-    scrub: 0.6,
+    start: 'top 80%',
+    end: 'top 20%',
+    scrub: 0.4,
     onUpdate: self => {
       const p = self.progress;
       chars.forEach((c, i) => {
@@ -988,7 +973,7 @@ gsap.utils.toArray('.feat').forEach((f, i) => {
 });
 
 // ─── Section headings ───
-document.querySelectorAll('.features h2, .demo h2').forEach(el => {
+document.querySelectorAll('.features h2, .cta-heading').forEach(el => {
   gsap.from(el, {
     opacity: 0, y: 30,
     duration: 0.9, ease: 'expo.out',
@@ -996,14 +981,15 @@ document.querySelectorAll('.features h2, .demo h2').forEach(el => {
   });
 });
 
-// ─── Conversation lines ───
-gsap.utils.toArray('.cv').forEach((line, i) => {
-  gsap.from(line, {
-    opacity: 0, x: -15,
-    duration: 0.4, ease: 'power2.out',
-    scrollTrigger: { trigger: '.demo-box', start: 'top 85%' },
-    delay: i * 0.12,
-  });
+// ─── CTA elements ───
+gsap.from('.cta-sub', {
+  opacity: 0, y: 20, duration: 0.7, ease: 'power3.out',
+  scrollTrigger: { trigger: '.cta-sub', start: 'top 90%' },
+});
+gsap.from('.cta-phone', {
+  opacity: 0, y: 20, duration: 0.7, ease: 'power3.out',
+  scrollTrigger: { trigger: '.cta-phone', start: 'top 90%' },
+  delay: 0.1,
 });
 
 // ─── Footer words (Cregg SplitText stagger) ───

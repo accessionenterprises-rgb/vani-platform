@@ -5,14 +5,17 @@ import StatusBadge from '../components/StatusBadge'
 export default function DashboardPage() {
   const [calls, setCalls] = useState([])
   const [agents, setAgents] = useState([])
+  const [numbers, setNumbers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [dismissChecklist, setDismissChecklist] = useState(false)
 
   useEffect(() => {
     Promise.all([
       import('../api/client').then(m => m.api.listCalls({ limit: 20 })),
       import('../api/client').then(m => m.api.listAgents()),
+      import('../api/client').then(m => m.api.listNumbers()),
     ])
-      .then(([c, a]) => { setCalls(c || []); setAgents(a || []) })
+      .then(([c, a, n]) => { setCalls(c || []); setAgents(a || []); setNumbers(n || []) })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
@@ -38,6 +41,57 @@ export default function DashboardPage() {
             New Agent
           </Link>
         </div>
+
+        {/* Onboarding checklist */}
+        {!loading && !dismissChecklist && !(agents.length > 0 && numbers.length > 0 && calls.length > 0) && (
+          <div className="mb-6 bg-white rounded-2xl border border-[#E8E5E2] p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#EFF4FF] flex items-center justify-center">
+                  <svg className="w-4.5 h-4.5 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <div>
+                  <h3 className="text-[16px] font-bold text-[#1A1816]">Get started with Vani</h3>
+                  <p className="text-[14px] text-[#A8A29E]">Complete these steps to go live</p>
+                </div>
+              </div>
+              <button onClick={() => setDismissChecklist(true)} className="text-[#A8A29E] hover:text-[#78716C] transition-colors">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div className="space-y-2">
+              <Link to="/agents/build" className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${agents.length > 0 ? 'bg-[#F0FDF4] border border-[#BBF7D0]' : 'bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#2563EB]/30'}`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${agents.length > 0 ? 'bg-[#16A34A]' : 'border-2 border-[#D6D3D1]'}`}>
+                  {agents.length > 0 && <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                </div>
+                <div className="flex-1">
+                  <p className={`text-[15px] font-semibold ${agents.length > 0 ? 'text-[#15803D]' : 'text-[#1A1816]'}`}>Create an agent</p>
+                  <p className="text-[13px] text-[#A8A29E]">{agents.length > 0 ? `${agents.length} agent${agents.length > 1 ? 's' : ''} created` : 'Build your first voice AI agent'}</p>
+                </div>
+                {agents.length === 0 && <span className="text-[13px] font-semibold text-[#2563EB]">Start →</span>}
+              </Link>
+              <Link to="/numbers" className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${numbers.length > 0 ? 'bg-[#F0FDF4] border border-[#BBF7D0]' : 'bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#2563EB]/30'}`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${numbers.length > 0 ? 'bg-[#16A34A]' : 'border-2 border-[#D6D3D1]'}`}>
+                  {numbers.length > 0 && <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                </div>
+                <div className="flex-1">
+                  <p className={`text-[15px] font-semibold ${numbers.length > 0 ? 'text-[#15803D]' : 'text-[#1A1816]'}`}>Get a phone number</p>
+                  <p className="text-[13px] text-[#A8A29E]">{numbers.length > 0 ? `${numbers.length} number${numbers.length > 1 ? 's' : ''} active` : 'Buy or connect a phone number'}</p>
+                </div>
+                {numbers.length === 0 && <span className="text-[13px] font-semibold text-[#2563EB]">Get →</span>}
+              </Link>
+              <div className={`flex items-center gap-3 px-4 py-3 rounded-xl ${calls.length > 0 ? 'bg-[#F0FDF4] border border-[#BBF7D0]' : 'bg-[#FAFAF9] border border-[#E8E5E2]'}`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${calls.length > 0 ? 'bg-[#16A34A]' : 'border-2 border-[#D6D3D1]'}`}>
+                  {calls.length > 0 && <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                </div>
+                <div className="flex-1">
+                  <p className={`text-[15px] font-semibold ${calls.length > 0 ? 'text-[#15803D]' : 'text-[#1A1816]'}`}>Receive your first call</p>
+                  <p className="text-[13px] text-[#A8A29E]">{calls.length > 0 ? `${calls.length} call${calls.length > 1 ? 's' : ''} received` : 'Waiting for your first inbound call'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Active call banner */}
         {activeCalls > 0 && (
