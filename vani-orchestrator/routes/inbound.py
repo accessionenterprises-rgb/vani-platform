@@ -412,12 +412,13 @@ async def vobiz_inbound(request: Request):
     )
 
     # Return XML that tells Vobiz to stream audio to our WebSocket
+    # Vobiz uses bare <Stream> (not <Connect><Stream>) — confirmed by testing
     orchestrator_ws = settings.orchestrator_public_url.replace("https://", "wss://")
     stream_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Connect>
-    <Stream url="{orchestrator_ws}/media/stream/{call_id}" />
-  </Connect>
+  <Stream bidirectional="true" keepCallAlive="true">
+    {orchestrator_ws}/media/stream/{call_id}
+  </Stream>
 </Response>"""
 
     log.info("vobiz_stream_xml_served", call_id=call_id, engine=engine)
