@@ -635,10 +635,13 @@ async def media_stream(ws: WebSocket, call_id: str):
 
     # ── Transcript Handler ────────────────────────────────────────────────────
 
+    _last_speech_time = {"t": _time.time()}
+
     async def on_transcript(text: str) -> None:
         """Handle final transcript — generate LLM response and stream TTS."""
         if not text:
             return
+        _last_speech_time["t"] = _time.time()
         log.info("user_said", text=text)
         messages_log.append(f"USER: {text}")
 
@@ -838,17 +841,7 @@ async def media_stream(ws: WebSocket, call_id: str):
             except Exception:
                 pass
 
-        # ── Silence timeout: hang up if no user speech for N seconds ──
-        _last_speech_time = {"t": _time.time()}
-
-        _orig_on_transcript = on_transcript
-
-        async def _tracked_on_transcript(text: str) -> None:
-            _last_speech_time["t"] = _time.time()
-            await _orig_on_transcript(text)
-
-        # Monkey-patch so all transcript handling updates the timer
-        on_transcript = _tracked_on_transcript
+        # ── Silence timeout: uses _last_speech_time defined alongside on_transcript ──
 
         async def silence_watchdog(dg_ws) -> None:
             """Close call if no user speech for silence_timeout seconds."""
