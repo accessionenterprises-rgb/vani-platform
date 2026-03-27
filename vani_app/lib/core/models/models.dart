@@ -36,6 +36,7 @@ class VaniAgent {
   final String llmProvider;
   final String ttsProvider;
   final bool active;
+  final Map<String, dynamic>? tuning;
 
   VaniAgent({
     required this.id,
@@ -48,6 +49,7 @@ class VaniAgent {
     required this.llmProvider,
     required this.ttsProvider,
     required this.active,
+    this.tuning,
   });
 
   factory VaniAgent.fromJson(Map<String, dynamic> j) => VaniAgent(
@@ -61,6 +63,7 @@ class VaniAgent {
         llmProvider: j['llm_provider'] ?? 'gpt-4o-mini',
         ttsProvider: j['tts_provider'] ?? 'openai',
         active: j['active'] ?? true,
+        tuning: j['tuning'] is Map<String, dynamic> ? j['tuning'] : null,
       );
 }
 

@@ -30,6 +30,14 @@ class V {
   static const amber = Color(0xFFEAB308);
   static const blue = Color(0xFF3B82F6);
 
+  // Orb / Avatar
+  static const primaryMuted = Color(0xFF8B5CF6);
+  static const accent = Color(0xFF7C3AED);
+  static const primaryLight = Color(0xFFB794F4);
+  static const orbCore = Color(0xFF6C3AE0);
+  static const orbDeep = Color(0xFF3B0A7A);
+  static const orbGlow = Color(0xFF9D7FFF);
+
   // Glass
   static const glass = Color(0xB3FFFFFF); // white 70%
   static const glassBorder = Color(0x33000000); // black 20%

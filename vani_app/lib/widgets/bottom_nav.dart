@@ -11,8 +11,8 @@ class VaniBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: VaniColors.surface,
-        border: Border(top: BorderSide(color: VaniColors.border, width: 0.5)),
+        color: V.surface,
+        border: Border(top: BorderSide(color: V.border, width: 0.5)),
       ),
       child: SafeArea(
         top: false,
@@ -65,12 +65,12 @@ class _NavItem extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
-                color: active ? VaniColors.primary.withOpacity(0.12) : Colors.transparent,
+                color: active ? V.primary.withOpacity(0.12) : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 active ? activeIcon : icon,
-                color: active ? VaniColors.primary : VaniColors.textMuted,
+                color: active ? V.primary : V.textMuted,
                 size: 22,
               ),
             ),
@@ -78,7 +78,7 @@ class _NavItem extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                color: active ? VaniColors.primary : VaniColors.textMuted,
+                color: active ? V.primary : V.textMuted,
                 fontSize: 11,
                 fontWeight: active ? FontWeight.w600 : FontWeight.w400,
               ),

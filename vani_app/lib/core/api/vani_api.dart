@@ -77,6 +77,11 @@ class VaniApi {
     return (res.data as List).map((e) => VaniAgent.fromJson(e)).toList();
   }
 
+  Future<VaniAgent> getAgent(String id) async {
+    final res = await _dio.get('/agents/$id');
+    return VaniAgent.fromJson(res.data);
+  }
+
   Future<VaniAgent> createAgent(Map<String, dynamic> data) async {
     final res = await _dio.post('/agents', data: data);
     return VaniAgent.fromJson(res.data);
@@ -157,6 +162,18 @@ class VaniApi {
       'to': to,
       if (agentId != null) 'agent_id': agentId,
     });
+    return res.data;
+  }
+
+  // ─── Billing ──────────────────────────────────────────────
+
+  Future<Map<String, dynamic>> getBillingUsage() async {
+    final res = await _dio.get('/billing/usage');
+    return res.data;
+  }
+
+  Future<Map<String, dynamic>> getBillingPlan() async {
+    final res = await _dio.get('/billing/plan');
     return res.data;
   }
 

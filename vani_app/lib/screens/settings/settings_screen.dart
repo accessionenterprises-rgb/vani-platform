@@ -22,6 +22,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
   final _greetingCtrl = TextEditingController();
   final _promptCtrl = TextEditingController();
   String _voice = 'nova';
+  String _ttsProvider = 'openai';
   String _language = 'en';
 
   @override
@@ -40,6 +41,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
         _greetingCtrl.text = _agent!.greeting ?? '';
         _promptCtrl.text = _agent!.prompt ?? '';
         _voice = _agent!.voice;
+        _ttsProvider = _agent!.ttsProvider;
         _language = _agent!.language;
       }
       _phone = numbers.isNotEmpty ? numbers.first : null;
@@ -58,6 +60,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
         'greeting': _greetingCtrl.text,
         'prompt': _promptCtrl.text,
         'voice': _voice,
+        'tts_provider': _ttsProvider,
         'language': _language,
       });
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved'), backgroundColor: V.green));
@@ -139,6 +142,9 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                   _card([
                     _header(Icons.record_voice_over_outlined, 'Voice & Language'),
                     const SizedBox(height: 14),
+                    _label('TTS Provider'),
+                    const SizedBox(height: 8),
+                    Wrap(spacing: 8, runSpacing: 8, children: ['openai', 'deepgram', 'elevenlabs', 'cartesia'].map((v) => _chip(v, _ttsProvider, (val) => setState(() => _ttsProvider = val))).toList()),
                     _label('Voice'),
                     const SizedBox(height: 8),
                     Wrap(spacing: 8, runSpacing: 8, children: ['nova', 'alloy', 'echo', 'shimmer', 'priya', 'shreya'].map((v) => _chip(v, _voice, (val) => setState(() => _voice = val))).toList()),

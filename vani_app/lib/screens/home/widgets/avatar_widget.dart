@@ -112,8 +112,8 @@ class _PremiumOrbPainter extends CustomPainter {
     final glowPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          VaniColors.primary.withOpacity(0.12 + glow * 0.08),
-          VaniColors.primaryMuted.withOpacity(0.05),
+          V.primary.withOpacity(0.12 + glow * 0.08),
+          V.primaryMuted.withOpacity(0.05),
           Colors.transparent,
         ],
         stops: const [0.0, 0.5, 1.0],
@@ -125,7 +125,7 @@ class _PremiumOrbPainter extends CustomPainter {
     final accentPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          VaniColors.accent.withOpacity(0.06 + glow * 0.03),
+          V.accent.withOpacity(0.06 + glow * 0.03),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(center: accent2, radius: maxR * 1.2));
@@ -142,7 +142,7 @@ class _PremiumOrbPainter extends CustomPainter {
       final opacity = (1 - progress) * (isActive ? 0.15 : 0.06);
 
       final ringPaint = Paint()
-        ..color = VaniColors.primary.withOpacity(opacity)
+        ..color = V.primary.withOpacity(opacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5 * (1 - progress);
 
@@ -151,7 +151,7 @@ class _PremiumOrbPainter extends CustomPainter {
 
     // Subtle static ring
     final staticRing = Paint()
-      ..color = VaniColors.primaryLight.withOpacity(0.04 + breathe * 0.02)
+      ..color = V.primaryLight.withOpacity(0.04 + breathe * 0.02)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.8;
     canvas.drawCircle(center, maxR * 1.15, staticRing);
@@ -170,12 +170,12 @@ class _PremiumOrbPainter extends CustomPainter {
       final opacity = 0.15 + (math.sin(orbit * 2 + i) + 1) * 0.15;
 
       final pPaint = Paint()
-        ..color = VaniColors.primaryLight.withOpacity(opacity);
+        ..color = V.primaryLight.withOpacity(opacity);
       canvas.drawCircle(Offset(px, py), particleSize, pPaint);
 
       // Tiny glow around each particle
       final pgPaint = Paint()
-        ..color = VaniColors.primary.withOpacity(opacity * 0.3);
+        ..color = V.primary.withOpacity(opacity * 0.3);
       canvas.drawCircle(Offset(px, py), particleSize * 3, pgPaint);
     }
   }
@@ -187,7 +187,7 @@ class _PremiumOrbPainter extends CustomPainter {
     final shadowPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          VaniColors.orbDeep.withOpacity(0.6),
+          V.orbDeep.withOpacity(0.6),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(center: Offset(center.dx, center.dy + r * 0.1), radius: r * 1.3));
@@ -200,9 +200,9 @@ class _PremiumOrbPainter extends CustomPainter {
         radius: 0.9,
         colors: [
           const Color(0xFFB794F4),
-          VaniColors.primary,
-          VaniColors.orbCore,
-          VaniColors.orbDeep,
+          V.primary,
+          V.orbCore,
+          V.orbDeep,
           const Color(0xFF1E0A4A),
         ],
         stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
@@ -246,7 +246,7 @@ class _PremiumOrbPainter extends CustomPainter {
       final corePaint = Paint()
         ..shader = RadialGradient(
           colors: [
-            VaniColors.orbGlow.withOpacity(intensity),
+            V.orbGlow.withOpacity(intensity),
             Colors.transparent,
           ],
         ).createShader(Rect.fromCircle(center: center, radius: r * 0.5));
