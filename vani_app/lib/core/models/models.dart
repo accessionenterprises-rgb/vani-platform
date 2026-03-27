@@ -37,6 +37,18 @@ class VaniAgent {
   final String ttsProvider;
   final bool active;
   final Map<String, dynamic>? tuning;
+  // Call settings
+  final int? endpointing;
+  final int? silenceTimeout;
+  final int? callTimeout;
+  final bool voicemailDetection;
+  final bool dtmfEnabled;
+  final bool noiseCancellation;
+  final String? finalMessage;
+  // Behavior
+  final String? tone;
+  final String? objective;
+  final List<String> constraints;
 
   VaniAgent({
     required this.id,
@@ -50,21 +62,52 @@ class VaniAgent {
     required this.ttsProvider,
     required this.active,
     this.tuning,
+    this.endpointing,
+    this.silenceTimeout,
+    this.callTimeout,
+    this.voicemailDetection = false,
+    this.dtmfEnabled = false,
+    this.noiseCancellation = true,
+    this.finalMessage,
+    this.tone,
+    this.objective,
+    this.constraints = const [],
   });
 
-  factory VaniAgent.fromJson(Map<String, dynamic> j) => VaniAgent(
-        id: j['id'],
-        name: j['name'] ?? 'My Agent',
-        greeting: j['greeting'],
-        prompt: j['prompt'],
-        voice: j['voice'] ?? 'nova',
-        language: j['language'] ?? 'en',
-        sttProvider: j['stt_provider'] ?? 'deepgram-nova-3',
-        llmProvider: j['llm_provider'] ?? 'gpt-4o-mini',
-        ttsProvider: j['tts_provider'] ?? 'openai',
-        active: j['active'] ?? true,
-        tuning: j['tuning'] is Map<String, dynamic> ? j['tuning'] : null,
-      );
+  factory VaniAgent.fromJson(Map<String, dynamic> j) {
+    final tuning = j['tuning'] is Map<String, dynamic> ? j['tuning'] as Map<String, dynamic> : null;
+    final behavior = j['behavior'] is Map<String, dynamic> ? j['behavior'] as Map<String, dynamic> : null;
+    final callSettings = j['call_settings'] is Map<String, dynamic> ? j['call_settings'] as Map<String, dynamic> : null;
+
+    return VaniAgent(
+      id: j['id'],
+      name: j['name'] ?? 'My Agent',
+      greeting: j['greeting'],
+      prompt: j['prompt'],
+      voice: j['voice'] ?? 'nova',
+      language: j['language'] ?? 'en',
+      sttProvider: j['stt_provider'] ?? 'deepgram-nova-3',
+      llmProvider: j['llm_provider'] ?? 'gpt-4o-mini',
+      ttsProvider: j['tts_provider'] ?? 'openai',
+      active: j['active'] ?? true,
+      tuning: tuning,
+      endpointing: callSettings?['endpointing'] ?? j['endpointing'],
+      silenceTimeout: callSettings?['silence_timeout'] ?? j['silence_timeout'],
+      callTimeout: callSettings?['call_timeout'] ?? j['call_timeout'],
+      voicemailDetection: callSettings?['voicemail_detection'] ?? j['voicemail_detection'] ?? false,
+      dtmfEnabled: callSettings?['dtmf_enabled'] ?? j['dtmf_enabled'] ?? false,
+      noiseCancellation: callSettings?['noise_cancellation'] ?? j['noise_cancellation'] ?? true,
+      finalMessage: callSettings?['final_message'] ?? j['final_message'],
+      tone: behavior?['tone'] ?? j['tone'],
+      objective: behavior?['objective'] ?? j['objective'],
+      constraints: _parseConstraints(behavior?['constraints'] ?? j['constraints']),
+    );
+  }
+
+  static List<String> _parseConstraints(dynamic v) {
+    if (v is List) return v.map((e) => e.toString()).toList();
+    return [];
+  }
 }
 
 class VaniCall {

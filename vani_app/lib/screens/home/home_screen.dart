@@ -191,13 +191,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   ));
 
   Widget _quickActions() => Row(children: [
-    _action('Playground', Icons.play_circle_outline_rounded, V.primary, () => Navigator.pushNamed(context, '/playground')),
+    _action('Agents', Icons.smart_toy_rounded, V.primary, () => Navigator.pushNamed(context, '/agents')),
     const SizedBox(width: 10),
-    _action('Dialer', Icons.dialpad_rounded, V.green, () => Navigator.pushNamed(context, '/dialer')),
+    _action('Playground', Icons.play_circle_outline_rounded, V.green, () => Navigator.pushNamed(context, '/playground')),
     const SizedBox(width: 10),
-    _action('KB', Icons.auto_stories_rounded, V.blue, () => Navigator.pushNamed(context, '/kb')),
+    _action('Dialer', Icons.dialpad_rounded, V.blue, () => Navigator.pushNamed(context, '/dialer')),
     const SizedBox(width: 10),
-    _action('Settings', Icons.tune_rounded, V.amber, () => Navigator.pushNamed(context, '/settings')),
+    _action('KB', Icons.auto_stories_rounded, V.amber, () => Navigator.pushNamed(context, '/kb')),
   ]);
 
   Widget _action(String label, IconData icon, Color c, VoidCallback onTap) => Expanded(child: GestureDetector(
@@ -304,11 +304,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ]),
             const SizedBox(height: 32),
             _nav(Icons.dashboard_rounded, 'Dashboard', true, () => Navigator.pop(context)),
+            _nav(Icons.smart_toy_rounded, 'Agents', false, () { Navigator.pop(context); Navigator.pushNamed(context, '/agents'); }),
             _nav(Icons.play_circle_outline_rounded, 'Playground', false, () { Navigator.pop(context); Navigator.pushNamed(context, '/playground'); }),
             _nav(Icons.dialpad_rounded, 'Dialer', false, () { Navigator.pop(context); Navigator.pushNamed(context, '/dialer'); }),
             _nav(Icons.call_rounded, 'Call History', false, () { Navigator.pop(context); Navigator.pushNamed(context, '/calls'); }),
             _nav(Icons.auto_stories_rounded, 'Knowledge Base', false, () { Navigator.pop(context); Navigator.pushNamed(context, '/kb'); }),
-            _nav(Icons.tune_rounded, 'Agent Settings', false, () { Navigator.pop(context); Navigator.pushNamed(context, '/settings'); }),
+            _nav(Icons.tune_rounded, 'Settings', false, () { Navigator.pop(context); Navigator.pushNamed(context, '/settings'); }),
             _nav(Icons.school_rounded, 'Setup Wizard', false, () { Navigator.pop(context); Navigator.pushNamed(context, '/onboarding'); }),
             const Spacer(),
             Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: V.surfaceMuted, borderRadius: BorderRadius.circular(14), border: Border.all(color: V.border)),

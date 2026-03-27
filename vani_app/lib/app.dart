@@ -10,6 +10,7 @@ import 'screens/knowledge_base/kb_screen.dart';
 import 'screens/settings/settings_screen.dart';
 import 'screens/dialer/dialer_screen.dart';
 import 'screens/playground/playground_screen.dart';
+import 'screens/agents/agents_list_screen.dart';
 
 class VaniApp extends ConsumerWidget {
   const VaniApp({super.key});
@@ -29,6 +30,7 @@ class VaniApp extends ConsumerWidget {
         '/settings': (_) => const SettingsScreen(),
         '/dialer': (_) => const DialerScreen(),
         '/playground': (_) => const PlaygroundScreen(),
+        '/agents': (_) => const AgentsListScreen(),
       },
     );
   }
