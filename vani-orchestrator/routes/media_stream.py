@@ -571,6 +571,7 @@ async def media_stream(ws: WebSocket, call_id: str):
         "state": "GREETING",
         "stream_sid": None,
         "active": True,
+        "audio_format": "mulaw",  # "mulaw" for Twilio, "l16" for Vobiz
     }
 
     system_prompt = (
@@ -600,18 +601,36 @@ async def media_stream(ws: WebSocket, call_id: str):
 
     async def play_mulaw(mulaw: bytes) -> None:
         """Stream mulaw audio in small chunks (50ms) for fast interrupt response."""
-        chunk_size = 400  # 400 bytes = 50ms at 8kHz mulaw — small enough for fast interrupt
+        chunk_size = 400  # 400 bytes = 50ms at 8kHz mulaw
         sid = session["stream_sid"]
         for i in range(0, len(mulaw), chunk_size):
             if not playback.is_playing:
-                return  # Interrupted — stop immediately
+                return
             await _ws_send(json.dumps({
                 "event": "media",
                 "streamSid": sid,
                 "streamId": sid,
                 "media": {"payload": base64.b64encode(mulaw[i:i + chunk_size]).decode()},
             }))
-            await asyncio.sleep(0.01)  # ~10ms yield — keeps event loop responsive
+            await asyncio.sleep(0.01)
+
+    async def play_audio(pcm: bytes) -> None:
+        """Stream PCM-16 audio in small chunks (50ms) for Vobiz (l16 format)."""
+        chunk_size = 800  # 800 bytes = 50ms at 8kHz PCM-16 (2 bytes/sample)
+        sid = session["stream_sid"]
+        for i in range(0, len(pcm), chunk_size):
+            if not playback.is_playing:
+                return
+            await _ws_send(json.dumps({
+                "event": "playAudio",
+                "streamId": sid,
+                "media": {
+                    "contentType": "audio/x-l16",
+                    "sampleRate": 8000,
+                    "payload": base64.b64encode(pcm[i:i + chunk_size]).decode(),
+                },
+            }))
+            await asyncio.sleep(0.01)
 
     async def play_text(text: str) -> None:
         """Generate TTS and stream to Twilio. Respects playback.is_playing."""
@@ -619,10 +638,16 @@ async def media_stream(ws: WebSocket, call_id: str):
             log.warning("play_text_skipped", has_sid=bool(session["stream_sid"]), text_len=len(text.strip()))
             return
         try:
-            log.info("play_text_tts_start", text=text[:50])
+            log.info("play_text_tts_start", text=text[:50], fmt=session["audio_format"])
             mulaw = await _tts(text, tts_provider, voice_raw, language)
-            log.info("play_text_tts_done", mulaw_len=len(mulaw))
-            await play_mulaw(mulaw)
+            if session["audio_format"] == "l16":
+                # Vobiz expects PCM-16 — convert mulaw back to PCM
+                pcm = audioop.ulaw2lin(mulaw, 2)
+                log.info("play_text_tts_done", pcm_len=len(pcm), fmt="l16")
+                await play_audio(pcm)
+            else:
+                log.info("play_text_tts_done", mulaw_len=len(mulaw), fmt="mulaw")
+                await play_mulaw(mulaw)
             log.info("play_text_sent")
         except asyncio.CancelledError:
             log.info("play_text_cancelled")
@@ -798,6 +823,10 @@ async def media_stream(ws: WebSocket, call_id: str):
                         if isinstance(start_data, str):
                             start_data = {}
                         log.info("start_event_debug", start_type=type(start_data).__name__, start_keys=list(start_data.keys())[:10] if isinstance(start_data, dict) else str(start_data)[:100], top_keys=list(data.keys()), media_format=str(start_data.get("mediaFormat", ""))[:200] if isinstance(start_data, dict) else "", tracks=str(start_data.get("tracks", ""))[:100] if isinstance(start_data, dict) else "")
+                        # Detect audio format
+                        mf = start_data.get("mediaFormat", {}) if isinstance(start_data, dict) else {}
+                        if isinstance(mf, dict) and "l16" in str(mf.get("encoding", "")).lower():
+                            session["audio_format"] = "l16"
                         session["stream_sid"] = (
                             (start_data.get("streamSid") if isinstance(start_data, dict) else None)
                             or (start_data.get("streamId") if isinstance(start_data, dict) else None)
@@ -827,11 +856,14 @@ async def media_stream(ws: WebSocket, call_id: str):
                                 playback.is_playing = False
                             asyncio.create_task(_post_greeting())
                     elif ev == "media":
-                        # Twilio: data["media"]["payload"], Vobiz: data["media"]["payload"] or data.get("payload")
                         media = data.get("media", {})
                         payload = media.get("payload") or data.get("payload") or ""
                         if payload:
-                            await dg_ws.send(base64.b64decode(payload))
+                            raw = base64.b64decode(payload)
+                            if session["audio_format"] == "l16":
+                                # Vobiz sends PCM-16, Deepgram needs mulaw
+                                raw = audioop.lin2ulaw(raw, 2)
+                            await dg_ws.send(raw)
                     elif ev == "stop":
                         session["active"] = False
                         break
