@@ -589,11 +589,11 @@ async def media_stream(ws: WebSocket, call_id: str):
             await ws.send_text(payload)
 
     async def _clear_twilio():
-        """Send clear event to stop Twilio's audio buffer immediately."""
+        """Send clear event to stop audio buffer immediately (Twilio + Vobiz)."""
         if session["stream_sid"]:
             try:
                 await _ws_send(json.dumps(
-                    {"event": "clear", "streamSid": session["stream_sid"]}
+                    {"event": "clear", "streamSid": session["stream_sid"], "streamId": session["stream_sid"]}
                 ))
             except Exception:
                 pass
@@ -601,12 +601,14 @@ async def media_stream(ws: WebSocket, call_id: str):
     async def play_mulaw(mulaw: bytes) -> None:
         """Stream mulaw audio in small chunks (50ms) for fast interrupt response."""
         chunk_size = 400  # 400 bytes = 50ms at 8kHz mulaw — small enough for fast interrupt
+        sid = session["stream_sid"]
         for i in range(0, len(mulaw), chunk_size):
             if not playback.is_playing:
                 return  # Interrupted — stop immediately
             await _ws_send(json.dumps({
                 "event": "media",
-                "streamSid": session["stream_sid"],
+                "streamSid": sid,
+                "streamId": sid,
                 "media": {"payload": base64.b64encode(mulaw[i:i + chunk_size]).decode()},
             }))
             await asyncio.sleep(0.01)  # ~10ms yield — keeps event loop responsive
