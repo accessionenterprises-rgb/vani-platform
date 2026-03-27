@@ -412,12 +412,13 @@ async def vobiz_inbound(request: Request):
     )
 
     # Return XML that tells Vobiz to stream audio to our WebSocket
+    # Vobiz uses <Stream> directly (NOT <Connect><Stream>), URL as text content
     orchestrator_ws = settings.orchestrator_public_url.replace("https://", "wss://")
     stream_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Connect>
-    <Stream url="{orchestrator_ws}/media/stream/{call_id}" bidirectional="true"/>
-  </Connect>
+  <Stream bidirectional="true" keepCallAlive="true" contentType="audio/x-mulaw;rate=8000">
+    {orchestrator_ws}/media/stream/{call_id}
+  </Stream>
 </Response>"""
 
     log.info("vobiz_stream_xml_served", call_id=call_id, engine=engine)
@@ -471,10 +472,19 @@ async def vobiz_answer(call_id: str, request: Request):
     orchestrator_ws = settings.orchestrator_public_url.replace("https://", "wss://")
     stream_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Connect>
-    <Stream url="{orchestrator_ws}/media/stream/{call_id}" bidirectional="true"/>
-  </Connect>
+  <Stream bidirectional="true" keepCallAlive="true" contentType="audio/x-mulaw;rate=8000">
+    {orchestrator_ws}/media/stream/{call_id}
+  </Stream>
 </Response>"""
 
     log.info("vobiz_answer_stream_xml_served", call_id=call_id)
     return Response(content=stream_xml, media_type="application/xml")
+
+
+@router.post("/vobiz/hangup")
+async def vobiz_hangup(request: Request):
+    """Vobiz hangup callback — mark call as completed."""
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else dict(await request.form())
+    call_sid = body.get("CallUUID") or body.get("CallSid") or ""
+    logger.info("vobiz_hangup", call_sid=call_sid)
+    return {"ok": True}
