@@ -615,18 +615,18 @@ async def media_stream(ws: WebSocket, call_id: str):
             await asyncio.sleep(0.01)
 
     async def play_audio(pcm: bytes) -> None:
-        """Stream PCM-16 audio in small chunks (50ms) for Vobiz (l16 format)."""
+        """Stream PCM-16 audio in small chunks (50ms) for Vobiz (l16 format).
+        Vobiz docs: send as event=media with streamSid, same as receiving."""
         chunk_size = 800  # 800 bytes = 50ms at 8kHz PCM-16 (2 bytes/sample)
         sid = session["stream_sid"]
         for i in range(0, len(pcm), chunk_size):
             if not playback.is_playing:
                 return
             await _ws_send(json.dumps({
-                "event": "playAudio",
+                "event": "media",
+                "streamSid": sid,
                 "streamId": sid,
                 "media": {
-                    "contentType": "audio/x-l16",
-                    "sampleRate": 8000,
                     "payload": base64.b64encode(pcm[i:i + chunk_size]).decode(),
                 },
             }))
