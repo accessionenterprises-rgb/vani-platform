@@ -616,12 +616,16 @@ async def media_stream(ws: WebSocket, call_id: str):
     async def play_text(text: str) -> None:
         """Generate TTS and stream to Twilio. Respects playback.is_playing."""
         if not session["stream_sid"] or not text.strip():
+            log.warning("play_text_skipped", has_sid=bool(session["stream_sid"]), text_len=len(text.strip()))
             return
         try:
+            log.info("play_text_tts_start", text=text[:50])
             mulaw = await _tts(text, tts_provider, voice_raw, language)
+            log.info("play_text_tts_done", mulaw_len=len(mulaw))
             await play_mulaw(mulaw)
+            log.info("play_text_sent")
         except asyncio.CancelledError:
-            pass
+            log.info("play_text_cancelled")
         except Exception as e:
             log.error("tts_error", error=str(e))
 
@@ -793,7 +797,7 @@ async def media_stream(ws: WebSocket, call_id: str):
                         start_data = data.get("start") or {}
                         if isinstance(start_data, str):
                             start_data = {}
-                        log.info("start_event_debug", start_type=type(start_data).__name__, start_keys=list(start_data.keys())[:10] if isinstance(start_data, dict) else str(start_data)[:100], top_keys=list(data.keys()))
+                        log.info("start_event_debug", start_type=type(start_data).__name__, start_keys=list(start_data.keys())[:10] if isinstance(start_data, dict) else str(start_data)[:100], top_keys=list(data.keys()), media_format=str(start_data.get("mediaFormat", ""))[:200] if isinstance(start_data, dict) else "", tracks=str(start_data.get("tracks", ""))[:100] if isinstance(start_data, dict) else "")
                         session["stream_sid"] = (
                             (start_data.get("streamSid") if isinstance(start_data, dict) else None)
                             or (start_data.get("streamId") if isinstance(start_data, dict) else None)
