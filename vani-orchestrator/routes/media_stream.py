@@ -754,7 +754,7 @@ async def media_stream(ws: WebSocket, call_id: str):
                     # Log first 5 messages to debug provider format
                     _msg_count += 1
                     if _msg_count <= 5:
-                        log.info("ws_raw_message", count=_msg_count, event=ev, keys=list(data.keys())[:10])
+                        log.info("ws_raw_message", count=_msg_count, ws_event=ev, keys=list(data.keys())[:10])
                     if ev == "connected":
                         log.info("ws_connected_event", protocol=data.get("protocol"))
                         continue  # Skip — wait for "start" which has streamSid
