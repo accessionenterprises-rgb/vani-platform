@@ -233,7 +233,7 @@ export default function AgentFormPage() {
     try {
       const payload = {
         name: form.name, greeting: form.greeting, prompt: form.prompt,
-        language: form.language, voice: form.tts_provider,
+        language: form.language, voice: form.voice,
         agent_type: form.agent_type,
         stack: { stt: form.stt_provider, llm: form.llm_provider, tts: form.tts_provider },
         behavior: form.behavior,
