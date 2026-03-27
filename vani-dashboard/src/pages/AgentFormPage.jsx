@@ -662,10 +662,10 @@ function StackStep({ form, set }) {
       />
 
       {/* OpenAI voice picker */}
-      {(form.tts_provider === 'openai' || form.tts_provider?.startsWith('openai-')) && (
+      {form.tts_provider === 'openai' && (
         <OpenAIVoicePicker
-          selected={form.tts_provider?.startsWith('openai-') ? form.tts_provider : 'openai-nova'}
-          onSelect={v => { set('tts_provider', v); set('voice', v) }}
+          selected={form.voice ? `openai-${form.voice}` : 'openai-nova'}
+          onSelect={v => { set('tts_provider', 'openai'); set('voice', v.replace('openai-', '')) }}
         />
       )}
 
