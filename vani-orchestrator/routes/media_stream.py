@@ -528,7 +528,7 @@ async def media_stream(ws: WebSocket, call_id: str):
     language     = cfg.get("language", "en")
     voice_raw    = cfg.get("voice", "alloy")
     tuning       = cfg.get("tuning") or {}
-    silence_timeout  = tuning.get("silence_timeout_sec", 10)
+    silence_timeout  = tuning.get("silence_timeout_sec", 30)
     call_timeout     = tuning.get("call_timeout_sec", 300)
     final_message    = tuning.get("final_message", "")
 
@@ -938,7 +938,7 @@ async def media_stream(ws: WebSocket, call_id: str):
             while session["active"]:
                 await asyncio.sleep(2)
                 elapsed = _time.time() - _last_speech_time["t"]
-                if elapsed >= silence_timeout and session["state"] == "LISTENING":
+                if elapsed >= silence_timeout and session["state"] == "LISTENING" and not playback.is_playing:
                     log.info("silence_timeout_reached", seconds=silence_timeout)
                     if final_message:
                         try:
