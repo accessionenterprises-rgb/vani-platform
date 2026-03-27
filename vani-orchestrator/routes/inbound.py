@@ -412,13 +412,12 @@ async def vobiz_inbound(request: Request):
     )
 
     # Return XML that tells Vobiz to stream audio to our WebSocket
-    # Vobiz uses <Stream> directly (NOT <Connect><Stream>), URL as text content
     orchestrator_ws = settings.orchestrator_public_url.replace("https://", "wss://")
     stream_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Stream bidirectional="true" keepCallAlive="true" contentType="audio/x-mulaw;rate=8000">
-    {orchestrator_ws}/media/stream/{call_id}
-  </Stream>
+  <Connect>
+    <Stream url="{orchestrator_ws}/media/stream/{call_id}" />
+  </Connect>
 </Response>"""
 
     log.info("vobiz_stream_xml_served", call_id=call_id, engine=engine)

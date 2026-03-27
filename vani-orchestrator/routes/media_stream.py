@@ -746,10 +746,18 @@ async def media_stream(ws: WebSocket, call_id: str):
 
         async def recv_twilio(dg_ws) -> None:
             """Receive audio from Twilio or Vobiz WebSocket — normalizes both formats."""
+            _msg_count = 0
             try:
                 async for raw_msg in ws.iter_text():
                     data = json.loads(raw_msg)
                     ev   = data.get("event")
+                    # Log first 5 messages to debug provider format
+                    _msg_count += 1
+                    if _msg_count <= 5:
+                        log.info("ws_raw_message", count=_msg_count, event=ev, keys=list(data.keys())[:10])
+                    if ev == "connected":
+                        log.info("ws_connected_event", protocol=data.get("protocol"))
+                        continue  # Skip — wait for "start" which has streamSid
                     if ev == "start":
                         # Twilio: data["start"]["streamSid"], Vobiz: data["start"]["streamId"] or data.get("streamSid")
                         start_data = data.get("start", {})
