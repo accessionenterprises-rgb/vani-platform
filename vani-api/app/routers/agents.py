@@ -309,6 +309,31 @@ async def update_agent(agent_id: UUID, body: UpdateAgentRequest, tenant_id: str 
         updates["tts_provider"] = body.stack.tts
     if body.extraction_schema is not None:
         updates["extraction_schema"] = body.extraction_schema
+
+    # ── Auto-fix voice if it doesn't match TTS provider ──
+    _TTS_DEFAULT_VOICES = {
+        "openai": "nova",
+        "sarvam": "manisha",
+        "sarvam-v3": "shreya",
+        "cartesia": "e07c00bc-4134-4eae-9ea4-1a55fb45746b",
+        "elevenlabs": "EXAVITQu4vr4xnSDxMaL",
+        "polly": "Danielle",
+        "google": "en-US-Neural2-F",
+        "azure": "en-US-JennyNeural",
+    }
+    _TTS_VALID_VOICES = {
+        "openai": {"alloy", "ash", "ballad", "cedar", "coral", "echo", "fable", "marin", "nova", "onyx", "sage", "shimmer", "verse"},
+        "sarvam": {"anushka", "abhilash", "manisha", "vidya", "arya", "karun", "hitesh"},
+        "sarvam-v3": {"shreya", "amelia", "sophia", "priya", "neha", "kavya", "simran", "ritu", "pooja", "ishita", "roopa", "tanya", "shruti", "suhani", "rupali", "kavitha", "rahul", "amit", "dev", "rohan", "kabir", "aditya", "ashutosh", "ratan", "varun", "manan", "sumit", "aayan", "shubh", "advait", "anand", "tarun", "sunny", "mani", "gokul", "vijay", "mohit", "rehan", "soham"},
+    }
+    tts = updates.get("tts_provider") or (body.stack.tts if body.stack else None)
+    voice = updates.get("voice")
+    if tts and voice:
+        valid = _TTS_VALID_VOICES.get(tts)
+        if valid and voice not in valid and not (len(voice) > 20 and "-" in voice):
+            updates["voice"] = _TTS_DEFAULT_VOICES.get(tts, voice)
+    elif tts and not voice:
+        updates["voice"] = _TTS_DEFAULT_VOICES.get(tts, updates.get("voice", "nova"))
     if body.success_criteria is not None:
         updates["success_criteria"] = body.success_criteria
     if body.custom_llm_url is not None:
