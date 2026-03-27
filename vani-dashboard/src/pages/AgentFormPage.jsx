@@ -115,6 +115,7 @@ const ELEVENLABS_VOICES = [
 const VOICE_STEPS = [
   { id: 'identity',  label: 'Identity',  desc: 'Name, persona & prompt' },
   { id: 'stack',     label: 'AI Stack',  desc: 'STT, LLM, TTS providers' },
+  { id: 'tuning',    label: 'Tuning',    desc: 'Response, turn-taking, calls' },
   { id: 'behavior',  label: 'Behavior',  desc: 'Tone, objective, escalation' },
   { id: 'knowledge', label: 'Knowledge', desc: 'Documents & web pages' },
   { id: 'advanced',  label: 'Advanced',  desc: 'Extraction, goals & privacy' },
@@ -149,6 +150,26 @@ const EMPTY = {
     cool_off_sec: 0,
     announce_transfer: true,
   },
+  tuning: {
+    temperature: 0.7,
+    max_tokens: 200,
+    endpointing_ms: 300,
+    linear_delay_ms: 200,
+    interrupt_word_count: 2,
+    buffer_size: 200,
+    silence_timeout_sec: 10,
+    call_timeout_sec: 300,
+    voicemail_detection: false,
+    dtmf_enabled: false,
+    noise_cancellation: false,
+    ambient_noise: 'none',
+    final_message: '',
+    summarization_enabled: true,
+    extraction_enabled: false,
+    extraction_categories: [],
+    keywords_boost: [],
+    spam_max_calls: -1,
+  },
 }
 
 // ─── Main Page ─────────────────────────────────────────────────────────────
@@ -182,6 +203,7 @@ export default function AgentFormPage() {
           custom_llm_model: a.custom_llm_model || '',
           pii_redaction: a.pii_redaction ?? false,
           widget_config: { ...EMPTY.widget_config, ...(a.widget_config || {}) },
+          tuning: { ...EMPTY.tuning, ...(a.tuning || {}) },
         })
         if (a.agent_type === 'chatbot') {
           api.getWidgetKey(id).then(r => setWidgetKey(r?.widget_key || null)).catch(() => {})
@@ -201,6 +223,7 @@ export default function AgentFormPage() {
   const setBeh = (key, val) => setForm(f => ({ ...f, behavior: { ...f.behavior, [key]: val } }))
   const setEsc = (key, val) => setForm(f => ({ ...f, escalation_config: { ...f.escalation_config, [key]: val } }))
   const setWc = (key, val) => setForm(f => ({ ...f, widget_config: { ...f.widget_config, [key]: val } }))
+  const setTun = (key, val) => setForm(f => ({ ...f, tuning: { ...f.tuning, [key]: val } }))
 
   const STEPS = form.agent_type === 'chatbot' ? CHATBOT_STEPS : VOICE_STEPS
 
@@ -221,6 +244,7 @@ export default function AgentFormPage() {
         pii_redaction: form.pii_redaction,
         escalation_config: form.escalation_config,
         widget_config: form.agent_type === 'chatbot' ? form.widget_config : null,
+        tuning: form.tuning,
       }
       if (isNew) await api.createAgent(payload)
       else await api.updateAgent(id, payload)
@@ -365,6 +389,7 @@ export default function AgentFormPage() {
 
             {step === 'identity'  && <IdentityStep  form={form} set={set} isNew={isNew} />}
             {step === 'stack'     && <StackStep     form={form} set={set} />}
+            {step === 'tuning'    && <TuningStep    form={form} setTun={setTun} />}
             {step === 'llm'       && <LLMOnlyStep   form={form} set={set} />}
             {step === 'widget'    && <WidgetStep     form={form} setWc={setWc} widgetKey={widgetKey} agentId={id} isNew={isNew} setWidgetKey={setWidgetKey} />}
             {step === 'behavior'  && <BehaviorStep  form={form} setBeh={setBeh} setEsc={setEsc} />}
@@ -875,6 +900,244 @@ function ProviderCard({ provider, isSelected, onSelect }) {
         </div>
       )}
     </button>
+  )
+}
+
+// ─── Step: Tuning ──────────────────────────────────────────────────────────
+
+function SliderField({ label, hint, value, onChange, min, max, step, unit = '' }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-sm font-medium text-[#78716C]">
+          {label}
+          {hint && <span className="text-[#A8A29E] font-normal ml-1.5">— {hint}</span>}
+        </label>
+        <span className="text-sm font-mono text-[#2563EB] bg-[#2563EB]/8 px-2 py-0.5 rounded-md">{value}{unit}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(parseFloat(e.target.value))}
+        className="w-full h-1.5 rounded-full appearance-none bg-[#E8E5E2] accent-[#2563EB] cursor-pointer" />
+      <div className="flex justify-between text-[10px] text-[#A8A29E] mt-1">
+        <span>{min}{unit}</span><span>{max}{unit}</span>
+      </div>
+    </div>
+  )
+}
+
+function TuningStep({ form, setTun }) {
+  const t = form.tuning || {}
+  const isRapid = t.endpointing_ms <= 100 && t.linear_delay_ms <= 100
+
+  const addCategory = () => setTun('extraction_categories', [...(t.extraction_categories || []), { name: '', description: '' }])
+  const removeCategory = i => setTun('extraction_categories', (t.extraction_categories || []).filter((_, idx) => idx !== i))
+  const setCategory = (i, key, val) => setTun('extraction_categories',
+    (t.extraction_categories || []).map((c, idx) => idx === i ? { ...c, [key]: val } : c)
+  )
+
+  return (
+    <div className="space-y-8">
+      <StepHeader title="Agent Tuning" desc="Fine-tune response behavior, turn-taking, call settings, and post-call processing." />
+
+      {/* ── Response Settings ── */}
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-5">
+        <div>
+          <p className="text-base font-semibold text-[#1A1816]">Response Settings</p>
+          <p className="text-sm text-[#A8A29E] mt-0.5">Control how creative and verbose the agent is.</p>
+        </div>
+
+        <SliderField label="Temperature" hint="Higher = more creative, lower = more deterministic"
+          value={t.temperature} onChange={v => setTun('temperature', v)}
+          min={0} max={1} step={0.1} />
+
+        <SliderField label="Max Tokens" hint="Response length limit"
+          value={t.max_tokens} onChange={v => setTun('max_tokens', v)}
+          min={50} max={1000} step={50} />
+
+        {/* Response mode toggle */}
+        <div>
+          <label className="text-sm font-medium text-[#78716C] mb-2 block">Response Mode</label>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { id: 'rapid', label: 'Rapid', desc: '100ms endpointing + 100ms delay', ep: 100, ld: 100 },
+              { id: 'balanced', label: 'Balanced', desc: '300ms endpointing + 200ms delay', ep: 300, ld: 200 },
+            ].map(mode => (
+              <button key={mode.id} type="button"
+                onClick={() => { setTun('endpointing_ms', mode.ep); setTun('linear_delay_ms', mode.ld) }}
+                className={`p-3 rounded-xl border text-left transition-all ${
+                  (mode.id === 'rapid' ? isRapid : !isRapid)
+                    ? 'bg-[#2563EB]/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
+                    : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
+                }`}>
+                <p className={`text-sm font-semibold ${(mode.id === 'rapid' ? isRapid : !isRapid) ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>
+                  {mode.label}
+                </p>
+                <p className="text-[12px] text-[#A8A29E] mt-0.5">{mode.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Interruption & Turn-Taking ── */}
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-5">
+        <div>
+          <p className="text-base font-semibold text-[#1A1816]">Interruption & Turn-Taking</p>
+          <p className="text-sm text-[#A8A29E] mt-0.5">Control how the agent handles pauses and interruptions.</p>
+        </div>
+
+        <SliderField label="Endpointing" hint="How quickly agent responds after silence"
+          value={t.endpointing_ms} onChange={v => setTun('endpointing_ms', v)}
+          min={50} max={800} step={50} unit="ms" />
+
+        <SliderField label="Linear Delay" hint="Pause tolerance for mid-sentence gaps"
+          value={t.linear_delay_ms} onChange={v => setTun('linear_delay_ms', v)}
+          min={0} max={500} step={50} unit="ms" />
+
+        <SliderField label="Interrupt Word Count" hint="Words before allowing interruption"
+          value={t.interrupt_word_count} onChange={v => setTun('interrupt_word_count', v)}
+          min={1} max={5} step={1} />
+
+        <FormField label="Keywords Boost" hint="Boost STT recognition for these words (comma-separated)">
+          <textarea
+            value={(t.keywords_boost || []).join(', ')}
+            onChange={e => setTun('keywords_boost', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+            rows={2}
+            placeholder="e.g. Vani, appointment, booking, upgrade"
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none" />
+        </FormField>
+      </div>
+
+      {/* ── Call Settings ── */}
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-5">
+        <div>
+          <p className="text-base font-semibold text-[#1A1816]">Call Settings</p>
+          <p className="text-sm text-[#A8A29E] mt-0.5">Timeouts, detection, and call-end behavior.</p>
+        </div>
+
+        <SliderField label="Silence Timeout" hint="Hang up after this many seconds of silence"
+          value={t.silence_timeout_sec} onChange={v => setTun('silence_timeout_sec', v)}
+          min={5} max={60} step={1} unit="s" />
+
+        <SliderField label="Call Timeout" hint="Maximum call duration"
+          value={t.call_timeout_sec} onChange={v => setTun('call_timeout_sec', v)}
+          min={60} max={3600} step={60} unit="s" />
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="pr-4">
+              <p className="text-sm font-medium text-[#78716C]">Voicemail Detection</p>
+              <p className="text-[12px] text-[#A8A29E] mt-0.5">Detect voicemail and hang up automatically</p>
+            </div>
+            <Toggle value={t.voicemail_detection} onChange={v => setTun('voicemail_detection', v)} />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="pr-4">
+              <p className="text-sm font-medium text-[#78716C]">DTMF Keypad Input</p>
+              <p className="text-[12px] text-[#A8A29E] mt-0.5">Accept touch-tone keypad inputs from caller</p>
+            </div>
+            <Toggle value={t.dtmf_enabled} onChange={v => setTun('dtmf_enabled', v)} />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="pr-4">
+              <p className="text-sm font-medium text-[#78716C]">Noise Cancellation</p>
+              <p className="text-[12px] text-[#A8A29E] mt-0.5">Filter background noise from caller audio</p>
+            </div>
+            <Toggle value={t.noise_cancellation} onChange={v => setTun('noise_cancellation', v)} />
+          </div>
+        </div>
+
+        <FormField label="Ambient Noise" hint="Simulated background for the agent">
+          <select
+            value={t.ambient_noise}
+            onChange={e => setTun('ambient_noise', e.target.value)}
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] focus:outline-none transition-colors">
+            <option value="none">None</option>
+            <option value="office">Office</option>
+            <option value="cafe">Cafe</option>
+            <option value="street">Street</option>
+          </select>
+        </FormField>
+
+        <FormField label="Final Message" hint="Message before hanging up">
+          <textarea
+            value={t.final_message}
+            onChange={e => setTun('final_message', e.target.value)}
+            rows={2}
+            placeholder="Thank you for calling. Goodbye!"
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none" />
+        </FormField>
+      </div>
+
+      {/* ── Post-Call Processing ── */}
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-4">
+        <div>
+          <p className="text-base font-semibold text-[#1A1816]">Post-Call Processing</p>
+          <p className="text-sm text-[#A8A29E] mt-0.5">Automatic summarization and data extraction after each call.</p>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="pr-4">
+            <p className="text-sm font-medium text-[#78716C]">Summarization</p>
+            <p className="text-[12px] text-[#A8A29E] mt-0.5">Generate a brief summary after each call</p>
+          </div>
+          <Toggle value={t.summarization_enabled} onChange={v => setTun('summarization_enabled', v)} />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="pr-4">
+            <p className="text-sm font-medium text-[#78716C]">Extraction</p>
+            <p className="text-[12px] text-[#A8A29E] mt-0.5">Extract structured data from call transcript</p>
+          </div>
+          <Toggle value={t.extraction_enabled} onChange={v => setTun('extraction_enabled', v)} />
+        </div>
+
+        {t.extraction_enabled && (
+          <div className="space-y-2 pt-2 border-t border-[#E8E5E2]">
+            <p className="text-sm font-medium text-[#78716C]">Extraction Categories</p>
+            {(t.extraction_categories || []).map((cat, i) => (
+              <div key={i} className="grid grid-cols-12 gap-2">
+                <div className="col-span-4">
+                  <input value={cat.name} onChange={e => setCategory(i, 'name', e.target.value)}
+                    placeholder="Category name"
+                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+                </div>
+                <div className="col-span-7">
+                  <input value={cat.description} onChange={e => setCategory(i, 'description', e.target.value)}
+                    placeholder="Description of what to extract"
+                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+                </div>
+                <div className="col-span-1 flex items-center justify-center">
+                  <button type="button" onClick={() => removeCategory(i)}
+                    className="text-red-400/50 hover:text-red-400 text-xl leading-none transition-colors">×</button>
+                </div>
+              </div>
+            ))}
+            <button type="button" onClick={addCategory}
+              className="flex items-center gap-1.5 text-sm text-[#2563EB] hover:text-[#3B82F6] transition-colors">
+              <span className="text-lg leading-none">+</span> Add category
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Spam Prevention ── */}
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-3">
+        <div>
+          <p className="text-base font-semibold text-[#1A1816]">Spam Prevention</p>
+          <p className="text-sm text-[#A8A29E] mt-0.5">Limit repeat calls from the same number.</p>
+        </div>
+        <FormField label="Max Calls Per Number" hint="-1 = unlimited">
+          <input type="number"
+            value={t.spam_max_calls}
+            onChange={e => setTun('spam_max_calls', parseInt(e.target.value) || -1)}
+            min={-1}
+            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors" />
+        </FormField>
+      </div>
+    </div>
   )
 }
 

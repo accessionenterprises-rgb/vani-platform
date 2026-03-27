@@ -37,6 +37,27 @@ class EscalationConfig(BaseModel):
     announce_transfer: bool = True
 
 
+class TuningConfig(BaseModel):
+    temperature: float = 0.7
+    max_tokens: int = 200
+    endpointing_ms: int = 300
+    linear_delay_ms: int = 200
+    interrupt_word_count: int = 2
+    buffer_size: int = 200
+    silence_timeout_sec: int = 10
+    call_timeout_sec: int = 300
+    voicemail_detection: bool = False
+    dtmf_enabled: bool = False
+    noise_cancellation: bool = False
+    ambient_noise: str = "none"          # none | office | cafe | street
+    final_message: str = ""
+    summarization_enabled: bool = True
+    extraction_enabled: bool = False
+    extraction_categories: list[dict] = []   # [{name, description}]
+    keywords_boost: list[str] = []           # STT keyword boosting
+    spam_max_calls: int = -1                 # -1 = unlimited
+
+
 class CreateAgentRequest(BaseModel):
     name: str
     greeting: str = "Hello, how can I help you today?"
@@ -52,6 +73,7 @@ class CreateAgentRequest(BaseModel):
     custom_llm_model: Optional[str] = None
     escalation_config: EscalationConfig = EscalationConfig()
     widget_config: Optional[dict] = None
+    tuning: TuningConfig = TuningConfig()
 
 
 class UpdateAgentRequest(BaseModel):
@@ -70,6 +92,7 @@ class UpdateAgentRequest(BaseModel):
     custom_llm_model: Optional[str] = None
     escalation_config: Optional[EscalationConfig] = None
     widget_config: Optional[dict] = None
+    tuning: Optional[TuningConfig] = None
     version_note: Optional[str] = None   # optional note saved with the version snapshot
 
 
@@ -94,6 +117,7 @@ class AgentResponse(BaseModel):
     custom_llm_model: Optional[str]
     escalation_config: dict
     widget_config: Optional[dict]
+    tuning: dict
     created_at: str
 
 
@@ -128,6 +152,7 @@ def _row_to_agent(row: dict) -> AgentResponse:
         custom_llm_model=row.get("custom_llm_model"),
         escalation_config=row.get("escalation_config") or {},
         widget_config=row.get("widget_config"),
+        tuning=row.get("tuning") or TuningConfig().model_dump(),
         created_at=str(row["created_at"]),
     )
 
@@ -206,6 +231,7 @@ async def create_agent(body: CreateAgentRequest, tenant_id: str = Depends(get_te
             "custom_llm_model": body.custom_llm_model,
             "escalation_config": body.escalation_config.model_dump(),
             "widget_config": body.widget_config or {},
+            "tuning": body.tuning.model_dump(),
             "active": True,
         })
         .execute()
@@ -295,6 +321,8 @@ async def update_agent(agent_id: UUID, body: UpdateAgentRequest, tenant_id: str 
         updates["agent_type"] = body.agent_type
     if body.widget_config is not None:
         updates["widget_config"] = body.widget_config
+    if body.tuning is not None:
+        updates["tuning"] = body.tuning.model_dump()
 
     if not updates:
         raise HTTPException(status_code=400, detail="No fields to update")
@@ -447,7 +475,7 @@ async def restore_version(agent_id: UUID, version_id: UUID, tenant_id: str = Dep
             "name", "greeting", "prompt", "language", "voice",
             "stt_provider", "llm_provider", "tts_provider", "behavior",
             "extraction_schema", "success_criteria",
-            "custom_llm_url", "custom_llm_model", "escalation_config",
+            "custom_llm_url", "custom_llm_model", "escalation_config", "tuning",
         ) if k in snap
     }
     db.table("agents").update(restorable).eq("id", str(agent_id)).execute()

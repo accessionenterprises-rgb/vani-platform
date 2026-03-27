@@ -91,7 +91,7 @@ async def _lookup_agent(to_number: str) -> dict | None:
         db = get_db()
         result = (
             db.table("phone_numbers")
-            .select("tenant_id, agent_id, engine, agents(id, name, greeting, prompt, language, voice, stt_provider, llm_provider, tts_provider, behavior, active)")
+            .select("tenant_id, agent_id, engine, agents(id, name, greeting, prompt, language, voice, stt_provider, llm_provider, tts_provider, behavior, tuning, active)")
             .eq("number", to_number)
             .eq("status", "active")
             .maybe_single()
@@ -232,6 +232,7 @@ async def inbound(
                 "stt":          agent_row.get("stt_provider", "deepgram-nova-3"),
                 "llm":          agent_row.get("llm_provider", "gpt-4o-mini"),
                 "tts":          agent_row.get("tts_provider", "openai"),
+                "tuning":       agent_row.get("tuning") or {},
             }),
         )
         orchestrator_url = settings.orchestrator_public_url.replace("https://", "wss://")

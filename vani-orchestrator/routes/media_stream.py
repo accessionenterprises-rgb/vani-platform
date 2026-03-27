@@ -336,10 +336,13 @@ def _resolve_llm(model: str, cfg: dict) -> tuple:
 
 async def _llm_reply(messages: list, model: str, cfg: dict) -> str:
     """Non-streaming LLM call. Fallback path."""
+    tuning = cfg.get("tuning") or {}
+    temperature = tuning.get("temperature", 0.7)
+    max_tokens = tuning.get("max_tokens", 200)
     url, headers, resolved_model = _resolve_llm(model, cfg)
     async with httpx.AsyncClient(timeout=30) as client:
         r = await client.post(url, headers=headers,
-            json={"model": resolved_model, "messages": messages, "max_tokens": 200, "temperature": 0.7})
+            json={"model": resolved_model, "messages": messages, "max_tokens": max_tokens, "temperature": temperature})
         r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
@@ -419,13 +422,16 @@ async def _llm_stream_chunks(messages: list, model: str, cfg: dict):
     """Stream LLM response, yield speakable chunks FAST.
     Yields on: sentence end (.!?) OR comma after 8+ words OR 12+ words without break.
     Goal: first audio within 300ms of first token."""
+    tuning = cfg.get("tuning") or {}
+    temperature = tuning.get("temperature", 0.7)
+    max_tokens = tuning.get("max_tokens", 200)
     url, headers, resolved_model = _resolve_llm(model, cfg)
     buffer = ""
     word_count = 0
     async with httpx.AsyncClient(timeout=30) as client:
         async with client.stream("POST", url, headers={**headers, "Accept": "text/event-stream"},
                 json={"model": resolved_model, "messages": messages,
-                      "max_tokens": 200, "temperature": 0.7, "stream": True}) as resp:
+                      "max_tokens": max_tokens, "temperature": temperature, "stream": True}) as resp:
             async for line in resp.aiter_lines():
                 if not line.startswith("data: "):
                     continue
@@ -462,12 +468,19 @@ async def _llm_stream_chunks(messages: list, model: str, cfg: dict):
 
 # ── STT helpers ───────────────────────────────────────────────────────────────
 
-def _deepgram_url(stt_provider: str) -> str:
+def _deepgram_url(stt_provider: str, tuning: dict | None = None) -> str:
+    tuning = tuning or {}
     model = stt_provider.replace("deepgram-", "") or "nova-3"
-    return (
+    endpointing = tuning.get("endpointing_ms", 300)
+    url = (
         f"wss://api.deepgram.com/v1/listen"
-        f"?model={model}&encoding=mulaw&sample_rate=8000&channels=1&endpointing=300"
+        f"?model={model}&encoding=mulaw&sample_rate=8000&channels=1&endpointing={endpointing}"
     )
+    keywords = tuning.get("keywords_boost") or []
+    if keywords:
+        kw_param = ",".join(f"{w}:2" for w in keywords[:20])
+        url += f"&keywords={kw_param}"
+    return url
 
 def _mulaw_to_wav(mulaw_bytes: bytes) -> bytes:
     pcm = audioop.ulaw2lin(mulaw_bytes, 2)
@@ -514,6 +527,12 @@ async def media_stream(ws: WebSocket, call_id: str):
     stt_provider = cfg.get("stt", "deepgram-nova-3")
     language     = cfg.get("language", "en")
     voice_raw    = cfg.get("voice", "alloy")
+    tuning       = cfg.get("tuning") or {}
+    silence_timeout  = tuning.get("silence_timeout_sec", 10)
+    call_timeout     = tuning.get("call_timeout_sec", 300)
+    final_message    = tuning.get("final_message", "")
+
+    import time as _time
 
     # Inject KB context into prompt
     if kb_context:
@@ -708,12 +727,18 @@ async def media_stream(ws: WebSocket, call_id: str):
 
     async def run_deepgram() -> None:
         dg_model = stt_provider.replace("deepgram-", "") or "nova-3"
+        endpointing = tuning.get("endpointing_ms", 300)
         # Enable interim_results for interrupt detection
         dg_url = (
             f"wss://api.deepgram.com/v1/listen"
             f"?model={dg_model}&encoding=mulaw&sample_rate=8000&channels=1"
-            f"&endpointing=300&interim_results=true"
+            f"&endpointing={endpointing}&interim_results=true"
         )
+        # Add keyword boosting from tuning
+        keywords = tuning.get("keywords_boost") or []
+        if keywords:
+            kw_param = ",".join(f"{w}:2" for w in keywords[:20])
+            dg_url += f"&keywords={kw_param}"
         dg_headers = {"Authorization": f"Token {settings.deepgram_api_key}"}
 
         async def recv_twilio(dg_ws) -> None:
@@ -813,9 +838,57 @@ async def media_stream(ws: WebSocket, call_id: str):
             except Exception:
                 pass
 
+        # ── Silence timeout: hang up if no user speech for N seconds ──
+        _last_speech_time = {"t": _time.time()}
+
+        _orig_on_transcript = on_transcript
+        async def _tracked_on_transcript(text: str) -> None:
+            _last_speech_time["t"] = _time.time()
+            await _orig_on_transcript(text)
+
+        # Monkey-patch so all transcript handling updates the timer
+        nonlocal on_transcript
+        on_transcript = _tracked_on_transcript
+
+        async def silence_watchdog(dg_ws) -> None:
+            """Close call if no user speech for silence_timeout seconds."""
+            while session["active"]:
+                await asyncio.sleep(2)
+                elapsed = _time.time() - _last_speech_time["t"]
+                if elapsed >= silence_timeout and session["state"] == "LISTENING":
+                    log.info("silence_timeout_reached", seconds=silence_timeout)
+                    if final_message:
+                        try:
+                            playback.is_playing = True
+                            await play_text(final_message)
+                        except Exception:
+                            pass
+                    session["active"] = False
+                    try:
+                        await dg_ws.close()
+                    except Exception:
+                        pass
+                    return
+
+        async def call_timeout_watchdog() -> None:
+            """Close call after max call duration."""
+            await asyncio.sleep(call_timeout)
+            if session["active"]:
+                log.info("call_timeout_reached", seconds=call_timeout)
+                if final_message:
+                    try:
+                        playback.is_playing = True
+                        await play_text(final_message)
+                    except Exception:
+                        pass
+                session["active"] = False
+
         async with websockets.connect(dg_url, additional_headers=dg_headers) as dg_ws:
             log.info("deepgram_connected")
-            await asyncio.gather(recv_twilio(dg_ws), recv_deepgram(dg_ws), keepalive(dg_ws))
+            await asyncio.gather(
+                recv_twilio(dg_ws), recv_deepgram(dg_ws), keepalive(dg_ws),
+                silence_watchdog(dg_ws), call_timeout_watchdog(),
+            )
 
     async def run_whisper() -> None:
         audio_buf    = bytearray()
