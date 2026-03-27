@@ -640,14 +640,9 @@ async def media_stream(ws: WebSocket, call_id: str):
         try:
             log.info("play_text_tts_start", text=text[:50], fmt=session["audio_format"])
             mulaw = await _tts(text, tts_provider, voice_raw, language)
-            if session["audio_format"] == "l16":
-                # Vobiz expects PCM-16 — convert mulaw back to PCM
-                pcm = audioop.ulaw2lin(mulaw, 2)
-                log.info("play_text_tts_done", pcm_len=len(pcm), fmt="l16")
-                await play_audio(pcm)
-            else:
-                log.info("play_text_tts_done", mulaw_len=len(mulaw), fmt="mulaw")
-                await play_mulaw(mulaw)
+            # Always send mulaw — works for both Twilio and Vobiz
+            log.info("play_text_tts_done", mulaw_len=len(mulaw))
+            await play_mulaw(mulaw)
             log.info("play_text_sent")
         except asyncio.CancelledError:
             log.info("play_text_cancelled")
