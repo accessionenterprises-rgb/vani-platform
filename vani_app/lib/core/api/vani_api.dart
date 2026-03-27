@@ -92,6 +92,10 @@ class VaniApi {
     return VaniAgent.fromJson(res.data);
   }
 
+  Future<void> deleteAgent(String id) async {
+    await _dio.delete('/agents/$id');
+  }
+
   // ─── Knowledge Base ──────────────────────────────────────
 
   Future<List<KbDocument>> listKb(String agentId) async {
@@ -115,6 +119,19 @@ class VaniApi {
 
   Future<void> deleteKbDoc(String agentId, String docId) async {
     await _dio.delete('/agents/$agentId/kb/$docId');
+  }
+
+  Future<Map<String, dynamic>> scanKbUrl(String agentId, String url) async {
+    final res = await _dio.post('/agents/$agentId/kb/url', data: {'url': url});
+    return res.data;
+  }
+
+  Future<List<int>> ttsPreview(String provider, String voice, {String? text}) async {
+    final res = await _dio.post('/tts-preview',
+      data: {'provider': provider, 'voice': voice, if (text != null) 'text': text},
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return (res.data as List<int>);
   }
 
   // ─── Calls ──────────────────────────────────────────────
@@ -147,12 +164,17 @@ class VaniApi {
 
   // ─── Playground chat ────────────────────────────────────
 
-  Future<Map<String, dynamic>> playgroundChat(String agentId, String message) async {
+  Future<Map<String, dynamic>> playgroundChat(String agentId, String message, {String? sessionId}) async {
     final res = await _dio.post('/playground/chat', data: {
       'agent_id': agentId,
       'message': message,
+      if (sessionId != null) 'session_id': sessionId,
     });
     return res.data; // { reply, ... }
+  }
+
+  Future<void> clearPlaygroundChat(String sessionId) async {
+    await _dio.delete('/playground/chat/$sessionId');
   }
 
   // ─── Outbound call ─────────────────────────────────────
