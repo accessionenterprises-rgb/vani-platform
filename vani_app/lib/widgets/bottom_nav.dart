@@ -24,7 +24,7 @@ class VaniBottomNav extends StatelessWidget {
               _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home, label: 'Home', index: 0, current: currentIndex, onTap: onTap),
               _NavItem(icon: Icons.smart_toy_outlined, activeIcon: Icons.smart_toy, label: 'Agents', index: 1, current: currentIndex, onTap: onTap),
               _NavItem(icon: Icons.call_outlined, activeIcon: Icons.call, label: 'Calls', index: 2, current: currentIndex, onTap: onTap),
-              _NavItem(icon: Icons.description_outlined, activeIcon: Icons.description, label: 'Knowledge', index: 3, current: currentIndex, onTap: onTap),
+              _NavItem(icon: Icons.description_outlined, activeIcon: Icons.description, label: 'KB', index: 3, current: currentIndex, onTap: onTap),
               _NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings, label: 'Settings', index: 4, current: currentIndex, onTap: onTap),
             ],
           ),

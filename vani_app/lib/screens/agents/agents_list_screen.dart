@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -100,7 +101,132 @@ class _AgentsListScreenState extends State<AgentsListScreen> {
                     itemBuilder: (_, i) => _card(_agents[i]).animate().fadeIn(delay: (i * 40).ms),
                   ),
                 ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: V.primary,
+        onPressed: () => _openBuilderChat(context),
+        child: const Icon(Icons.chat_rounded, color: Colors.white),
+      ),
     );
+  }
+
+  void _openBuilderChat(BuildContext ctx) {
+    final sessionId = 'builder-${Random().nextInt(999999)}';
+    final messages = <Map<String, String>>[
+      {'role': 'assistant', 'text': 'What kind of agent do you want to build? Tell me about your business and I\'ll set it up for you.'},
+    ];
+    final textCtrl = TextEditingController();
+    bool sending = false;
+
+    showModalBottomSheet(
+      context: ctx,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: V.border)),
+                ),
+                child: Row(children: [
+                  const Icon(Icons.smart_toy, color: V.primary, size: 20),
+                  const SizedBox(width: 8),
+                  const Text('Agent Builder', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close, color: V.textMuted),
+                  ),
+                ]),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: messages.length,
+                  itemBuilder: (_, i) {
+                    final m = messages[i];
+                    final isUser = m['role'] == 'user';
+                    return Align(
+                      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                        decoration: BoxDecoration(
+                          color: isUser ? V.primary : V.surfaceMuted,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(m['text']!, style: TextStyle(color: isUser ? Colors.white : V.text, fontSize: 14)),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                decoration: const BoxDecoration(border: Border(top: BorderSide(color: V.border))),
+                child: SafeArea(
+                  top: false,
+                  child: Row(children: [
+                    Expanded(
+                      child: TextField(
+                        controller: textCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Describe your agent...',
+                          hintStyle: const TextStyle(color: V.textMuted),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: V.border)),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: sending ? null : () async {
+                        final text = textCtrl.text.trim();
+                        if (text.isEmpty) return;
+                        setSheetState(() {
+                          messages.add({'role': 'user', 'text': text});
+                          sending = true;
+                        });
+                        textCtrl.clear();
+                        try {
+                          final res = await VaniApi.instance.builderChat(text, sessionId);
+                          final reply = res['response'] ?? res['message'] ?? 'I understand. Let me set that up.';
+                          setSheetState(() {
+                            messages.add({'role': 'assistant', 'text': reply.toString()});
+                            sending = false;
+                          });
+                        } catch (e) {
+                          setSheetState(() {
+                            messages.add({'role': 'assistant', 'text': 'Sorry, something went wrong. Try again.'});
+                            sending = false;
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: V.primary, borderRadius: BorderRadius.circular(12)),
+                        child: sending
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   }
 
   Widget _empty() => Center(
@@ -172,7 +298,7 @@ class _AgentsListScreenState extends State<AgentsListScreen> {
                 maxLines: 1, overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
-              Row(children: [
+              Wrap(spacing: 6, runSpacing: 4, children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -184,17 +310,15 @@ class _AgentsListScreenState extends State<AgentsListScreen> {
                     style: TextStyle(color: agent.active ? V.green : V.textMuted, fontSize: 11, fontWeight: FontWeight.w500),
                   ),
                 ),
-                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(color: V.surfaceMuted, borderRadius: BorderRadius.circular(6)),
-                  child: Text(agent.llmProvider, style: const TextStyle(color: V.textSub, fontSize: 11)),
+                  child: Text(agent.llmProvider, style: const TextStyle(color: V.textSub, fontSize: 11), overflow: TextOverflow.ellipsis),
                 ),
-                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(color: V.surfaceMuted, borderRadius: BorderRadius.circular(6)),
-                  child: Text(agent.voice, style: const TextStyle(color: V.textSub, fontSize: 11)),
+                  child: Text(agent.voice, style: const TextStyle(color: V.textSub, fontSize: 11), overflow: TextOverflow.ellipsis),
                 ),
               ]),
             ])),

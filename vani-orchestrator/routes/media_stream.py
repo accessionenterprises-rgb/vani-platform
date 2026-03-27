@@ -842,12 +842,12 @@ async def media_stream(ws: WebSocket, call_id: str):
         _last_speech_time = {"t": _time.time()}
 
         _orig_on_transcript = on_transcript
+
         async def _tracked_on_transcript(text: str) -> None:
             _last_speech_time["t"] = _time.time()
             await _orig_on_transcript(text)
 
         # Monkey-patch so all transcript handling updates the timer
-        nonlocal on_transcript
         on_transcript = _tracked_on_transcript
 
         async def silence_watchdog(dg_ws) -> None:

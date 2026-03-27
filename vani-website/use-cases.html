@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Use Cases — Vani Voice AI</title>
+  <link rel="icon" href="favicon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #d9d9d9;
+      --grey: #5e5e5e;
+      --grey-light: #a9a9a9;
+      --grey-dark: #232323;
+      --accent-1-bg: #00581f; --accent-1-fg: #00ff75;
+      --accent-2-bg: #1125ff; --accent-2-fg: #00deff;
+      --accent-3-bg: #680000; --accent-3-fg: #ff1018;
+      --accent-4-bg: #232323; --accent-4-fg: #d9d9d9;
+      --grid-gap: 2rem;
+      --grid-pad: 2rem;
+      --font: 'Inter', -apple-system, sans-serif;
+    }
+    html { font-size: 62.5%; }
+    body {
+      font-family: var(--font);
+      background: var(--black);
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    ::selection { background: #a78bfa; color: #000; }
+
+    /* ── Grid system ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      padding-inline: 1.5rem;
+    }
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: var(--grid-gap);
+        padding-inline: var(--grid-pad);
+      }
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem var(--grid-pad);
+    }
+    .nav-pill {
+      font-family: var(--font);
+      font-size: 1.4rem; font-weight: 500;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: .005em;
+      padding: .8rem 1.5rem;
+      background: color-mix(in oklab, var(--grey-light) 12%, transparent);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: none; cursor: pointer;
+      transition: background .3s ease-in-out, color .3s ease-in-out;
+    }
+    .nav-links { display: flex; gap: 0; }
+    .nav-links a:nth-child(1):hover { background: var(--accent-1-fg); color: var(--accent-1-bg); }
+    .nav-links a:nth-child(2):hover { background: var(--accent-2-fg); color: var(--accent-2-bg); }
+    .nav-links a:nth-child(3):hover { background: var(--accent-3-fg); color: var(--accent-3-bg); }
+    .nav-links a:nth-child(4):hover { background: var(--accent-4-fg); color: var(--accent-4-bg); }
+    @media (max-width: 1023px) {
+      .nav-links { display: none; }
+    }
+    .mob-toggle {
+      display: none;
+      align-items: center; gap: .8rem;
+    }
+    @media (max-width: 1023px) { .mob-toggle { display: flex; } }
+    .dot-icon { display: inline-grid; grid-template-columns: repeat(2,1fr); gap: 3px; }
+    .dot-icon i { width: 4px; height: 4px; background: currentColor; border-radius: 1px; display: block; }
+
+    /* Mobile overlay */
+    .mob-nav {
+      position: fixed; inset: 0; z-index: 99;
+      background: var(--black);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center; gap: 1.2rem;
+      clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
+      transition: clip-path .6s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+    .mob-nav a {
+      font-size: 5.8rem; font-weight: 700; color: var(--white);
+      text-decoration: none; letter-spacing: -.03em;
+      opacity: 0; transform: translateY(30px);
+      transition: all .5s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open a { opacity: 1; transform: translateY(0); }
+    .mob-nav a:nth-child(1) { transition-delay: .1s; }
+    .mob-nav a:nth-child(2) { transition-delay: .18s; }
+    .mob-nav a:nth-child(3) { transition-delay: .26s; }
+    .mob-nav a:nth-child(4) { transition-delay: .34s; }
+
+    /* ── Hero ── */
+    .page-hero {
+      min-height: 60dvh;
+      display: flex;
+      align-items: end;
+      padding: 14rem 0 6rem;
+    }
+    .page-hero .sec-label {
+      grid-column: 1 / -1;
+      font-size: 1.3rem; color: var(--grey); letter-spacing: .14em;
+      text-transform: uppercase; margin-bottom: .5rem;
+    }
+    .page-hero h1 {
+      grid-column: 1 / -1;
+      font-size: clamp(4.2rem, 7vw, 8.4rem);
+      font-weight: 700;
+      line-height: .92;
+      letter-spacing: -.04em;
+    }
+    @media (min-width: 1024px) {
+      .page-hero h1 { grid-column: 1 / 7; }
+    }
+    .page-hero .hero-sub {
+      grid-column: 1 / -1;
+      font-size: clamp(1.6rem, 2vw, 2.2rem);
+      color: var(--grey-light);
+      line-height: 1.45;
+      margin-top: 2rem;
+      max-width: 560px;
+    }
+    @media (min-width: 1024px) {
+      .page-hero .hero-sub { grid-column: 1 / 5; }
+    }
+
+    /* ── Use case cards ── */
+    .use-cases { padding: 4rem 0 12rem; }
+    .uc-grid {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: rgba(255,255,255,.04);
+    }
+    @media (min-width: 768px) {
+      .uc-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .uc-card {
+      background: var(--black);
+      padding: 4.5rem 3.5rem;
+      transition: background .3s;
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+    }
+    .uc-card:hover { background: #0e0e0e; }
+
+    .uc-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .uc-icon svg { width: 22px; height: 22px; }
+
+    .uc-card .num {
+      font-size: 1.1rem; color: var(--grey);
+      letter-spacing: .08em;
+    }
+    .uc-card h3 {
+      font-size: 2.6rem; font-weight: 700;
+      line-height: 1.1; letter-spacing: -.015em;
+    }
+    .uc-card .uc-desc {
+      font-size: 1.5rem; color: var(--grey-light);
+      line-height: 1.55;
+    }
+
+    /* Conversation snippet */
+    .uc-convo {
+      margin-top: .6rem;
+      padding: 1.8rem 2rem;
+      background: rgba(255,255,255,.03);
+      border-left: 2px solid rgba(167,139,250,.3);
+      border-radius: 0 6px 6px 0;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .uc-convo .line {
+      font-size: 1.35rem; line-height: 1.45;
+    }
+    .uc-convo .line .role {
+      font-weight: 600; letter-spacing: .01em;
+    }
+    .uc-convo .line .role.caller { color: var(--grey-light); }
+    .uc-convo .line .role.agent { color: #a78bfa; }
+    .uc-convo .line .txt { color: var(--grey-light); }
+
+    .uc-card .uc-link {
+      display: inline-block;
+      font-size: 1.4rem; font-weight: 500;
+      color: var(--grey);
+      text-decoration: none;
+      transition: color .2s;
+      margin-top: auto;
+    }
+    .uc-card .uc-link:hover { color: var(--white); }
+
+    /* ── CTA ── */
+    .cta-section { padding: 8rem 0 12rem; }
+    .cta-heading {
+      grid-column: 1 / -1;
+      font-size: clamp(4rem, 6vw, 7.2rem);
+      font-weight: 700; letter-spacing: -.045em;
+      line-height: .92;
+    }
+    @media (min-width: 1024px) { .cta-heading { grid-column: 1 / 7; } }
+    .cta-sub {
+      grid-column: 1 / -1;
+      font-size: 1.8rem; color: var(--grey-light);
+      line-height: 1.5; margin-top: 2rem;
+      max-width: 420px;
+    }
+    @media (min-width: 1024px) { .cta-sub { grid-column: 1 / 5; } }
+    .cta-phone {
+      grid-column: 1 / -1;
+      display: inline-block; margin-top: 3rem;
+      font-family: var(--font);
+      font-size: clamp(2.4rem, 3.5vw, 3.6rem);
+      font-weight: 700; letter-spacing: -.02em;
+      color: #a78bfa; text-decoration: none;
+      transition: color .2s;
+    }
+    .cta-phone:hover { color: #c4b5fd; }
+
+    /* ── Footer ── */
+    .footer-wrap {
+      position: relative;
+      margin-top: 10rem;
+    }
+    .footer {
+      background: var(--grey-dark);
+      padding: 12rem var(--grid-pad) 4rem;
+    }
+    .foot-top {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4rem;
+    }
+    @media (min-width: 768px) {
+      .foot-top { grid-template-columns: repeat(2, 1fr); }
+    }
+    .foot-words span {
+      display: block;
+      font-size: clamp(4.8rem, 6vw, 6.4rem);
+      font-weight: 700; line-height: 1.05;
+      letter-spacing: -.035em;
+      color: #fff;
+    }
+    .foot-desc p {
+      font-size: clamp(1.8rem, 2.2vw, 2.7rem);
+      line-height: 1.25; color: var(--grey-light);
+    }
+    .foot-desc a {
+      display: inline-block; margin-top: 1.6rem;
+      font-size: 2.2rem; color: var(--white); text-decoration: none;
+      opacity: .4; transition: opacity .2s;
+    }
+    .foot-desc a:hover { opacity: 1; }
+    .foot-brand {
+      margin-top: 10rem;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 2rem;
+    }
+    .foot-logo {
+      font-size: 2.2rem; font-weight: 700; letter-spacing: -.02em;
+      display: flex; align-items: center; gap: 1rem; color: #fff;
+    }
+    .g9 { display: inline-grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .g9 i { width: 4px; height: 4px; border-radius: 1px; background: #fff; display: block; }
+    .foot-links { display: flex; gap: 2rem; }
+    .foot-links a {
+      font-size: 1.3rem; color: var(--grey-light);
+      text-decoration: none; transition: color .2s;
+    }
+    .foot-links a:hover { color: #fff; }
+    .foot-copy {
+      width: 100%; margin-top: 2rem;
+      font-size: 1.15rem; color: var(--grey);
+      display: flex; justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mobile nav overlay -->
+<div class="mob-nav" id="mobNav">
+  <a href="/" onclick="closeMob()">Home</a>
+  <a href="/#features" onclick="closeMob()">Features</a>
+  <a href="/#demo" onclick="closeMob()">Demo</a>
+  <a href="https://dashboard.vani.live/login" onclick="closeMob()">Dashboard</a>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="/" class="nav-pill">Vani</a>
+  <div class="nav-links">
+    <a href="/" class="nav-pill">Home</a>
+    <a href="/#features" class="nav-pill">Features</a>
+    <a href="/#demo" class="nav-pill">Demo</a>
+    <a href="https://dashboard.vani.live/login" class="nav-pill">Dashboard</a>
+  </div>
+  <button class="nav-pill mob-toggle" onclick="toggleMob()">
+    <span class="dot-icon"><i></i><i></i><i></i><i></i></span>
+    Menu
+  </button>
+</nav>
+
+<!-- Hero -->
+<section class="page-hero">
+  <div class="grid" style="width:100%;">
+    <div class="sec-label">Use Cases</div>
+    <h1>One platform.<br>Every use case.</h1>
+    <p class="hero-sub">From front-desk reception to outbound sales at scale, Vani handles any call scenario with human-grade voice AI. No scripts. No queues. No limits.</p>
+  </div>
+</section>
+
+<!-- Use Cases Grid -->
+<section class="use-cases">
+  <div class="grid">
+    <div class="uc-grid">
+
+      <!-- 1. AI Receptionist -->
+      <div class="uc-card">
+        <div class="uc-icon" style="background: rgba(0,255,117,.1);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#00ff75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+        </div>
+        <div class="num">01</div>
+        <h3>AI Receptionist</h3>
+        <p class="uc-desc">Answer every call 24/7. Book appointments, transfer calls, take messages. Your front desk never sleeps, never puts anyone on hold, and never forgets a detail.</p>
+        <div class="uc-convo">
+          <div class="line"><span class="role caller">Caller:</span> <span class="txt">Hi, I'd like to book an appointment for Thursday.</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Of course. I have 10am and 2pm available on Thursday. Which works better for you?</span></div>
+          <div class="line"><span class="role caller">Caller:</span> <span class="txt">2pm please.</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Done. You're booked for Thursday at 2pm. I'll send a confirmation to your number.</span></div>
+        </div>
+        <a href="#" class="uc-link">Learn more &rarr;</a>
+      </div>
+
+      <!-- 2. AI Appointment Setter -->
+      <div class="uc-card">
+        <div class="uc-icon" style="background: rgba(0,222,255,.1);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#00deff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/>
+          </svg>
+        </div>
+        <div class="num">02</div>
+        <h3>AI Appointment Setter</h3>
+        <p class="uc-desc">Qualify leads and book meetings directly into your calendar. The agent asks the right questions, checks availability in real-time, and confirms the slot before hanging up.</p>
+        <div class="uc-convo">
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Hi, this is Sarah from Acme Solutions. You requested a demo — are you still interested?</span></div>
+          <div class="line"><span class="role caller">Lead:</span> <span class="txt">Yes, but only if you support teams over 50 people.</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Absolutely. Let me book you with our enterprise team. How's Tuesday at 11am?</span></div>
+        </div>
+        <a href="#" class="uc-link">Learn more &rarr;</a>
+      </div>
+
+      <!-- 3. AI Call Center -->
+      <div class="uc-card">
+        <div class="uc-icon" style="background: rgba(167,139,250,.1);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <div class="num">03</div>
+        <h3>AI Call Center</h3>
+        <p class="uc-desc">Handle thousands of simultaneous calls. No queue, no wait time, no staffing headaches. Every caller gets instant, personalized service at any hour of the day.</p>
+        <div class="uc-convo">
+          <div class="line"><span class="role caller">Caller:</span> <span class="txt">I've been waiting forever on your old line...</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">No wait here. I've pulled up your account. How can I help you today?</span></div>
+          <div class="line"><span class="role caller">Caller:</span> <span class="txt">Oh wow, that was instant. I need to update my billing address.</span></div>
+        </div>
+        <a href="#" class="uc-link">Learn more &rarr;</a>
+      </div>
+
+      <!-- 4. AI Customer Support -->
+      <div class="uc-card">
+        <div class="uc-icon" style="background: rgba(255,16,24,.08);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ff1018" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="num">04</div>
+        <h3>AI Customer Support</h3>
+        <p class="uc-desc">Resolve issues, process returns, answer FAQs instantly. The agent accesses your knowledge base, CRM, and order system to solve problems on the first call.</p>
+        <div class="uc-convo">
+          <div class="line"><span class="role caller">Caller:</span> <span class="txt">My order #4821 arrived damaged. I want a replacement.</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">I'm sorry about that. I've initiated a replacement shipment — it'll arrive by Friday. I'm also sending you a 15% credit for the trouble.</span></div>
+        </div>
+        <a href="#" class="uc-link">Learn more &rarr;</a>
+      </div>
+
+      <!-- 5. AI Lead Qualification -->
+      <div class="uc-card">
+        <div class="uc-icon" style="background: rgba(0,255,117,.1);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#00ff75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <div class="num">05</div>
+        <h3>AI Lead Qualification</h3>
+        <p class="uc-desc">Screen inbound leads, ask qualifying questions, and route hot leads directly to your sales team. Cold leads get nurtured. Junk gets filtered. Nothing falls through the cracks.</p>
+        <div class="uc-convo">
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Thanks for calling. To connect you with the right team — what's your company size and annual revenue range?</span></div>
+          <div class="line"><span class="role caller">Lead:</span> <span class="txt">About 200 employees, $30M revenue.</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Great fit. Transferring you to our enterprise team right now.</span></div>
+        </div>
+        <a href="#" class="uc-link">Learn more &rarr;</a>
+      </div>
+
+      <!-- 6. Outbound Sales -->
+      <div class="uc-card">
+        <div class="uc-icon" style="background: rgba(0,222,255,.1);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#00deff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </div>
+        <div class="num">06</div>
+        <h3>Outbound Sales</h3>
+        <p class="uc-desc">Reach prospects at scale with personalized conversations, not robocalls. The agent knows the prospect's name, company, and pain points before dialing.</p>
+        <div class="uc-convo">
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Hi Michael, this is Vani calling from CloudSync. I noticed you downloaded our whitepaper on data migration — was that for an upcoming project?</span></div>
+          <div class="line"><span class="role caller">Michael:</span> <span class="txt">Actually, yes. We're migrating next quarter.</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Perfect timing. Can I book 15 minutes with our solutions team this week?</span></div>
+        </div>
+        <a href="#" class="uc-link">Learn more &rarr;</a>
+      </div>
+
+      <!-- 7. AI IVR Replacement -->
+      <div class="uc-card">
+        <div class="uc-icon" style="background: rgba(167,139,250,.1);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+        <div class="num">07</div>
+        <h3>AI IVR Replacement</h3>
+        <p class="uc-desc">Replace "Press 1 for sales, press 2 for support" with natural conversation. Callers simply say what they need and get routed instantly to the right destination.</p>
+        <div class="uc-convo">
+          <div class="line"><span class="role caller">Caller:</span> <span class="txt">I need to talk to someone about my invoice.</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Connecting you to billing now. Before I transfer — is this about invoice #3392 from March?</span></div>
+          <div class="line"><span class="role caller">Caller:</span> <span class="txt">Yes, exactly that one.</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">I'll pass that context along so you don't have to repeat yourself. One moment.</span></div>
+        </div>
+        <a href="#" class="uc-link">Learn more &rarr;</a>
+      </div>
+
+      <!-- 8. Appointment Reminders -->
+      <div class="uc-card">
+        <div class="uc-icon" style="background: rgba(255,16,24,.08);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ff1018" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3L2 6"/><path d="M22 6l-3-3"/><path d="M6.38 18.7L4 21"/><path d="M17.64 18.67L20 21"/>
+          </svg>
+        </div>
+        <div class="num">08</div>
+        <h3>Appointment Reminders</h3>
+        <p class="uc-desc">Reduce no-shows with automated confirmation calls. The agent calls ahead, confirms or reschedules, and updates your calendar in real-time. No more empty slots.</p>
+        <div class="uc-convo">
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Hi, this is a reminder about your appointment tomorrow at 3pm with Dr. Patel. Can you confirm you'll be there?</span></div>
+          <div class="line"><span class="role caller">Patient:</span> <span class="txt">Actually, can we push it to Friday?</span></div>
+          <div class="line"><span class="role agent">Agent:</span> <span class="txt">Sure. I've moved you to Friday at 3pm. You'll get a confirmation text shortly.</span></div>
+        </div>
+        <a href="#" class="uc-link">Learn more &rarr;</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="grid">
+    <h2 class="cta-heading">Don't read about it.<br>Call it.</h2>
+    <p class="cta-sub">Talk to a Vani agent right now. No signup. No demo form. Just dial.</p>
+    <a href="tel:+19209209967" class="cta-phone">+1 (920) 920-9967</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<div class="footer-wrap">
+  <footer class="footer">
+    <div class="foot-top">
+      <div class="foot-words">
+        <span>Every voice.</span>
+        <span>Every language.</span>
+        <span>Every call.</span>
+      </div>
+      <div class="foot-desc">
+        <p>Your customers won't know the difference — but your bottom line will.</p>
+        <a href="https://dashboard.vani.live/login">Start building &rarr;</a>
+      </div>
+    </div>
+    <div class="foot-brand">
+      <div class="foot-logo">
+        <span class="g9"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        Vani
+      </div>
+      <div class="foot-links">
+        <a href="https://dashboard.vani.live/login">Dashboard</a>
+        <a href="mailto:hello@vani.live">Contact</a>
+        <a href="#">Privacy</a>
+      </div>
+    </div>
+    <div class="foot-copy">
+      <span>&copy; 2026 Vani. All rights reserved.</span>
+      <span>hello@vani.live</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Mobile nav
+  function toggleMob() {
+    document.getElementById('mobNav').classList.toggle('open');
+  }
+  function closeMob() {
+    document.getElementById('mobNav').classList.remove('open');
+  }
+
+  // Subtle scroll reveal for cards
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.uc-card').forEach((card, i) => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(30px)';
+    card.style.transition = `opacity .6s ease ${i * .06}s, transform .6s ease ${i * .06}s`;
+    observer.observe(card);
+  });
+</script>
+
+</body>
+</html>

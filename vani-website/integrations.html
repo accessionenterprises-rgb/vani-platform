@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integrations — Vani</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #d9d9d9;
+      --grey: #5e5e5e;
+      --grey-light: #a9a9a9;
+      --grey-dark: #232323;
+      --accent-1-bg: #00581f; --accent-1-fg: #00ff75;
+      --accent-2-bg: #1125ff; --accent-2-fg: #00deff;
+      --accent-3-bg: #680000; --accent-3-fg: #ff1018;
+      --accent-4-bg: #232323; --accent-4-fg: #d9d9d9;
+      --grid-gap: 2rem;
+      --grid-pad: 2rem;
+      --font: 'Inter', -apple-system, sans-serif;
+    }
+    html { font-size: 62.5%; }
+    body {
+      font-family: var(--font);
+      background: var(--black);
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    ::selection { background: #a78bfa; color: #000; }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem var(--grid-pad);
+    }
+    .nav-pill {
+      font-family: var(--font);
+      font-size: 1.4rem; font-weight: 500;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: .005em;
+      padding: .8rem 1.5rem;
+      background: color-mix(in oklab, var(--grey-light) 12%, transparent);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: none; cursor: pointer;
+      transition: background .3s ease-in-out, color .3s ease-in-out;
+    }
+    .nav-links { display: flex; gap: 0; }
+    .nav-links a:nth-child(1):hover { background: var(--accent-1-fg); color: var(--accent-1-bg); }
+    .nav-links a:nth-child(2):hover { background: var(--accent-2-fg); color: var(--accent-2-bg); }
+    .nav-links a:nth-child(3):hover { background: var(--accent-3-fg); color: var(--accent-3-bg); }
+    .nav-links a:nth-child(4):hover { background: var(--accent-4-fg); color: var(--accent-4-bg); }
+    @media (max-width: 1023px) {
+      .nav-links { display: none; }
+    }
+    .mob-toggle {
+      display: none;
+      align-items: center; gap: .8rem;
+    }
+    @media (max-width: 1023px) { .mob-toggle { display: flex; } }
+    .dot-icon { display: inline-grid; grid-template-columns: repeat(2,1fr); gap: 3px; }
+    .dot-icon i { width: 4px; height: 4px; background: currentColor; border-radius: 1px; display: block; }
+
+    /* Mobile overlay */
+    .mob-nav {
+      position: fixed; inset: 0; z-index: 99;
+      background: var(--black);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center; gap: 1.2rem;
+      clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
+      transition: clip-path .6s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+    .mob-nav a {
+      font-size: 5.8rem; font-weight: 700; color: var(--white);
+      text-decoration: none; letter-spacing: -.03em;
+      opacity: 0; transform: translateY(30px);
+      transition: all .5s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open a { opacity: 1; transform: translateY(0); }
+    .mob-nav a:nth-child(1) { transition-delay: .1s; }
+    .mob-nav a:nth-child(2) { transition-delay: .18s; }
+    .mob-nav a:nth-child(3) { transition-delay: .26s; }
+    .mob-nav a:nth-child(4) { transition-delay: .34s; }
+
+    /* ── Hero ── */
+    .page-hero {
+      padding: 16rem var(--grid-pad) 8rem;
+    }
+    @media (min-width: 1024px) {
+      .page-hero { padding: 20rem var(--grid-pad) 10rem; }
+    }
+    .page-hero h1 {
+      font-size: clamp(4.8rem, 7vw, 8.4rem);
+      font-weight: 700;
+      line-height: .92;
+      letter-spacing: -.04em;
+      max-width: 900px;
+    }
+    .page-hero h1 span {
+      background: linear-gradient(135deg, #a78bfa, #00deff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .page-hero p {
+      font-size: clamp(1.6rem, 2vw, 2.2rem);
+      color: var(--grey-light);
+      line-height: 1.5;
+      margin-top: 2.4rem;
+      max-width: 560px;
+    }
+
+    /* ── Category sections ── */
+    .int-section {
+      padding: 6rem var(--grid-pad) 2rem;
+    }
+    .int-section-label {
+      font-size: 1.2rem;
+      color: var(--grey);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .int-section-title {
+      font-size: clamp(2.4rem, 3.5vw, 3.6rem);
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1;
+      margin-bottom: 3.5rem;
+    }
+
+    /* ── Integration cards grid ── */
+    .int-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: rgba(255,255,255,.04);
+    }
+    @media (min-width: 640px) {
+      .int-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 1024px) {
+      .int-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 1280px) {
+      .int-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .int-card {
+      background: var(--black);
+      padding: 3.2rem 2.8rem;
+      transition: background .3s;
+      display: flex;
+      flex-direction: column;
+      gap: 1.6rem;
+    }
+    .int-card:hover { background: #0e0e0e; }
+
+    .int-card-top {
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+    }
+    .int-logo {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .int-card-info {
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+    }
+    .int-card-name {
+      font-size: 1.8rem;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      color: #fff;
+    }
+    .int-card-tag {
+      font-size: 1.05rem;
+      color: var(--grey);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .int-card-desc {
+      font-size: 1.4rem;
+      color: var(--grey-light);
+      line-height: 1.5;
+    }
+    .int-card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      padding: .6rem 1.4rem;
+      border-radius: 100px;
+      width: fit-content;
+      transition: all .25s;
+    }
+    .badge-connect {
+      background: rgba(167, 139, 250, .12);
+      color: #a78bfa;
+      border: 1px solid rgba(167, 139, 250, .2);
+    }
+    .int-card:hover .badge-connect {
+      background: rgba(167, 139, 250, .2);
+    }
+    .badge-soon {
+      background: rgba(255,255,255,.04);
+      color: var(--grey);
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    /* ── Build Your Own section ── */
+    .build-section {
+      padding: 10rem var(--grid-pad);
+    }
+    .build-inner {
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 16px;
+      padding: 6rem 4rem;
+      background: linear-gradient(135deg, rgba(167,139,250,.03), rgba(0,222,255,.03));
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .build-inner .build-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      background: rgba(167,139,250,.1);
+      border: 1px solid rgba(167,139,250,.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2.4rem;
+      font-size: 2.4rem;
+    }
+    .build-inner h2 {
+      font-size: clamp(3rem, 4vw, 4.2rem);
+      font-weight: 700;
+      letter-spacing: -.035em;
+      line-height: .95;
+      margin-bottom: 1.6rem;
+    }
+    .build-inner p {
+      font-size: clamp(1.5rem, 1.8vw, 1.8rem);
+      color: var(--grey-light);
+      line-height: 1.55;
+      max-width: 540px;
+      margin: 0 auto 3rem;
+    }
+    .build-features {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin-bottom: 3.6rem;
+    }
+    .build-feat {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      font-size: 1.4rem;
+      color: var(--white);
+    }
+    .build-feat .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #a78bfa;
+    }
+    .build-cta {
+      display: inline-block;
+      font-family: var(--font);
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      color: #000;
+      background: #a78bfa;
+      padding: 1.2rem 3.2rem;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: background .25s, transform .2s;
+    }
+    .build-cta:hover {
+      background: #c4b5fd;
+      transform: translateY(-1px);
+    }
+
+    /* ── Footer ── */
+    .footer-wrap {
+      position: relative;
+      margin-top: 4rem;
+    }
+    .footer {
+      background: var(--grey-dark);
+      padding: 12rem var(--grid-pad) 4rem;
+    }
+    .foot-top {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4rem;
+    }
+    @media (min-width: 768px) {
+      .foot-top { grid-template-columns: repeat(2, 1fr); }
+    }
+    .foot-words span {
+      display: block;
+      font-size: clamp(4.8rem, 6vw, 6.4rem);
+      font-weight: 700; line-height: 1.05;
+      letter-spacing: -.035em;
+      color: #fff;
+    }
+    .foot-desc p {
+      font-size: clamp(1.8rem, 2.2vw, 2.7rem);
+      line-height: 1.25; color: var(--grey-light);
+    }
+    .foot-desc a {
+      display: inline-block; margin-top: 1.6rem;
+      font-size: 2.2rem; color: var(--white); text-decoration: none;
+      opacity: .4; transition: opacity .2s;
+    }
+    .foot-desc a:hover { opacity: 1; }
+    .foot-brand {
+      margin-top: 10rem;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 2rem;
+    }
+    .foot-logo {
+      font-size: 2.2rem; font-weight: 700; letter-spacing: -.02em;
+      display: flex; align-items: center; gap: 1rem; color: #fff;
+    }
+    .g9 { display: inline-grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .g9 i { width: 4px; height: 4px; border-radius: 1px; background: #fff; display: block; }
+    .foot-links { display: flex; gap: 2rem; }
+    .foot-links a {
+      font-size: 1.3rem; color: var(--grey-light);
+      text-decoration: none; transition: color .2s;
+    }
+    .foot-links a:hover { color: #fff; }
+    .foot-copy {
+      width: 100%; margin-top: 2rem;
+      font-size: 1.15rem; color: var(--grey);
+      display: flex; justify-content: space-between;
+    }
+
+    /* ── Divider ── */
+    .section-divider {
+      height: 1px;
+      background: rgba(255,255,255,.04);
+      margin: 0 var(--grid-pad);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mobile nav overlay -->
+<div class="mob-nav" id="mobNav">
+  <a href="/" onclick="closeMob()">Home</a>
+  <a href="/#features" onclick="closeMob()">Features</a>
+  <a href="/#demo" onclick="closeMob()">Demo</a>
+  <a href="https://dashboard.vani.live/login" onclick="closeMob()">Dashboard</a>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="/" class="nav-pill">Vani</a>
+  <div class="nav-links">
+    <a href="/" class="nav-pill">Home</a>
+    <a href="/#features" class="nav-pill">Features</a>
+    <a href="/#demo" class="nav-pill">Demo</a>
+    <a href="https://dashboard.vani.live/login" class="nav-pill">Dashboard</a>
+  </div>
+  <button class="nav-pill mob-toggle" onclick="toggleMob()">
+    <span class="dot-icon"><i></i><i></i><i></i><i></i></span>
+    Menu
+  </button>
+</nav>
+
+<!-- Hero -->
+<section class="page-hero">
+  <h1>Connect Vani to <span>everything.</span></h1>
+  <p>Seamless integrations with your CRM, calendar, automation tools, and voice infrastructure. Plug Vani into the stack you already use.</p>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- CRM & Sales -->
+<section class="int-section">
+  <div class="int-section-label">01 &mdash; CRM & Sales</div>
+  <h2 class="int-section-title">Push every call into your pipeline.</h2>
+  <div class="int-grid">
+    <!-- HubSpot -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #ff5c35;">H</div>
+        <div class="int-card-info">
+          <div class="int-card-name">HubSpot</div>
+          <div class="int-card-tag">CRM</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Auto-log calls, create contacts, and update deals in HubSpot after every conversation.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Salesforce -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #00a1e0;">S</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Salesforce</div>
+          <div class="int-card-tag">CRM</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Sync call transcripts, outcomes, and lead scores directly into Salesforce objects.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- GoHighLevel -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #4caf50;">G</div>
+        <div class="int-card-info">
+          <div class="int-card-name">GoHighLevel</div>
+          <div class="int-card-tag">CRM</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Trigger GHL workflows, tag contacts, and update opportunities from voice interactions.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Zoho CRM -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #e42527;">Z</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Zoho CRM</div>
+          <div class="int-card-tag">CRM</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Create leads, log activities, and push call intelligence into Zoho CRM modules.</div>
+      <div class="int-card-badge badge-soon">Coming soon</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Automation -->
+<section class="int-section">
+  <div class="int-section-label">02 &mdash; Automation</div>
+  <h2 class="int-section-title">Wire calls into any workflow.</h2>
+  <div class="int-grid">
+    <!-- Zapier -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #ff4a00;">Z</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Zapier</div>
+          <div class="int-card-tag">Automation</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Send call events to 6,000+ apps. Trigger zaps on call complete, missed, or transferred.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Make -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #6d3cff;">M</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Make</div>
+          <div class="int-card-tag">Automation</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Build visual automation scenarios with call data, transcripts, and sentiment scores.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- n8n -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #ea4b71;">n</div>
+        <div class="int-card-info">
+          <div class="int-card-name">n8n</div>
+          <div class="int-card-tag">Automation</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Self-hosted workflow automation. Receive webhooks for every call event in real time.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Calendar -->
+<section class="int-section">
+  <div class="int-section-label">03 &mdash; Calendar</div>
+  <h2 class="int-section-title">Book meetings while you talk.</h2>
+  <div class="int-grid">
+    <!-- Google Calendar -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #4285f4;">G</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Google Calendar</div>
+          <div class="int-card-tag">Calendar</div>
+        </div>
+      </div>
+      <div class="int-card-desc">AI agent checks availability and books slots on Google Calendar mid-conversation.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Cal.com -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #292929;">C</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Cal.com</div>
+          <div class="int-card-tag">Calendar</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Open-source scheduling. Vani reads your Cal.com availability and creates bookings live.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Calendly -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #006bff;">C</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Calendly</div>
+          <div class="int-card-tag">Calendar</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Schedule meetings through Calendly event types directly from a phone call.</div>
+      <div class="int-card-badge badge-soon">Coming soon</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Communication -->
+<section class="int-section">
+  <div class="int-section-label">04 &mdash; Communication</div>
+  <h2 class="int-section-title">Every channel, one voice.</h2>
+  <div class="int-grid">
+    <!-- Twilio -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #f22f46;">T</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Twilio</div>
+          <div class="int-card-tag">Telephony</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Production telephony backbone. Inbound, outbound, number provisioning, SIP trunking.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- WhatsApp -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #25d366;">W</div>
+        <div class="int-card-info">
+          <div class="int-card-name">WhatsApp</div>
+          <div class="int-card-tag">Messaging</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Send call summaries, follow-up messages, and booking confirmations via WhatsApp.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Slack -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #4a154b;">S</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Slack</div>
+          <div class="int-card-tag">Messaging</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Get instant Slack notifications for every call — transcripts, sentiment, and action items.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- AI Providers -->
+<section class="int-section">
+  <div class="int-section-label">05 &mdash; AI Providers</div>
+  <h2 class="int-section-title">Swap your voice engine, anytime.</h2>
+  <div class="int-grid">
+    <!-- OpenAI -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #10a37f;">O</div>
+        <div class="int-card-info">
+          <div class="int-card-name">OpenAI</div>
+          <div class="int-card-tag">LLM + TTS</div>
+        </div>
+      </div>
+      <div class="int-card-desc">GPT-4o for reasoning, Whisper for transcription, TTS-1 for voice synthesis.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Deepgram -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #13ef93; color: #000;">D</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Deepgram</div>
+          <div class="int-card-tag">STT</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Real-time speech-to-text with sub-300ms latency. Nova-2 model for production accuracy.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Cartesia -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #7c3aed;">C</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Cartesia</div>
+          <div class="int-card-tag">TTS</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Sonic text-to-speech. Ultra-low latency streaming voices with emotional range.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Sarvam AI -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #e85d04;">S</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Sarvam AI</div>
+          <div class="int-card-tag">TTS + STT</div>
+        </div>
+      </div>
+      <div class="int-card-desc">India-optimized voice. Bulbul v2 for Hindi, Tamil, Telugu, and 10+ Indic languages.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- ElevenLabs -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #000; border: 1px solid rgba(255,255,255,.15);">E</div>
+        <div class="int-card-info">
+          <div class="int-card-name">ElevenLabs</div>
+          <div class="int-card-tag">TTS</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Premium voice cloning and synthesis. Custom voice profiles for brand consistency.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Mistral -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #f97316;">M</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Mistral</div>
+          <div class="int-card-tag">LLM</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Fast, efficient language models. Use Mistral as the reasoning brain behind your agent.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Analytics -->
+<section class="int-section">
+  <div class="int-section-label">06 &mdash; Analytics</div>
+  <h2 class="int-section-title">Measure every word.</h2>
+  <div class="int-grid">
+    <!-- Google Analytics -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #e37400;">G</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Google Analytics</div>
+          <div class="int-card-tag">Analytics</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Track call conversions as GA4 events. Attribute phone leads to campaigns and landing pages.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- Webhooks -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #a78bfa;">W</div>
+        <div class="int-card-info">
+          <div class="int-card-name">Custom Webhooks</div>
+          <div class="int-card-tag">Analytics</div>
+        </div>
+      </div>
+      <div class="int-card-desc">POST call data to any endpoint. Transcripts, duration, sentiment, cost — all in the payload.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+    <!-- API -->
+    <div class="int-card">
+      <div class="int-card-top">
+        <div class="int-logo" style="background: #00deff; color: #000;">A</div>
+        <div class="int-card-info">
+          <div class="int-card-name">REST API</div>
+          <div class="int-card-tag">Analytics</div>
+        </div>
+      </div>
+      <div class="int-card-desc">Full API access to call logs, recordings, analytics, and agent configuration.</div>
+      <div class="int-card-badge badge-connect">Connect</div>
+    </div>
+  </div>
+</section>
+
+<!-- Build Your Own -->
+<section class="build-section">
+  <div class="build-inner">
+    <div class="build-icon">&lt;/&gt;</div>
+    <h2>Build your own.</h2>
+    <p>Vani exposes a complete REST API and real-time webhooks. Push call events, pull transcripts, manage agents programmatically — integrate with anything.</p>
+    <div class="build-features">
+      <div class="build-feat"><div class="dot"></div>REST API</div>
+      <div class="build-feat"><div class="dot"></div>Webhooks</div>
+      <div class="build-feat"><div class="dot"></div>WebSocket events</div>
+      <div class="build-feat"><div class="dot"></div>API key auth</div>
+    </div>
+    <a href="https://dashboard.vani.live/login" class="build-cta">View API docs</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<div class="footer-wrap">
+  <footer class="footer">
+    <div class="foot-top">
+      <div class="foot-words">
+        <span>Every voice.</span>
+        <span>Every language.</span>
+        <span>Every call.</span>
+      </div>
+      <div class="foot-desc">
+        <p>Your customers won't know the difference — but your bottom line will.</p>
+        <a href="https://dashboard.vani.live/login">Start building &rarr;</a>
+      </div>
+    </div>
+    <div class="foot-brand">
+      <div class="foot-logo">
+        <span class="g9"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        Vani
+      </div>
+      <div class="foot-links">
+        <a href="https://dashboard.vani.live/login">Dashboard</a>
+        <a href="mailto:hello@vani.live">Contact</a>
+        <a href="#">Privacy</a>
+      </div>
+    </div>
+    <div class="foot-copy">
+      <span>&copy; 2026 Vani. All rights reserved.</span>
+      <span>hello@vani.live</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Mobile nav toggle
+  function toggleMob() {
+    document.getElementById('mobNav').classList.toggle('open');
+  }
+  function closeMob() {
+    document.getElementById('mobNav').classList.remove('open');
+  }
+
+  // Fade-in on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.int-card, .int-section-label, .int-section-title').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity .5s ease, transform .5s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>

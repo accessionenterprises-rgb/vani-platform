@@ -126,6 +126,14 @@ class VaniApi {
     return res.data;
   }
 
+  Future<Map<String, dynamic>> builderChat(String message, String sessionId) async {
+    final res = await _dio.post('/builder/chat', data: {
+      'message': message,
+      'session_id': sessionId,
+    });
+    return res.data;
+  }
+
   Future<List<int>> ttsPreview(String provider, String voice, {String? text}) async {
     final res = await _dio.post('/tts-preview',
       data: {'provider': provider, 'voice': voice, if (text != null) 'text': text},

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service — Vani</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #d9d9d9;
+      --grey: #5e5e5e;
+      --grey-light: #a9a9a9;
+      --grey-dark: #232323;
+      --accent-1-bg: #00581f; --accent-1-fg: #00ff75;
+      --accent-2-bg: #1125ff; --accent-2-fg: #00deff;
+      --accent-3-bg: #680000; --accent-3-fg: #ff1018;
+      --accent-4-bg: #232323; --accent-4-fg: #d9d9d9;
+      --grid-gap: 2rem;
+      --grid-pad: 2rem;
+      --font: 'Inter', -apple-system, sans-serif;
+    }
+    html { font-size: 62.5%; }
+    body {
+      font-family: var(--font);
+      background: var(--black);
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    ::selection { background: #a78bfa; color: #000; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      padding-inline: 1.5rem;
+    }
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: var(--grid-gap);
+        padding-inline: var(--grid-pad);
+      }
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem var(--grid-pad);
+    }
+    .nav-pill {
+      font-family: var(--font);
+      font-size: 1.4rem; font-weight: 500;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: .005em;
+      padding: .8rem 1.5rem;
+      background: color-mix(in oklab, var(--grey-light) 12%, transparent);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: none; cursor: pointer;
+      transition: background .3s ease-in-out, color .3s ease-in-out;
+    }
+    .nav-links { display: flex; gap: 0; }
+    .nav-links a:nth-child(1):hover { background: var(--accent-1-fg); color: var(--accent-1-bg); }
+    .nav-links a:nth-child(2):hover { background: var(--accent-2-fg); color: var(--accent-2-bg); }
+    .nav-links a:nth-child(3):hover { background: var(--accent-3-fg); color: var(--accent-3-bg); }
+    .nav-links a:nth-child(4):hover { background: var(--accent-4-fg); color: var(--accent-4-bg); }
+    @media (max-width: 1023px) {
+      .nav-links { display: none; }
+    }
+    .mob-toggle {
+      display: none;
+      align-items: center; gap: .8rem;
+    }
+    @media (max-width: 1023px) { .mob-toggle { display: flex; } }
+    .dot-icon { display: inline-grid; grid-template-columns: repeat(2,1fr); gap: 3px; }
+    .dot-icon i { width: 4px; height: 4px; background: currentColor; border-radius: 1px; display: block; }
+
+    .mob-nav {
+      position: fixed; inset: 0; z-index: 99;
+      background: var(--black);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center; gap: 1.2rem;
+      clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
+      transition: clip-path .6s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+    .mob-nav a {
+      font-size: 5.8rem; font-weight: 700; color: var(--white);
+      text-decoration: none; letter-spacing: -.03em;
+      opacity: 0; transform: translateY(30px);
+      transition: all .5s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open a { opacity: 1; transform: translateY(0); }
+    .mob-nav a:nth-child(1) { transition-delay: .1s; }
+    .mob-nav a:nth-child(2) { transition-delay: .18s; }
+    .mob-nav a:nth-child(3) { transition-delay: .26s; }
+    .mob-nav a:nth-child(4) { transition-delay: .34s; }
+
+    /* ── Page Hero ── */
+    .page-hero {
+      padding: 16rem 0 6rem;
+    }
+    .page-hero h1 {
+      grid-column: 1 / -1;
+      font-size: clamp(4.2rem, 6vw, 7.2rem);
+      font-weight: 700;
+      line-height: .92;
+      letter-spacing: -.04em;
+    }
+    @media (min-width: 1024px) {
+      .page-hero h1 { grid-column: 1 / 7; }
+    }
+    .page-hero .updated {
+      grid-column: 1 / -1;
+      font-size: 1.4rem;
+      color: var(--grey);
+      margin-top: 2rem;
+    }
+
+    /* ── Legal content ── */
+    .legal { padding: 4rem 0 12rem; }
+    .legal-content {
+      grid-column: 1 / -1;
+    }
+    @media (min-width: 1024px) {
+      .legal-content { grid-column: 2 / 7; }
+    }
+    .legal-content h2 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-top: 6rem;
+      margin-bottom: 2rem;
+      line-height: 1.1;
+    }
+    .legal-content h2:first-child { margin-top: 0; }
+    .legal-content h3 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-top: 3rem;
+      margin-bottom: 1.2rem;
+    }
+    .legal-content p {
+      font-size: 1.5rem;
+      color: var(--grey-light);
+      line-height: 1.7;
+      margin-bottom: 1.6rem;
+    }
+    .legal-content ul {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 2rem;
+    }
+    .legal-content ul li {
+      font-size: 1.5rem;
+      color: var(--grey-light);
+      line-height: 1.7;
+      padding-left: 2rem;
+      position: relative;
+      margin-bottom: .6rem;
+    }
+    .legal-content ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: .9rem;
+      width: 5px;
+      height: 5px;
+      background: var(--grey);
+      border-radius: 1px;
+    }
+    .legal-content a {
+      color: #a78bfa;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .legal-content a:hover { color: #c4b5fd; }
+    .legal-content strong {
+      color: var(--white);
+      font-weight: 600;
+    }
+
+    /* ── Footer ── */
+    .footer-wrap { position: relative; margin-top: 0; }
+    .footer {
+      background: var(--grey-dark);
+      padding: 12rem var(--grid-pad) 4rem;
+    }
+    .foot-top {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4rem;
+    }
+    @media (min-width: 768px) {
+      .foot-top { grid-template-columns: repeat(2, 1fr); }
+    }
+    .foot-words span {
+      display: block;
+      font-size: clamp(4.8rem, 6vw, 6.4rem);
+      font-weight: 700; line-height: 1.05;
+      letter-spacing: -.035em;
+      color: #fff;
+    }
+    .foot-desc p {
+      font-size: clamp(1.8rem, 2.2vw, 2.7rem);
+      line-height: 1.25; color: var(--grey-light);
+    }
+    .foot-desc a {
+      display: inline-block; margin-top: 1.6rem;
+      font-size: 2.2rem; color: var(--white); text-decoration: none;
+      opacity: .4; transition: opacity .2s;
+    }
+    .foot-desc a:hover { opacity: 1; }
+    .foot-brand {
+      margin-top: 10rem;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 2rem;
+    }
+    .foot-logo {
+      font-size: 2.2rem; font-weight: 700; letter-spacing: -.02em;
+      display: flex; align-items: center; gap: 1rem; color: #fff;
+    }
+    .g9 { display: inline-grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .g9 i { width: 4px; height: 4px; border-radius: 1px; background: #fff; display: block; }
+    .foot-links { display: flex; gap: 2rem; }
+    .foot-links a {
+      font-size: 1.3rem; color: var(--grey-light);
+      text-decoration: none; transition: color .2s;
+    }
+    .foot-links a:hover { color: #fff; }
+    .foot-copy {
+      width: 100%; margin-top: 2rem;
+      font-size: 1.15rem; color: var(--grey);
+      display: flex; justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mobile nav overlay -->
+<div class="mob-nav" id="mobNav">
+  <a href="/" onclick="closeMob()">Home</a>
+  <a href="/about.html" onclick="closeMob()">About</a>
+  <a href="/#features" onclick="closeMob()">Features</a>
+  <a href="https://dashboard.vani.live/login" onclick="closeMob()">Dashboard</a>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="/" class="nav-pill">Vani</a>
+  <div class="nav-links">
+    <a href="/" class="nav-pill">Home</a>
+    <a href="/about.html" class="nav-pill">About</a>
+    <a href="/#features" class="nav-pill">Features</a>
+    <a href="https://dashboard.vani.live/login" class="nav-pill">Dashboard</a>
+  </div>
+  <button class="nav-pill mob-toggle" onclick="toggleMob()">
+    <span class="dot-icon"><i></i><i></i><i></i><i></i></span>
+    Menu
+  </button>
+</nav>
+
+<!-- Hero -->
+<section class="page-hero">
+  <div class="grid">
+    <h1>Terms of Service</h1>
+    <p class="updated">Last updated: March 2026</p>
+  </div>
+</section>
+
+<!-- Content -->
+<section class="legal">
+  <div class="grid">
+    <div class="legal-content">
+
+      <p>These Terms of Service ("Terms") govern your access to and use of Vani's voice AI platform, website, APIs, and related services (collectively, the "Service") operated by Vani ("we," "our," or "us"). By accessing or using the Service, you agree to be bound by these Terms.</p>
+
+      <h2>1. Service Description</h2>
+      <p>Vani provides a voice AI platform that enables businesses to deploy AI-powered voice agents for inbound and outbound phone calls. The Service includes:</p>
+      <ul>
+        <li>AI voice agent creation, configuration, and deployment</li>
+        <li>Phone number provisioning and management</li>
+        <li>Real-time call transcription and analytics</li>
+        <li>Dashboard for monitoring, configuration, and reporting</li>
+        <li>APIs for programmatic access and integration</li>
+        <li>Call recording storage and management</li>
+      </ul>
+      <p>We reserve the right to modify, suspend, or discontinue any part of the Service at any time with reasonable notice.</p>
+
+      <h2>2. Account Terms</h2>
+      <ul>
+        <li>You must be at least 18 years old to use the Service</li>
+        <li>You must provide accurate and complete registration information</li>
+        <li>You are responsible for maintaining the security of your account credentials</li>
+        <li>You are responsible for all activity that occurs under your account</li>
+        <li>You must notify us immediately of any unauthorized access to your account</li>
+        <li>One person or entity may not maintain more than one free account</li>
+      </ul>
+      <p>We reserve the right to refuse service, terminate accounts, or remove content at our sole discretion.</p>
+
+      <h2>3. Acceptable Use</h2>
+      <p>You agree to use the Service only for lawful purposes and in accordance with these Terms. You must not:</p>
+      <ul>
+        <li>Use the Service to make calls that violate the Telephone Consumer Protection Act (TCPA), GDPR, or any applicable telecommunications regulations</li>
+        <li>Deploy AI agents that impersonate real individuals without their consent</li>
+        <li>Use the Service for spam, robocalling, or unsolicited bulk communications</li>
+        <li>Attempt to bypass or circumvent rate limits, usage quotas, or security measures</li>
+        <li>Use the Service to harass, threaten, or intimidate any person</li>
+        <li>Reverse engineer, decompile, or attempt to extract the source code of the Service</li>
+        <li>Use the Service in any way that could damage, disable, or impair our infrastructure</li>
+        <li>Resell or redistribute the Service without our written consent</li>
+        <li>Use the Service to process or store protected health information (PHI) without a signed BAA</li>
+      </ul>
+      <p>We may investigate violations and take appropriate action, including suspending or terminating your account.</p>
+
+      <h2>4. Payment Terms</h2>
+      <ul>
+        <li>Certain features of the Service require a paid subscription</li>
+        <li>All fees are quoted in the currency displayed at checkout (INR or USD) and are non-refundable unless otherwise stated</li>
+        <li>Subscriptions renew automatically at the end of each billing period unless cancelled</li>
+        <li>Usage-based charges (per-minute call costs, phone number fees) are billed monthly in arrears</li>
+        <li>We reserve the right to change pricing with 30 days' notice</li>
+        <li>Late payments may result in service suspension after a 7-day grace period</li>
+        <li>You are responsible for all applicable taxes</li>
+      </ul>
+      <p>Payments are processed securely through Razorpay and/or Stripe. We do not store your full payment card details on our servers.</p>
+
+      <h2>5. Intellectual Property</h2>
+      <h3>Our Property</h3>
+      <p>The Service, including all software, algorithms, models, designs, documentation, and trademarks, is owned by Vani and protected by intellectual property laws. These Terms do not grant you any right to use our trademarks, logos, or brand features without prior written consent.</p>
+
+      <h3>Your Content</h3>
+      <p>You retain ownership of all content you provide to the Service, including agent configurations, prompts, knowledge base documents, and call data. By using the Service, you grant us a limited license to process your content solely to provide and improve the Service.</p>
+
+      <h3>Feedback</h3>
+      <p>If you provide feedback, suggestions, or ideas about the Service, you grant us a perpetual, irrevocable, worldwide license to use that feedback without obligation to you.</p>
+
+      <h2>6. Data and Privacy</h2>
+      <p>Our collection and use of personal data is governed by our <a href="/privacy.html">Privacy Policy</a>, which is incorporated into these Terms by reference. You are responsible for ensuring that your use of the Service complies with all applicable data protection laws in your jurisdiction.</p>
+      <p>You acknowledge that AI-generated voice calls must comply with applicable disclosure requirements. Where required by law, you must disclose to call recipients that they are speaking with an AI agent.</p>
+
+      <h2>7. Service Level & Availability</h2>
+      <p>We target 99.9% uptime for the Service but do not guarantee uninterrupted access. Scheduled maintenance windows will be communicated in advance when possible. We are not liable for downtime caused by factors outside our reasonable control, including third-party provider outages, network failures, or force majeure events.</p>
+
+      <h2>8. Limitation of Liability</h2>
+      <p>To the maximum extent permitted by law:</p>
+      <ul>
+        <li>The Service is provided "as is" and "as available" without warranties of any kind, express or implied</li>
+        <li>We do not warrant that AI agent responses will be accurate, appropriate, or error-free in all circumstances</li>
+        <li>Our total liability for any claims arising from or related to the Service is limited to the amount you paid us in the 12 months preceding the claim</li>
+        <li>We are not liable for any indirect, incidental, special, consequential, or punitive damages, including lost profits, lost data, or business interruption</li>
+        <li>We are not responsible for the content of conversations between your AI agents and end users</li>
+      </ul>
+
+      <h2>9. Indemnification</h2>
+      <p>You agree to indemnify and hold Vani harmless from any claims, damages, losses, or expenses (including reasonable legal fees) arising from:</p>
+      <ul>
+        <li>Your use of the Service</li>
+        <li>Your violation of these Terms</li>
+        <li>Your violation of any applicable law or regulation</li>
+        <li>Content you provide to the Service</li>
+        <li>Calls made or received through your AI agents</li>
+      </ul>
+
+      <h2>10. Termination</h2>
+      <ul>
+        <li>You may cancel your account at any time from the dashboard or by contacting us</li>
+        <li>We may suspend or terminate your account for violation of these Terms with or without notice</li>
+        <li>Upon termination, your right to use the Service ceases immediately</li>
+        <li>We will retain your data for 30 days after termination, after which it will be permanently deleted unless legally required to retain it</li>
+        <li>Sections on intellectual property, limitation of liability, indemnification, and governing law survive termination</li>
+      </ul>
+
+      <h2>11. Governing Law</h2>
+      <p>These Terms are governed by the laws of India. Any disputes arising from these Terms or the Service shall be subject to the exclusive jurisdiction of the courts in Bangalore, India.</p>
+
+      <h2>12. Changes to These Terms</h2>
+      <p>We may update these Terms from time to time. We will notify you of material changes via email or a prominent notice on the dashboard at least 30 days before they take effect. Continued use of the Service after changes take effect constitutes acceptance of the updated Terms.</p>
+
+      <h2>13. Contact</h2>
+      <p>For questions about these Terms, contact us:</p>
+      <p><strong>Email:</strong> <a href="mailto:hello@vani.live">hello@vani.live</a><br>
+      <strong>Website:</strong> <a href="https://vani.live">vani.live</a></p>
+
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<div class="footer-wrap">
+  <footer class="footer">
+    <div class="foot-top">
+      <div class="foot-words">
+        <span>Every voice.</span>
+        <span>Every language.</span>
+        <span>Every call.</span>
+      </div>
+      <div class="foot-desc">
+        <p>Your customers won't know the difference — but your bottom line will.</p>
+        <a href="https://dashboard.vani.live/login">Start building &rarr;</a>
+      </div>
+    </div>
+    <div class="foot-brand">
+      <div class="foot-logo">
+        <span class="g9"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        Vani
+      </div>
+      <div class="foot-links">
+        <a href="https://dashboard.vani.live/login">Dashboard</a>
+        <a href="mailto:hello@vani.live">Contact</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+      </div>
+    </div>
+    <div class="foot-copy">
+      <span>&copy; 2026 Vani. All rights reserved.</span>
+      <span>hello@vani.live</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+  function toggleMob() {
+    document.getElementById('mobNav').classList.toggle('open');
+  }
+  function closeMob() {
+    document.getElementById('mobNav').classList.remove('open');
+  }
+</script>
+</body>
+</html>

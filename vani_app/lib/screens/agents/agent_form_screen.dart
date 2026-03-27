@@ -1,7 +1,11 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../core/theme.dart';
 import '../../core/api/vani_api.dart';
 import '../../core/models/models.dart';
@@ -191,7 +195,9 @@ class _AgentFormScreenState extends State<AgentFormScreen> {
   }
 
   @override
+  @override
   void dispose() {
+    _audioPlayer.dispose();
     _nameCtrl.dispose();
     _greetingCtrl.dispose();
     _promptCtrl.dispose();
@@ -260,14 +266,24 @@ class _AgentFormScreenState extends State<AgentFormScreen> {
     }
   }
 
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   Future<void> _previewVoice(String voiceValue) async {
     setState(() => _previewingVoice = voiceValue);
     try {
-      await VaniApi.instance.ttsPreview(_tts, voiceValue);
-      // Audio playback would require audioplayers package — for now just confirm API call succeeded
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preview sent'), duration: Duration(seconds: 1)));
-    } catch (_) {
-      // silent fail for preview
+      final bytes = await VaniApi.instance.ttsPreview(_tts, voiceValue);
+      // Save to temp file and play
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/preview_$voiceValue.wav');
+      await file.writeAsBytes(Uint8List.fromList(bytes));
+      await _audioPlayer.setFilePath(file.path);
+      await _audioPlayer.play();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Preview failed: $e'), duration: const Duration(seconds: 2)),
+        );
+      }
     } finally {
       if (mounted) setState(() => _previewingVoice = null);
     }

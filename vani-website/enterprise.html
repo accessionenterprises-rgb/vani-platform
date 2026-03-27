@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vani — Enterprise Voice AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #d9d9d9;
+      --grey: #5e5e5e;
+      --grey-light: #a9a9a9;
+      --grey-dark: #232323;
+      --accent-1-bg: #00581f; --accent-1-fg: #00ff75;
+      --accent-2-bg: #1125ff; --accent-2-fg: #00deff;
+      --accent-3-bg: #680000; --accent-3-fg: #ff1018;
+      --accent-4-bg: #232323; --accent-4-fg: #d9d9d9;
+      --purple: #a78bfa;
+      --purple-dim: rgba(167,139,250,0.12);
+      --grid-gap: 2rem;
+      --grid-pad: 2rem;
+      --font: 'Inter', -apple-system, sans-serif;
+    }
+    html { font-size: 62.5%; }
+    body {
+      font-family: var(--font);
+      background: var(--black);
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    ::selection { background: #a78bfa; color: #000; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      padding-inline: 1.5rem;
+    }
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(8, 1fr);
+        gap: var(--grid-gap);
+        padding-inline: var(--grid-pad);
+      }
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem var(--grid-pad);
+    }
+    .nav-pill {
+      font-family: var(--font);
+      font-size: 1.4rem; font-weight: 500;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: .005em;
+      padding: .8rem 1.5rem;
+      background: color-mix(in oklab, var(--grey-light) 12%, transparent);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: none; cursor: pointer;
+      transition: background .3s ease-in-out, color .3s ease-in-out;
+    }
+    .nav-links { display: flex; gap: 0; }
+    .nav-links a:nth-child(1):hover { background: var(--accent-1-fg); color: var(--accent-1-bg); }
+    .nav-links a:nth-child(2):hover { background: var(--accent-2-fg); color: var(--accent-2-bg); }
+    .nav-links a:nth-child(3):hover { background: var(--accent-3-fg); color: var(--accent-3-bg); }
+    .nav-links a:nth-child(4):hover { background: var(--accent-4-fg); color: var(--accent-4-bg); }
+    @media (max-width: 1023px) {
+      .nav-links { display: none; }
+    }
+    .mob-toggle {
+      display: none;
+      align-items: center; gap: .8rem;
+    }
+    @media (max-width: 1023px) { .mob-toggle { display: flex; } }
+    .dot-icon { display: inline-grid; grid-template-columns: repeat(2,1fr); gap: 3px; }
+    .dot-icon i { width: 4px; height: 4px; background: currentColor; border-radius: 1px; display: block; }
+
+    .mob-nav {
+      position: fixed; inset: 0; z-index: 99;
+      background: var(--black);
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: center; gap: 1.2rem;
+      clip-path: polygon(0 0, 100% 0, 100% 0%, 0 0%);
+      transition: clip-path .6s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+    .mob-nav a {
+      font-size: 5.8rem; font-weight: 700; color: var(--white);
+      text-decoration: none; letter-spacing: -.03em;
+      opacity: 0; transform: translateY(30px);
+      transition: all .5s cubic-bezier(.16,1,.3,1);
+    }
+    .mob-nav.open a { opacity: 1; transform: translateY(0); }
+    .mob-nav a:nth-child(1) { transition-delay: .1s; }
+    .mob-nav a:nth-child(2) { transition-delay: .18s; }
+    .mob-nav a:nth-child(3) { transition-delay: .26s; }
+    .mob-nav a:nth-child(4) { transition-delay: .34s; }
+
+    /* ── Hero ── */
+    .ent-hero {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .ent-hero::before {
+      content: '';
+      position: absolute;
+      top: -40%; left: -20%; width: 70%; height: 140%;
+      background: radial-gradient(ellipse, rgba(167,139,250,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .ent-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -30%; right: -10%; width: 50%; height: 100%;
+      background: radial-gradient(ellipse, rgba(0,222,255,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .ent-hero .grid { position: relative; z-index: 1; width: 100%; }
+    .ent-hero h1 {
+      grid-column: 1 / -1;
+      font-size: clamp(5.2rem, 8vw, 9.6rem);
+      font-weight: 700;
+      line-height: .9;
+      letter-spacing: -.04em;
+    }
+    @media (min-width: 1024px) { .ent-hero h1 { grid-column: 1 / 7; } }
+    .ent-hero h1 span { color: var(--purple); }
+    .ent-hero .sub {
+      grid-column: 1 / -1;
+      font-size: clamp(1.8rem, 2.5vw, 2.4rem);
+      color: var(--grey-light);
+      line-height: 1.45;
+      margin-top: 2.4rem;
+      max-width: 560px;
+    }
+    @media (min-width: 1024px) { .ent-hero .sub { grid-column: 1 / 5; } }
+    .ent-hero .hero-cta {
+      grid-column: 1 / -1;
+      margin-top: 3.6rem;
+    }
+    .btn-primary {
+      display: inline-block;
+      padding: 1.4rem 3.6rem;
+      font-family: var(--font);
+      font-size: 1.6rem; font-weight: 600;
+      color: #000;
+      background: var(--purple);
+      border: none; border-radius: 2px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      letter-spacing: -.01em;
+    }
+    .btn-primary:hover { background: #c4b5fd; transform: translateY(-1px); }
+
+    /* ── Section shared ── */
+    .sec-label {
+      grid-column: 1 / -1;
+      font-size: 1.3rem; color: var(--grey); letter-spacing: .14em;
+      text-transform: uppercase; margin-bottom: .5rem;
+    }
+    .sec-heading {
+      grid-column: 1 / -1;
+      font-size: clamp(3.6rem, 5vw, 5.8rem);
+      font-weight: 700; line-height: .93;
+      letter-spacing: -.035em;
+      margin-bottom: 5rem;
+    }
+    @media (min-width: 1024px) { .sec-heading { grid-column: 1 / 6; } }
+
+    /* ── Differentiator cards ── */
+    .diff-section { padding: 10rem 0 6rem; }
+    .diff-grid {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: rgba(255,255,255,.04);
+    }
+    @media (min-width: 768px) { .diff-grid { grid-template-columns: repeat(2, 1fr); } }
+    .diff-card {
+      background: var(--black);
+      padding: 4.5rem 3.5rem;
+      transition: background .3s;
+      position: relative;
+    }
+    .diff-card:hover { background: #0e0e0e; }
+    .diff-card .icon-wrap {
+      width: 4.8rem; height: 4.8rem;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--purple-dim);
+      border-radius: 2px;
+      margin-bottom: 2rem;
+    }
+    .diff-card .icon-wrap svg { width: 2.4rem; height: 2.4rem; }
+    .diff-card h3 {
+      font-size: 2.4rem; font-weight: 700;
+      line-height: 1.12; letter-spacing: -.01em;
+      margin-bottom: 1rem;
+    }
+    .diff-card p { font-size: 1.5rem; color: var(--grey-light); line-height: 1.55; }
+
+    /* ── Scale numbers ── */
+    .scale-section { padding: 6rem 0 10rem; }
+    .scale-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,.04);
+    }
+    @media (min-width: 768px) { .scale-row { grid-template-columns: repeat(4, 1fr); } }
+    .scale-stat {
+      background: var(--black);
+      padding: 4.5rem 2.5rem;
+      text-align: center;
+    }
+    .scale-stat .v {
+      font-size: clamp(3.6rem, 5vw, 5.8rem);
+      font-weight: 700; letter-spacing: -.04em; line-height: 1;
+      color: var(--purple);
+    }
+    .scale-stat .l {
+      font-size: 1.3rem; color: var(--grey);
+      margin-top: .8rem; letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Features list ── */
+    .feat-list-section { padding: 10rem 0; }
+    .feat-list {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    @media (min-width: 768px) { .feat-list { grid-template-columns: repeat(2, 1fr); } }
+    .feat-item {
+      padding: 2.4rem 0;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      display: flex;
+      align-items: center;
+      gap: 1.6rem;
+    }
+    .feat-item .check {
+      width: 2.4rem; height: 2.4rem;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--purple);
+    }
+    .feat-item span {
+      font-size: 1.8rem; font-weight: 500;
+      letter-spacing: -.01em;
+    }
+
+    /* ── Contact form ── */
+    .contact-section { padding: 10rem 0; }
+    .contact-wrap {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6rem;
+    }
+    @media (min-width: 1024px) {
+      .contact-wrap { grid-template-columns: 1fr 1fr; }
+    }
+    .contact-text h2 {
+      font-size: clamp(3.6rem, 5vw, 5.8rem);
+      font-weight: 700; line-height: .93;
+      letter-spacing: -.035em;
+      margin-bottom: 2rem;
+    }
+    .contact-text p {
+      font-size: 1.8rem; color: var(--grey-light);
+      line-height: 1.5; max-width: 440px;
+    }
+    .contact-text .email-link {
+      display: inline-block; margin-top: 2rem;
+      font-size: 2rem; color: var(--purple);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .contact-text .email-link:hover { color: #c4b5fd; }
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+    }
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+      font-family: var(--font);
+      font-size: 1.5rem;
+      color: var(--white);
+      background: var(--grey-dark);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 2px;
+      padding: 1.4rem 1.6rem;
+      outline: none;
+      transition: border-color .2s;
+      width: 100%;
+    }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder {
+      color: var(--grey);
+    }
+    .contact-form input:focus,
+    .contact-form select:focus,
+    .contact-form textarea:focus {
+      border-color: rgba(167,139,250,0.4);
+    }
+    .contact-form select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%235e5e5e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1.6rem center;
+      padding-right: 4rem;
+    }
+    .contact-form select option {
+      background: var(--grey-dark);
+      color: var(--white);
+    }
+    .contact-form textarea {
+      min-height: 12rem;
+      resize: vertical;
+    }
+    .contact-form .btn-primary {
+      width: 100%;
+      text-align: center;
+      padding: 1.6rem;
+      font-size: 1.7rem;
+    }
+
+    /* ── Trusted by ── */
+    .trusted-section { padding: 8rem 0 12rem; }
+    .trusted-label {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 1.3rem; color: var(--grey);
+      letter-spacing: .14em; text-transform: uppercase;
+      margin-bottom: 3rem;
+    }
+    .trusted-logos {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4rem;
+      flex-wrap: wrap;
+      opacity: 0.3;
+    }
+    .trusted-logos img {
+      height: 3.2rem;
+      filter: grayscale(1) brightness(2);
+    }
+
+    /* ── Footer ── */
+    .footer-wrap { position: relative; margin-top: 10rem; }
+    .footer {
+      background: var(--grey-dark);
+      padding: 12rem var(--grid-pad) 4rem;
+    }
+    .foot-top {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4rem;
+    }
+    @media (min-width: 768px) { .foot-top { grid-template-columns: repeat(2, 1fr); } }
+    .foot-words span {
+      display: block;
+      font-size: clamp(4.8rem, 6vw, 6.4rem);
+      font-weight: 700; line-height: 1.05;
+      letter-spacing: -.035em;
+      color: #fff;
+    }
+    .foot-desc p {
+      font-size: clamp(1.8rem, 2.2vw, 2.7rem);
+      line-height: 1.25; color: var(--grey-light);
+    }
+    .foot-desc a {
+      display: inline-block; margin-top: 1.6rem;
+      font-size: 2.2rem; color: var(--white); text-decoration: none;
+      opacity: .4; transition: opacity .2s;
+    }
+    .foot-desc a:hover { opacity: 1; }
+    .foot-brand {
+      margin-top: 10rem;
+      padding-top: 3rem;
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 2rem;
+    }
+    .foot-logo {
+      font-size: 2.2rem; font-weight: 700; letter-spacing: -.02em;
+      display: flex; align-items: center; gap: 1rem; color: #fff;
+    }
+    .g9 { display: inline-grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+    .g9 i { width: 4px; height: 4px; border-radius: 1px; background: #fff; display: block; }
+    .foot-links { display: flex; gap: 2rem; }
+    .foot-links a {
+      font-size: 1.3rem; color: var(--grey-light);
+      text-decoration: none; transition: color .2s;
+    }
+    .foot-links a:hover { color: #fff; }
+    .foot-copy {
+      width: 100%; margin-top: 2rem;
+      font-size: 1.15rem; color: var(--grey);
+      display: flex; justify-content: space-between;
+    }
+
+    /* ── Animations ── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity .7s cubic-bezier(.16,1,.3,1), transform .7s cubic-bezier(.16,1,.3,1);
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mobile nav overlay -->
+<div class="mob-nav" id="mobNav">
+  <a href="/" onclick="closeMob()">Home</a>
+  <a href="/#features" onclick="closeMob()">Features</a>
+  <a href="/#demo" onclick="closeMob()">Demo</a>
+  <a href="https://dashboard.vani.live/login" onclick="closeMob()">Dashboard</a>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <a href="/" class="nav-pill">Vani</a>
+  <div class="nav-links">
+    <a href="/#platform" class="nav-pill">Platform</a>
+    <a href="/#features" class="nav-pill">Features</a>
+    <a href="/#demo" class="nav-pill">Demo</a>
+    <a href="https://dashboard.vani.live/login" class="nav-pill">Dashboard</a>
+  </div>
+  <button class="nav-pill mob-toggle" onclick="toggleMob()">
+    <span class="dot-icon"><i></i><i></i><i></i><i></i></span>
+    Menu
+  </button>
+</nav>
+
+<!-- Hero -->
+<section class="ent-hero">
+  <div class="grid">
+    <h1 class="fade-up">Voice AI at<br><span>enterprise scale.</span></h1>
+    <p class="sub fade-up">Handle millions of calls with dedicated infrastructure, custom SLAs, and enterprise-grade security. Your voice AI, deployed your way.</p>
+    <div class="hero-cta fade-up">
+      <a href="#contact" class="btn-primary">Talk to our team</a>
+    </div>
+  </div>
+</section>
+
+<!-- Differentiators -->
+<section class="diff-section">
+  <div class="grid">
+    <div class="sec-label fade-up">Why Enterprise</div>
+    <h2 class="sec-heading fade-up">Built for organizations that can't afford downtime.</h2>
+    <div class="diff-grid">
+      <div class="diff-card fade-up">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <h3>Dedicated Infrastructure</h3>
+        <p>Private deployment on isolated resources. No shared compute, no noisy neighbors. Your traffic runs on hardware reserved for you alone.</p>
+      </div>
+      <div class="diff-card fade-up">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h3>Custom SLA</h3>
+        <p>99.99% uptime guarantee backed by contractual SLAs. Dedicated support escalation path with guaranteed response times.</p>
+      </div>
+      <div class="diff-card fade-up">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </div>
+        <h3>Security &amp; Compliance</h3>
+        <p>SOC2 Type II, HIPAA-ready, GDPR compliant. Data residency options across regions. End-to-end encryption at rest and in transit.</p>
+      </div>
+      <div class="diff-card fade-up">
+        <div class="icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.24 12.24a6 6 0 00-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/>
+          </svg>
+        </div>
+        <h3>White-Label</h3>
+        <p>Your brand, your voice, your domain. Fully white-labeled deployment with custom branding across every customer touchpoint.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Scale Numbers -->
+<section class="scale-section">
+  <div class="grid">
+    <div class="scale-row">
+      <div class="scale-stat fade-up">
+        <div class="v">1M+</div>
+        <div class="l">Calls / month</div>
+      </div>
+      <div class="scale-stat fade-up">
+        <div class="v">&lt;1s</div>
+        <div class="l">First response</div>
+      </div>
+      <div class="scale-stat fade-up">
+        <div class="v">42</div>
+        <div class="l">Languages</div>
+      </div>
+      <div class="scale-stat fade-up">
+        <div class="v">99.99%</div>
+        <div class="l">Uptime</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Enterprise Features List -->
+<section class="feat-list-section">
+  <div class="grid">
+    <div class="sec-label fade-up">Everything Included</div>
+    <h2 class="sec-heading fade-up">Enterprise features, no asterisks.</h2>
+    <div class="feat-list">
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Custom voice cloning</span>
+      </div>
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Dedicated account manager</span>
+      </div>
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Custom integrations</span>
+      </div>
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Priority support (24/7)</span>
+      </div>
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Advanced analytics &amp; reporting</span>
+      </div>
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Multi-tenant support</span>
+      </div>
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Role-based access control</span>
+      </div>
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Audit logs</span>
+      </div>
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>Custom LLM / STT / TTS selection</span>
+      </div>
+      <div class="feat-item fade-up">
+        <div class="check">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span>On-premise deployment option</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact Form -->
+<section class="contact-section" id="contact">
+  <div class="grid">
+    <div class="contact-wrap">
+      <div class="contact-text fade-up">
+        <h2>Let's talk scale.</h2>
+        <p>Tell us about your call volume and requirements. We'll build a deployment plan tailored to your organization.</p>
+        <a href="mailto:hello@vani.live" class="email-link">hello@vani.live</a>
+      </div>
+      <form class="contact-form fade-up" onsubmit="event.preventDefault();">
+        <input type="text" name="name" placeholder="Full name" required>
+        <input type="email" name="email" placeholder="Work email" required>
+        <input type="text" name="company" placeholder="Company name" required>
+        <select name="volume" required>
+          <option value="" disabled selected>Monthly call volume</option>
+          <option value="10k-50k">10,000 – 50,000 calls</option>
+          <option value="50k-200k">50,000 – 200,000 calls</option>
+          <option value="200k-500k">200,000 – 500,000 calls</option>
+          <option value="500k-1m">500,000 – 1,000,000 calls</option>
+          <option value="1m+">1,000,000+ calls</option>
+        </select>
+        <textarea name="message" placeholder="Tell us about your use case..."></textarea>
+        <button type="submit" class="btn-primary">Talk to our team</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+
+<!-- Footer -->
+<div class="footer-wrap">
+  <footer class="footer">
+    <div class="foot-top">
+      <div class="foot-words" id="fWords">
+        <span>Every voice.</span>
+        <span>Every language.</span>
+        <span>Every call.</span>
+      </div>
+      <div class="foot-desc">
+        <p>Your customers won't know the difference — but your bottom line will.</p>
+        <a href="https://dashboard.vani.live/login">Start building &rarr;</a>
+      </div>
+    </div>
+    <div class="foot-brand">
+      <div class="foot-logo">
+        <span class="g9"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        Vani
+      </div>
+      <div class="foot-links">
+        <a href="https://dashboard.vani.live/login">Dashboard</a>
+        <a href="mailto:hello@vani.live">Contact</a>
+        <a href="#">Privacy</a>
+      </div>
+    </div>
+    <div class="foot-copy">
+      <span>&copy; 2026 Vani. All rights reserved.</span>
+      <span>hello@vani.live</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+// ─── Scroll reveal ───
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// Trigger hero elements immediately after short delay
+window.addEventListener('load', () => {
+  const heroEls = document.querySelectorAll('.ent-hero .fade-up');
+  heroEls.forEach((el, i) => {
+    setTimeout(() => el.classList.add('visible'), 200 + i * 120);
+  });
+});
+
+// ─── Mobile nav ───
+function toggleMob() { document.getElementById('mobNav').classList.toggle('open'); }
+function closeMob() { document.getElementById('mobNav').classList.remove('open'); }
+</script>
+</body>
+</html>
