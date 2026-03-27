@@ -103,3 +103,4 @@ async def sip_bridge_test():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=settings.port, reload=False)
+# force 1774650534
