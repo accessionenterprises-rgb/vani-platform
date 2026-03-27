@@ -20,25 +20,62 @@ logger = structlog.get_logger()
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
 
-# ── Provider cost rates (USD per minute) ─────────────────────────────────────
-PROVIDER_RATES = {
+# ── Pricing: Option C — Platform fee + Provider markup ────────────────────────
+# Platform fee: ₹1.00/min ($0.012/min)
+# Provider markup: 1.5x actual cost (telephony, STT, TTS), 2x (LLM)
+PLATFORM_FEE_PER_MIN = 0.012  # ~₹1.00
+
+# Actual provider costs (USD/min) — what WE pay
+_ACTUAL_COSTS = {
     # Telephony
-    "twilio":       0.013,
+    "twilio":          0.013,
+    "exotel":          0.0024,
     # STT
-    "deepgram":     0.006,
+    "deepgram":        0.006,
     "deepgram-nova-3": 0.006,
-    # LLM
-    "groq":         0.001,
-    "groq-llama-4-scout": 0.001,
-    "gpt-4o-mini":  0.001,
+    # LLM (2x markup)
+    "groq":            0.001,
+    "llama-3.3-70b":   0.001,
+    "gpt-4o-mini":     0.005,
+    "gpt-4.1-mini":    0.005,
+    "gpt-5-mini":      0.008,
+    "gemini-2.0-flash": 0.003,
     # TTS
-    "openai-tts":   0.015,
-    "openai-nova":  0.015,
-    "sarvam-tts":   0.010,
-    "sarvam":       0.010,
-    "cartesia-tts": 0.065,
-    "cartesia":     0.065,
+    "openai":          0.008,   # ₹0.70/min
+    "sarvam":          0.010,   # ₹0.83/min (Bulbul v2)
+    "sarvam-v3":       0.020,   # ₹1.65/min (Bulbul v3)
+    "cartesia":        0.036,   # ₹3.00/min
+    "elevenlabs":      0.048,   # ₹4.07/min
 }
+
+# Markup multipliers
+_MARKUP = {
+    "telephony": 1.5,
+    "stt":       1.5,
+    "llm":       2.0,
+    "tts":       1.5,
+}
+
+def _customer_rate(provider: str, provider_type: str) -> float:
+    """What the CUSTOMER pays per minute (actual cost × markup + platform fee share)."""
+    actual = _actual_rate(provider)
+    markup = _MARKUP.get(provider_type, 1.5)
+    return actual * markup
+
+def _actual_rate(provider: str) -> float:
+    """What WE pay per minute for this provider."""
+    if not provider:
+        return 0.0
+    key = provider.lower().strip()
+    if key in _ACTUAL_COSTS:
+        return _ACTUAL_COSTS[key]
+    for k, v in _ACTUAL_COSTS.items():
+        if k in key or key in k:
+            return v
+    return 0.0
+
+# Keep old name for backwards compat
+PROVIDER_RATES = _ACTUAL_COSTS
 
 
 def _current_month_range() -> tuple[str, str]:
@@ -65,6 +102,7 @@ def _rate(provider: Optional[str]) -> float:
 # ── Response models ──────────────────────────────────────────────────────────
 
 class CostBreakdown(BaseModel):
+    platform: float
     telephony: float
     stt: float
     llm: float
@@ -78,6 +116,7 @@ class UsageResponse(BaseModel):
     total_calls: int
     total_minutes: float
     cost_breakdown: CostBreakdown
+    effective_rate_per_min: float
     daily: list[dict]
 
 
@@ -129,32 +168,35 @@ async def get_usage(tenant_id: str = Depends(get_tenant_id)):
     total_seconds = sum(r.get("duration_sec") or 0 for r in rows)
     total_minutes = round(total_seconds / 60, 2)
 
-    # Cost breakdown by provider type
+    # Cost breakdown — customer-facing (with markup)
+    platform_cost = 0.0
     telephony_cost = 0.0
     stt_cost = 0.0
     llm_cost = 0.0
     tts_cost = 0.0
-
-    # Daily aggregation
     daily_map: dict[str, dict] = {}
 
     for r in rows:
         dur_min = (r.get("duration_sec") or 0) / 60
 
-        # Telephony — every call uses Twilio
-        call_telephony = dur_min * PROVIDER_RATES["twilio"]
+        # Platform fee
+        call_platform = dur_min * PLATFORM_FEE_PER_MIN
+        platform_cost += call_platform
+
+        # Telephony (1.5x markup)
+        call_telephony = dur_min * _customer_rate("twilio", "telephony")
         telephony_cost += call_telephony
 
-        # STT
-        call_stt = dur_min * _rate(r.get("stt_provider"))
+        # STT (1.5x markup)
+        call_stt = dur_min * _customer_rate(r.get("stt_provider") or "deepgram", "stt")
         stt_cost += call_stt
 
-        # LLM
-        call_llm = dur_min * _rate(r.get("llm_provider"))
+        # LLM (2x markup)
+        call_llm = dur_min * _customer_rate(r.get("llm_provider") or "groq", "llm")
         llm_cost += call_llm
 
-        # TTS
-        call_tts = dur_min * _rate(r.get("tts_provider"))
+        # TTS (1.5x markup)
+        call_tts = dur_min * _customer_rate(r.get("tts_provider") or "openai", "tts")
         tts_cost += call_tts
 
         # Daily bucket
@@ -165,10 +207,11 @@ async def get_usage(tenant_id: str = Depends(get_tenant_id)):
             daily_map[day]["calls"] += 1
             daily_map[day]["minutes"] = round(daily_map[day]["minutes"] + dur_min, 2)
             daily_map[day]["cost"] = round(
-                daily_map[day]["cost"] + call_telephony + call_stt + call_llm + call_tts, 4
+                daily_map[day]["cost"] + call_platform + call_telephony + call_stt + call_llm + call_tts, 4
             )
 
-    total_cost = round(telephony_cost + stt_cost + llm_cost + tts_cost, 4)
+    total_cost = round(platform_cost + telephony_cost + stt_cost + llm_cost + tts_cost, 4)
+    effective_rate = round(total_cost / total_minutes, 4) if total_minutes > 0 else 0.0
 
     return UsageResponse(
         period_start=month_start,
@@ -176,12 +219,14 @@ async def get_usage(tenant_id: str = Depends(get_tenant_id)):
         total_calls=total_calls,
         total_minutes=total_minutes,
         cost_breakdown=CostBreakdown(
+            platform=round(platform_cost, 4),
             telephony=round(telephony_cost, 4),
             stt=round(stt_cost, 4),
             llm=round(llm_cost, 4),
             tts=round(tts_cost, 4),
             total=total_cost,
         ),
+        effective_rate_per_min=effective_rate,
         daily=sorted(daily_map.values(), key=lambda x: x["date"]),
     )
 
@@ -281,6 +326,70 @@ async def get_plan(tenant_id: str = Depends(get_tenant_id)):
         overage_cost=round(overage, 4),
         features=features,
     )
+
+
+@router.get("/pricing")
+async def get_pricing():
+    """Public pricing — shows per-minute cost for each provider combination."""
+    stacks = [
+        {
+            "name": "Standard",
+            "description": "Sarvam v2 + Groq — best for India",
+            "tts": "sarvam", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
+            "telephony": "twilio",
+        },
+        {
+            "name": "Standard (Exotel)",
+            "description": "Sarvam v2 + Groq + Exotel — cheapest India",
+            "tts": "sarvam", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
+            "telephony": "exotel",
+        },
+        {
+            "name": "Global",
+            "description": "OpenAI Nova + Groq — best for international",
+            "tts": "openai", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
+            "telephony": "twilio",
+        },
+        {
+            "name": "Premium",
+            "description": "Cartesia Brooke + Groq — best voice quality",
+            "tts": "cartesia", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
+            "telephony": "twilio",
+        },
+        {
+            "name": "Ultra",
+            "description": "ElevenLabs + Groq — most expressive",
+            "tts": "elevenlabs", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
+            "telephony": "twilio",
+        },
+    ]
+    result = []
+    for s in stacks:
+        platform = PLATFORM_FEE_PER_MIN
+        telephony = _customer_rate(s["telephony"], "telephony")
+        stt = _customer_rate(s["stt"], "stt")
+        llm = _customer_rate(s["llm"], "llm")
+        tts = _customer_rate(s["tts"], "tts")
+        total = platform + telephony + stt + llm + tts
+        result.append({
+            "name": s["name"],
+            "description": s["description"],
+            "per_minute_usd": round(total, 4),
+            "per_minute_inr": round(total * 84, 2),
+            "breakdown": {
+                "platform": round(platform, 4),
+                "telephony": round(telephony, 4),
+                "stt": round(stt, 4),
+                "llm": round(llm, 4),
+                "tts": round(tts, 4),
+            },
+        })
+    return {"plans": [
+        {"name": "Starter", "price_monthly": 0, "included_minutes": 50, "overage_rate": "per stack"},
+        {"name": "Growth", "price_monthly": 4999, "currency": "INR", "included_minutes": 1000, "overage_rate": "per stack"},
+        {"name": "Business", "price_monthly": 14999, "currency": "INR", "included_minutes": 5000, "overage_rate": "per stack"},
+        {"name": "Enterprise", "price_monthly": "custom", "included_minutes": "unlimited"},
+    ], "stacks": result}
 
 
 @router.post("/upgrade")
