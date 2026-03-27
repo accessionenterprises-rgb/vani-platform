@@ -761,9 +761,18 @@ async def media_stream(ws: WebSocket, call_id: str):
                         log.info("ws_connected_event", protocol=data.get("protocol"))
                         continue  # Skip — wait for "start" which has streamSid
                     if ev == "start":
-                        # Twilio: data["start"]["streamSid"], Vobiz: data["start"]["streamId"] or data.get("streamSid")
-                        start_data = data.get("start", {})
-                        session["stream_sid"] = start_data.get("streamSid") or start_data.get("streamId") or data.get("streamSid") or data.get("streamId") or call_id
+                        # Twilio: data["start"]["streamSid"], Vobiz: may differ
+                        start_data = data.get("start") or {}
+                        if isinstance(start_data, str):
+                            start_data = {}
+                        log.info("start_event_debug", start_type=type(start_data).__name__, start_keys=list(start_data.keys())[:10] if isinstance(start_data, dict) else str(start_data)[:100], top_keys=list(data.keys()))
+                        session["stream_sid"] = (
+                            (start_data.get("streamSid") if isinstance(start_data, dict) else None)
+                            or (start_data.get("streamId") if isinstance(start_data, dict) else None)
+                            or data.get("streamSid")
+                            or data.get("streamId")
+                            or call_id
+                        )
                         log.info("stream_started", stream_sid=session["stream_sid"])
                         try:
                             await update_status(call_id, CallStatus.ACTIVE)
