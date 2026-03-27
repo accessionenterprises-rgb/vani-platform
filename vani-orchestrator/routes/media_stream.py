@@ -745,12 +745,15 @@ async def media_stream(ws: WebSocket, call_id: str):
         dg_headers = {"Authorization": f"Token {settings.deepgram_api_key}"}
 
         async def recv_twilio(dg_ws) -> None:
+            """Receive audio from Twilio or Vobiz WebSocket — normalizes both formats."""
             try:
                 async for raw_msg in ws.iter_text():
                     data = json.loads(raw_msg)
                     ev   = data.get("event")
                     if ev == "start":
-                        session["stream_sid"] = data["start"]["streamSid"]
+                        # Twilio: data["start"]["streamSid"], Vobiz: data["start"]["streamId"] or data.get("streamSid")
+                        start_data = data.get("start", {})
+                        session["stream_sid"] = start_data.get("streamSid") or start_data.get("streamId") or data.get("streamSid") or data.get("streamId") or call_id
                         log.info("stream_started", stream_sid=session["stream_sid"])
                         try:
                             await update_status(call_id, CallStatus.ACTIVE)
@@ -773,7 +776,11 @@ async def media_stream(ws: WebSocket, call_id: str):
                                 playback.is_playing = False
                             asyncio.create_task(_post_greeting())
                     elif ev == "media":
-                        await dg_ws.send(base64.b64decode(data["media"]["payload"]))
+                        # Twilio: data["media"]["payload"], Vobiz: data["media"]["payload"] or data.get("payload")
+                        media = data.get("media", {})
+                        payload = media.get("payload") or data.get("payload") or ""
+                        if payload:
+                            await dg_ws.send(base64.b64decode(payload))
                     elif ev == "stop":
                         session["active"] = False
                         break
