@@ -102,7 +102,7 @@ export default function TenantDetailPage() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{tenant.name}</h1>
+            <h1 className="text-xl font-bold text-gray-900">{tenant.name}</h1>
             <p className="text-base text-gray-500 mt-0.5">{tenant.email}</p>
             <p className="text-sm text-gray-400 mt-1">ID: {tenant.id}</p>
           </div>
@@ -176,15 +176,15 @@ export default function TenantDetailPage() {
         <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-gray-100">
           <div>
             <p className="text-sm text-gray-500">Agents</p>
-            <p className="text-3xl font-bold text-gray-900 mt-0.5">{tenant.agents?.length ?? 0}</p>
+            <p className="text-xl font-bold text-gray-900 mt-0.5">{tenant.agents?.length ?? 0}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Recent calls</p>
-            <p className="text-3xl font-bold text-gray-900 mt-0.5">{tenant.recent_calls?.length ?? 0}</p>
+            <p className="text-xl font-bold text-gray-900 mt-0.5">{tenant.recent_calls?.length ?? 0}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Phone numbers</p>
-            <p className="text-3xl font-bold text-gray-900 mt-0.5">{tenant.phone_numbers?.length ?? 0}</p>
+            <p className="text-xl font-bold text-gray-900 mt-0.5">{tenant.phone_numbers?.length ?? 0}</p>
           </div>
         </div>
       </div>

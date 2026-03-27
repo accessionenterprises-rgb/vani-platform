@@ -89,7 +89,7 @@ export default function PlatformConfigPage() {
     <div className="p-8 max-w-3xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Platform Config</h1>
+          <h1 className="text-xl font-bold text-gray-900">Platform Config</h1>
           <p className="text-base text-gray-500 mt-1">Provider API keys and global defaults.</p>
         </div>
         <button

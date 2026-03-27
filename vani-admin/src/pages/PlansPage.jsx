@@ -26,7 +26,7 @@ export default function PlansPage() {
   return (
     <div className="p-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Plans</h1>
+        <h1 className="text-xl font-bold text-gray-900">Plans</h1>
         <p className="text-base text-gray-500 mt-1">Current plan definitions and tenant distribution.</p>
       </div>
 
@@ -39,7 +39,7 @@ export default function PlansPage() {
                 <span className={`text-sm font-semibold px-2.5 py-1 rounded-full ${c.badge}`}>
                   {plan.name}
                 </span>
-                <span className="text-3xl font-bold text-gray-900">{plan.tenant_count}</span>
+                <span className="text-xl font-bold text-gray-900">{plan.tenant_count}</span>
               </div>
 
               <p className="text-sm text-gray-400 mb-3">tenants</p>

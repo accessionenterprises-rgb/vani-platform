@@ -9,7 +9,7 @@ const TIER_GROUPS = {
   'TF · Toll-Free': ['TF-double-aaaa', 'TF-double-aabb', 'TF-double-seq'],
 }
 const ALL_TIERS = Object.values(TIER_GROUPS).flat()
-const SERVICES = ['twilio', 'bandwidth', 'telnyx']
+const SERVICES = ['twilio', 'telnyx', 'vobiz']
 const DOW_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 const BLANK_SCHEDULE = {
@@ -58,6 +58,7 @@ const SERVICE_COLORS = {
   twilio: 'text-[#F22F46] bg-red-50 border-red-200',
   bandwidth: 'text-sky-700 bg-sky-50 border-sky-200',
   telnyx: 'text-violet-700 bg-violet-50 border-violet-200',
+  vobiz: 'text-orange-700 bg-orange-50 border-orange-200',
 }
 function ServiceBadge({ service = 'twilio' }) {
   const color = SERVICE_COLORS[service] || 'text-gray-500 bg-gray-50 border-gray-200'
@@ -76,7 +77,7 @@ function fmt(number) {
 function TierBadge({ tier }) {
   const meta = TIER_META[tier] || { label: tier, color: 'text-gray-500 bg-gray-50 border-gray-200' }
   return (
-    <span className={`text-base font-medium px-2 py-0.5 rounded border ${meta.color}`}>
+    <span className={`text-sm font-medium px-2 py-0.5 rounded border ${meta.color}`}>
       {meta.label}
     </span>
   )
@@ -90,7 +91,7 @@ function ScoreBadge({ score, reason }) {
     ? 'text-amber-700 bg-amber-50 border-amber-200'
     : 'text-gray-500 bg-gray-50 border-gray-200'
   return (
-    <span title={reason || ''} className={`text-base font-semibold px-2 py-0.5 rounded border cursor-default ${color}`}>
+    <span title={reason || ''} className={`text-sm font-semibold px-2 py-0.5 rounded border cursor-default ${color}`}>
       {score}/10
     </span>
   )
@@ -385,7 +386,7 @@ export default function NumberHunterPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Number Hunter</h1>
+          <h1 className="text-base font-bold text-gray-900">Number Hunter</h1>
           <p className="text-base text-gray-500 mt-0.5">
             Memorable NANP numbers available on Twilio &mdash; scanned daily, AI-scored
           </p>
@@ -439,7 +440,7 @@ export default function NumberHunterPage() {
           <div className="flex rounded-xl border border-gray-200 overflow-hidden">
             {['twilio', 'telnyx'].map(svc => (
               <button key={svc} onClick={() => setScanService(svc)}
-                className={`px-3 py-2 text-base font-medium transition-colors ${
+                className={`px-3 py-2 text-sm font-medium transition-colors ${
                   scanService === svc
                     ? 'bg-violet-50 text-violet-700'
                     : 'bg-white text-gray-500 hover:text-gray-700'
@@ -450,7 +451,7 @@ export default function NumberHunterPage() {
           <button
             onClick={handleScan}
             disabled={scanning || isRunning || !scanCountries.length}
-            className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-40 text-white text-base font-medium px-4 py-2 rounded-xl shadow-sm shadow-violet-200 transition-colors"
+            className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-40 text-white text-sm font-medium px-4 py-2 rounded-xl shadow-sm shadow-violet-200 transition-colors"
           >
             <RadarIcon className="w-4 h-4" />
             Scan{scanCountries.length > 1 ? ` (${scanCountries.length})` : ''}
@@ -458,13 +459,13 @@ export default function NumberHunterPage() {
           <button
             onClick={handleScanAll}
             disabled={scanning || isRunning}
-            className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-40 text-gray-700 text-base font-medium px-4 py-2 rounded-xl transition-colors"
+            className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-40 text-gray-700 text-sm font-medium px-4 py-2 rounded-xl transition-colors"
           >
             Scan All
           </button>
           <button
             onClick={() => openScheduleModal()}
-            className="flex items-center gap-2 bg-white border border-gray-200 hover:border-violet-500 text-gray-700 hover:text-gray-900 text-base font-medium px-4 py-2 rounded-xl transition-colors"
+            className="flex items-center gap-2 bg-white border border-gray-200 hover:border-violet-500 text-gray-700 hover:text-gray-900 text-sm font-medium px-4 py-2 rounded-xl transition-colors"
           >
             <ClockIcon className="w-4 h-4" />
             Schedule{schedules.length > 0 && <span className="text-sm text-violet-600 font-semibold ml-0.5">{schedules.length}</span>}
@@ -474,7 +475,7 @@ export default function NumberHunterPage() {
 
       {/* Scan message (info / ok / err) */}
       {scanMsg && (
-        <div className={`rounded-xl px-5 py-3 mb-4 text-base font-medium border flex items-center gap-3 ${
+        <div className={`rounded-xl px-5 py-3 mb-4 text-sm font-medium border flex items-center gap-3 ${
           scanMsg.type === 'ok'  ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
           scanMsg.type === 'err' ? 'bg-red-50 border-red-100 text-red-600' :
                                    'bg-violet-50 border-violet-200 text-violet-700'
@@ -502,7 +503,7 @@ export default function NumberHunterPage() {
             return (
               <div key={c}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="flex items-center gap-2 text-base font-medium text-gray-900">
+                  <span className="flex items-center gap-2 text-sm font-medium text-gray-900">
                     {COUNTRY_FLAGS[c] || ''} {c}
                     <ServiceBadge service={p.service || 'twilio'} />
                     <span className="text-base text-gray-500 font-normal">
@@ -545,7 +546,7 @@ export default function NumberHunterPage() {
         <div className="flex gap-1 bg-gray-50 border border-gray-200 rounded-xl p-1">
           {['available', 'purchased'].map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-1.5 rounded-lg text-base font-medium transition-colors capitalize ${
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${
                 tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >{t}</button>
@@ -685,7 +686,7 @@ export default function NumberHunterPage() {
       <div className="mt-8">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-gray-500">Scan Logs</h2>
+            <h2 className="text-sm font-semibold text-gray-500">Scan Logs</h2>
             {scans.length > 0 && <span className="text-base text-gray-400">{scans.length} runs</span>}
           </div>
           <div className="flex items-center gap-2">
@@ -785,7 +786,7 @@ export default function NumberHunterPage() {
       </div>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl text-base font-medium shadow-lg border z-50 ${
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl text-sm font-medium shadow-lg border z-50 ${
           toast.type === 'err'
             ? 'bg-red-50 border-red-100 text-red-600'
             : 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -817,7 +818,7 @@ function StatCard({ label, value, color = 'text-gray-900' }) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4">
       <p className="text-base text-gray-500 mb-1">{label}</p>
-      <p className={`text-2xl font-semibold ${color}`}>{value}</p>
+      <p className={`text-sm font-semibold ${color}`}>{value}</p>
     </div>
   )
 }
@@ -894,7 +895,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
   }
 
   const inputCls = 'bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100 w-full'
-  const tabCls = (active) => `px-4 py-1.5 rounded-lg text-base font-medium transition-colors ${active ? 'bg-violet-500 text-white' : 'text-gray-500 hover:text-gray-700'}`
+  const tabCls = (active) => `px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${active ? 'bg-violet-500 text-white' : 'text-gray-500 hover:text-gray-700'}`
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -906,7 +907,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
             <h2 className="text-gray-900 font-semibold">Scan Schedules</h2>
             <p className="text-base text-gray-500 mt-0.5">Automate recurring number hunts</p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-900 text-xl leading-none">&times;</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-900 text-base leading-none">&times;</button>
         </div>
 
         {/* Existing schedules */}
@@ -921,7 +922,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
                 <div key={s.id} className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-base font-medium text-gray-900 truncate">{s.name || 'Unnamed'}</span>
+                      <span className="text-sm font-medium text-gray-900 truncate">{s.name || 'Unnamed'}</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded border ${
                         s.is_active ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-gray-500 bg-gray-50 border-gray-200'
                       }`}>{s.is_active ? 'active' : 'paused'}</span>
@@ -942,7 +943,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
 
         {/* Form */}
         <div className="flex-1 px-6 py-5 space-y-6">
-          <p className="text-base font-semibold text-gray-700">{editing ? 'Edit Schedule' : 'New Schedule'}</p>
+          <p className="text-sm font-semibold text-gray-700">{editing ? 'Edit Schedule' : 'New Schedule'}</p>
 
           {/* Name */}
           <div>
@@ -1016,7 +1017,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
                 <button
                   key={s}
                   onClick={() => setField('service', s)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-base font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm font-medium transition-colors ${
                     draft.service === s
                       ? 'border-violet-500 bg-violet-50 text-gray-900'
                       : 'border-gray-200 text-gray-500 hover:text-gray-700'
@@ -1087,7 +1088,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
                     <div key={group}>
                       <button
                         onClick={() => toggleTierGroup(tiers)}
-                        className={`text-base font-semibold px-2 py-1 rounded border mb-1.5 transition-colors ${
+                        className={`text-sm font-semibold px-2 py-1 rounded border mb-1.5 transition-colors ${
                           allIn ? 'border-violet-400 text-violet-700 bg-violet-50'
                           : someIn ? 'border-amber-400 text-amber-700 bg-amber-50'
                           : 'border-gray-200 text-gray-500'
@@ -1123,7 +1124,7 @@ function ScheduleModal({ schedules, draft, setDraft, editing, saving, onNew, onE
           <button
             onClick={onSave}
             disabled={saving}
-            className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-40 text-white text-base font-medium py-2.5 rounded-xl shadow-sm shadow-violet-200 transition-colors"
+            className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-40 text-white text-sm font-medium py-2.5 rounded-xl shadow-sm shadow-violet-200 transition-colors"
           >
             {saving ? 'Saving\u2026' : editing ? 'Save Changes' : 'Create Schedule'}
           </button>

@@ -54,7 +54,7 @@ export default function AdminUsersPage() {
     <div className="p-8 max-w-3xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Users</h1>
+          <h1 className="text-xl font-bold text-gray-900">Admin Users</h1>
           <p className="text-base text-gray-500 mt-1">Manage who can access the admin panel.</p>
         </div>
         <button onClick={() => setAdding(true)}

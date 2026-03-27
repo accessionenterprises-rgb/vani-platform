@@ -35,7 +35,7 @@ export default function SystemHealthPage() {
     <div className="p-8 max-w-3xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">System Health</h1>
+          <h1 className="text-xl font-bold text-gray-900">System Health</h1>
           <p className="text-base text-gray-500 mt-1">
             {data ? `Last checked ${new Date(data.checked_at * 1000).toLocaleTimeString()}` : 'Checking services…'}
           </p>

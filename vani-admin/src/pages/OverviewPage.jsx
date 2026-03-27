@@ -159,7 +159,7 @@ export default function OverviewPage() {
       <div className="flex items-center justify-between mb-10">
         <div>
           <p className="text-base font-medium text-gray-400 mb-1.5">Dashboard</p>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Platform Overview</h1>
+          <h1 className="text-xl font-bold text-gray-900 tracking-tight">Platform Overview</h1>
         </div>
         {/* Live calls indicator */}
         <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl px-5 py-3 shadow-sm">

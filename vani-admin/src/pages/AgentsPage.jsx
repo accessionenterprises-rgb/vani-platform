@@ -39,7 +39,7 @@ export default function AgentsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">All Agents</h1>
+          <h1 className="text-xl font-bold text-gray-900">All Agents</h1>
           <p className="text-base text-gray-500 mt-1">{filtered.length} agent{filtered.length !== 1 ? 's' : ''} across all workspaces</p>
         </div>
       </div>

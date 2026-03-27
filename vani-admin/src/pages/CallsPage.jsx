@@ -29,7 +29,7 @@ export default function CallsPage() {
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">All Calls</h1>
+          <h1 className="text-xl font-bold text-gray-900">All Calls</h1>
           <p className="text-base text-gray-500 mt-1">{calls.length} results</p>
         </div>
       </div>
