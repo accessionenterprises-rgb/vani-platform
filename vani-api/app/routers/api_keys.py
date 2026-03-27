@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
-router = APIRouter(prefix="/api-keys", tags=["api-keys"])
+router = APIRouter(prefix="/api-keys", tags=["API Keys"])
 
 PREFIX = "vani_"
 

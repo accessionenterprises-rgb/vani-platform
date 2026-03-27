@@ -23,7 +23,7 @@ from app.middleware.auth import get_tenant_id
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/playground", tags=["playground"])
+router = APIRouter(prefix="/playground", tags=["Playground"])
 
 SESSION_TTL = 1800  # 30 min
 MAX_HISTORY = 20    # messages kept per session

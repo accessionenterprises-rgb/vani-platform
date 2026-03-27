@@ -19,7 +19,7 @@ from app.middleware.auth import get_tenant_id
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/playground", tags=["playground"])
+router = APIRouter(prefix="/playground", tags=["Playground"])
 
 LIVEKIT_URL = os.getenv("LIVEKIT_URL", "wss://vaani-voice-s42m8zzi.livekit.cloud")
 LIVEKIT_API_KEY = os.getenv("LIVEKIT_API_KEY", "")

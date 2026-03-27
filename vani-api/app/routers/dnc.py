@@ -21,7 +21,7 @@ from app.middleware.auth import get_tenant_id
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/dnc", tags=["dnc"])
+router = APIRouter(prefix="/dnc", tags=["Do Not Call"])
 
 
 class AddDNCRequest(BaseModel):

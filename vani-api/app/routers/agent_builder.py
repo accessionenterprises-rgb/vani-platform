@@ -19,7 +19,7 @@ from app.middleware.auth import get_tenant_id
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/builder", tags=["builder"])
+router = APIRouter(prefix="/builder", tags=["Agent Builder"])
 
 
 # ── Website scraper ──────────────────────────────────────────────────────────

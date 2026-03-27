@@ -11,7 +11,7 @@ from app.config import settings
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
-router = APIRouter(prefix="/dialer", tags=["dialer"])
+router = APIRouter(prefix="/dialer", tags=["Dialer"])
 
 
 @router.get("/token")

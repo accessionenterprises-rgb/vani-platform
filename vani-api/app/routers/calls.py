@@ -13,7 +13,7 @@ from app.config import settings
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
-router = APIRouter(prefix="/calls", tags=["calls"])
+router = APIRouter(prefix="/calls", tags=["Calls"])
 
 
 class CallResponse(BaseModel):

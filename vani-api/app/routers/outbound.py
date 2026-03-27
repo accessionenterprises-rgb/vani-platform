@@ -18,7 +18,7 @@ from app.middleware.auth import get_tenant_id
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/calls", tags=["calls"])
+router = APIRouter(prefix="/calls", tags=["Calls"])
 
 OUTBOUND_QUEUE = "vani:queue:outbound"
 ENTERPRISE_QUEUE = "vani:queue:outbound:enterprise"

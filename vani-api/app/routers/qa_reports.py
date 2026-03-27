@@ -24,7 +24,7 @@ from app.middleware.auth import get_tenant_id
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/qa/reports", tags=["qa-reports"])
+router = APIRouter(prefix="/qa/reports", tags=["QA Testing"])
 
 
 # ── Agent Performance Overview ──────────────────────────────────

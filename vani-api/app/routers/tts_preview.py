@@ -18,7 +18,7 @@ from app.middleware.auth import get_tenant_id
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/tts", tags=["tts"])
+router = APIRouter(prefix="/tts", tags=["TTS Preview"])
 
 STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static" / "voice-previews"
 

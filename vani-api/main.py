@@ -7,6 +7,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.openapi.docs import get_swagger_ui_html
 
 from app.config import settings
 from app.routers import admin, agent_builder, agents, analytics, api_keys, auth, billing, calls, campaigns, dialer, dnc, kb, latency, number_hunter, numbers, outbound, playground_chat, playground_voice, products, qa_tester, qa_reports, team, telephony, tools, tts_preview, webhook_config, webhooks, widget
@@ -16,12 +17,56 @@ from app.middleware.errors import install_error_handlers
 
 logger = structlog.get_logger()
 
+API_DESCRIPTION = """\
+# Vani Voice AI API
+
+Build voice AI agents that answer calls, book appointments, qualify leads, and handle support — fully automated.
+
+## Authentication
+All endpoints require authentication via Bearer token:
+```
+Authorization: Bearer vani_YOUR_API_KEY
+```
+
+Get your API key from the [Dashboard](https://dashboard.vani.live) → API Keys.
+
+## Rate Limits
+- Default: 60 requests/minute
+- Outbound calls: 10 requests/minute
+- TTS preview: 20 requests/minute
+
+Rate limit headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`
+
+## Base URL
+```
+https://api.vani.live/v1
+```
+"""
+
 app = FastAPI(
     title="Vani API",
-    version="2.0.0",
-    docs_url="/docs",
+    description=API_DESCRIPTION,
+    version="1.0.0",
+    docs_url=None,       # custom /docs below
     redoc_url="/redoc",
 )
+
+
+# ── Custom Swagger UI (dark theme + Vani branding) ───────────────────────────
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui():
+    return get_swagger_ui_html(
+        openapi_url="/openapi.json",
+        title="Vani API Documentation",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
+        swagger_ui_parameters={
+            "syntaxHighlight.theme": "monokai",
+            "docExpansion": "none",
+            "filter": True,
+            "tryItOutEnabled": True,
+        },
+    )
+
 
 app.add_middleware(UsageMeteringMiddleware)
 app.add_middleware(RateLimitMiddleware, redis_url=getattr(settings, "redis_url", None))
@@ -65,36 +110,37 @@ app.include_router(billing.router,          prefix=V1)
 # ── Backwards compatibility — mount same routes without /v1/ prefix ──────────
 # Dashboard and existing integrations use unprefixed routes.
 # Remove these once dashboard is updated to use /v1/.
-app.include_router(auth.router)
-app.include_router(agents.router)
-app.include_router(kb.router)
-app.include_router(tools.router)
-app.include_router(products.router)
-app.include_router(calls.router)
-app.include_router(outbound.router)
-app.include_router(campaigns.router)
-app.include_router(analytics.router)
-app.include_router(api_keys.router)
-app.include_router(numbers.router)
-app.include_router(number_hunter.router)
-app.include_router(webhooks.router)
-app.include_router(webhook_config.router)
-app.include_router(dnc.router)
-app.include_router(dialer.router)
-app.include_router(team.router)
-app.include_router(agent_builder.router)
-app.include_router(tts_preview.router)
-app.include_router(playground_chat.router)
-app.include_router(playground_voice.router)
-app.include_router(qa_tester.router)
-app.include_router(qa_reports.router)
-app.include_router(latency.router)
-app.include_router(billing.router)
+# Hidden from API docs (include_in_schema=False).
+app.include_router(auth.router,             include_in_schema=False)
+app.include_router(agents.router,           include_in_schema=False)
+app.include_router(kb.router,               include_in_schema=False)
+app.include_router(tools.router,            include_in_schema=False)
+app.include_router(products.router,         include_in_schema=False)
+app.include_router(calls.router,            include_in_schema=False)
+app.include_router(outbound.router,         include_in_schema=False)
+app.include_router(campaigns.router,        include_in_schema=False)
+app.include_router(analytics.router,        include_in_schema=False)
+app.include_router(api_keys.router,         include_in_schema=False)
+app.include_router(numbers.router,          include_in_schema=False)
+app.include_router(number_hunter.router,    include_in_schema=False)
+app.include_router(webhooks.router,         include_in_schema=False)
+app.include_router(webhook_config.router,   include_in_schema=False)
+app.include_router(dnc.router,              include_in_schema=False)
+app.include_router(dialer.router,           include_in_schema=False)
+app.include_router(team.router,             include_in_schema=False)
+app.include_router(agent_builder.router,    include_in_schema=False)
+app.include_router(tts_preview.router,      include_in_schema=False)
+app.include_router(playground_chat.router,  include_in_schema=False)
+app.include_router(playground_voice.router, include_in_schema=False)
+app.include_router(qa_tester.router,        include_in_schema=False)
+app.include_router(qa_reports.router,       include_in_schema=False)
+app.include_router(latency.router,          include_in_schema=False)
+app.include_router(billing.router,          include_in_schema=False)
 
-# ── Internal routes (no versioning) ──────────────────────────────────────────
-app.include_router(admin.router)
-app.include_router(widget.router)
-app.include_router(telephony.router)
+# ── Internal routes (no versioning) — hidden from docs ────────────────────────
+app.include_router(admin.router,      include_in_schema=False)
+app.include_router(widget.router,     include_in_schema=False)
+app.include_router(telephony.router,  include_in_schema=False)
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -238,12 +284,13 @@ async def _schedule_checker() -> None:
         await asyncio.sleep(1800)  # check every 30 min
 
 
-@app.get("/health")
+@app.get("/health", include_in_schema=False)
 def health():
-    return {"ok": True, "service": "vani-api", "version": "2.0.0"}
+    return {"ok": True, "service": "vani-api", "version": "1.0.0"}
 
 
-@app.get("/debug/telnyx-test")
+# ── Debug endpoints (hidden from docs) ───────────────────────────────────────
+@app.get("/debug/telnyx-test", include_in_schema=False)
 def debug_telnyx_test(pattern: str = "999999", country: str = "US"):
     """Test a single Telnyx search and return raw response."""
     import httpx
@@ -277,7 +324,7 @@ def debug_telnyx_test(pattern: str = "999999", country: str = "US"):
         return {"error": str(exc), "pattern": pattern}
 
 
-@app.delete("/debug/hunter/clear")
+@app.delete("/debug/hunter/clear", include_in_schema=False)
 def debug_clear():
     """Temporary — clear all results and scan logs."""
     from app.db import get_db as _gdb
@@ -287,7 +334,7 @@ def debug_clear():
     return {"cleared": True}
 
 
-@app.get("/debug/hunter")
+@app.get("/debug/hunter", include_in_schema=False)
 def debug_hunter():
     """Temporary debug endpoint — remove after scan is working."""
     from app.routers.number_hunter import _scan_running, _scan_progress, NANP_COUNTRIES, _search_errors

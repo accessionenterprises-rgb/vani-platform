@@ -10,7 +10,7 @@ from typing import Optional
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
-router = APIRouter(prefix="/team", tags=["team"])
+router = APIRouter(prefix="/team", tags=["Team"])
 
 ROLES = ("admin", "member", "viewer")
 

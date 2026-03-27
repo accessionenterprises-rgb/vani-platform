@@ -7,7 +7,7 @@ from app.config import settings
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 _AUTH_URL = f"{settings.supabase_url}/auth/v1"
 _HEADERS = {"apikey": settings.supabase_service_key}

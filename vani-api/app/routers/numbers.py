@@ -19,7 +19,7 @@ ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_PUBLIC_URL", "https://orchestrator.va
 INBOUND_WEBHOOK = f"{ORCHESTRATOR_URL}/telephony/inbound"
 STATUS_WEBHOOK = f"{ORCHESTRATOR_URL}/telephony/status"
 
-router = APIRouter(prefix="/numbers", tags=["numbers"])
+router = APIRouter(prefix="/numbers", tags=["Phone Numbers"])
 
 
 # ─── Schemas ──────────────────────────────────────────────────────────────────

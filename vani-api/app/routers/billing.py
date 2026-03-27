@@ -18,7 +18,7 @@ from app.middleware.auth import get_tenant_id
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/billing", tags=["billing"])
+router = APIRouter(prefix="/billing", tags=["Billing"])
 
 # ── Provider cost rates (USD per minute) ─────────────────────────────────────
 PROVIDER_RATES = {

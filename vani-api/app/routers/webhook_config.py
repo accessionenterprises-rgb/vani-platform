@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
-router = APIRouter(prefix="/webhook-config", tags=["webhook-config"])
+router = APIRouter(prefix="/webhook-config", tags=["Webhooks"])
 
 ALL_EVENTS = [
     "call.started",

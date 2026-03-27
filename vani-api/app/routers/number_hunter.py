@@ -37,7 +37,7 @@ from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/hunter", tags=["hunter"])
+router = APIRouter(prefix="/hunter", tags=["Number Hunter"])
 
 # ── Per-country area code lists ───────────────────────────────────────────────
 

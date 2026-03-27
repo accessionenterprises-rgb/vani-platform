@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
-router = APIRouter(prefix="/agents", tags=["products"])
+router = APIRouter(prefix="/agents", tags=["Products"])
 
 
 # ─── Schemas ─────────────────────────────────────────────────────────────────

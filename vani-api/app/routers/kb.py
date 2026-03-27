@@ -10,7 +10,7 @@ from pydantic import BaseModel, HttpUrl
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
-router = APIRouter(prefix="/agents/{agent_id}/kb", tags=["knowledge-base"])
+router = APIRouter(prefix="/agents/{agent_id}/kb", tags=["Knowledge Base"])
 
 
 class KBDocResponse(BaseModel):

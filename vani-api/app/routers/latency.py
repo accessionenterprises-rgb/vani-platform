@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from app.db import get_db
 from app.middleware.auth import get_tenant_id
 
-router = APIRouter(prefix="/latency", tags=["latency"])
+router = APIRouter(prefix="/latency", tags=["Latency"])
 
 
 @router.get("/stats")
