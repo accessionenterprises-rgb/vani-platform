@@ -7,7 +7,6 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from fastapi.openapi.docs import get_swagger_ui_html
 
 from app.config import settings
 from app.routers import admin, agent_builder, agents, analytics, api_keys, auth, billing, calls, campaigns, dialer, dnc, kb, latency, number_hunter, numbers, outbound, playground_chat, playground_voice, products, qa_tester, qa_reports, team, telephony, tools, tts_preview, webhook_config, webhooks, widget
@@ -55,17 +54,188 @@ app = FastAPI(
 # ── Custom Swagger UI (dark theme + Vani branding) ───────────────────────────
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui():
-    return get_swagger_ui_html(
-        openapi_url="/openapi.json",
-        title="Vani API Documentation",
-        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
-        swagger_ui_parameters={
-            "syntaxHighlight.theme": "monokai",
-            "docExpansion": "none",
-            "filter": True,
-            "tryItOutEnabled": True,
-        },
-    )
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse("""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vani API — Documentation</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0a; color: #e5e5e5; }
+
+    /* Header */
+    .api-header {
+      background: #0a0a0a;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 20px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .api-header .logo {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 18px; font-weight: 700; color: #fff; text-decoration: none;
+    }
+    .api-header .logo .dot-grid {
+      display: inline-grid; grid-template-columns: repeat(3,1fr); gap: 2px;
+    }
+    .api-header .logo .dot-grid i {
+      width: 4px; height: 4px; background: #fff; border-radius: 1px; display: block;
+    }
+    .api-header .badge {
+      font-size: 11px; font-weight: 600; background: #16a34a20; color: #22c55e;
+      padding: 4px 10px; border-radius: 20px; letter-spacing: 0.03em;
+    }
+    .api-header nav { display: flex; gap: 8px; }
+    .api-header nav a {
+      font-size: 13px; font-weight: 500; color: #888; text-decoration: none;
+      padding: 6px 14px; border-radius: 8px; transition: all 0.2s;
+    }
+    .api-header nav a:hover { color: #fff; background: #1a1a1a; }
+
+    /* Hero section */
+    .api-hero {
+      max-width: 800px; margin: 0 auto; padding: 48px 32px 32px;
+    }
+    .api-hero h1 {
+      font-size: 32px; font-weight: 700; color: #fff; letter-spacing: -0.02em; margin-bottom: 12px;
+    }
+    .api-hero p { font-size: 16px; color: #888; line-height: 1.6; max-width: 560px; }
+
+    /* Quick start cards */
+    .quick-cards {
+      max-width: 800px; margin: 0 auto; padding: 0 32px 40px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    }
+    .qcard {
+      background: #111; border: 1px solid #1a1a1a; border-radius: 12px;
+      padding: 20px; transition: border-color 0.2s;
+    }
+    .qcard:hover { border-color: #333; }
+    .qcard .label { font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .qcard .value { font-size: 14px; font-weight: 600; color: #e5e5e5; }
+    .qcard .hint { font-size: 12px; color: #555; margin-top: 4px; }
+    .qcard code {
+      display: block; margin-top: 10px; font-size: 12px; color: #22c55e;
+      background: #0a0a0a; padding: 8px 10px; border-radius: 6px; font-family: 'SF Mono', monospace;
+      overflow-x: auto; white-space: nowrap;
+    }
+
+    /* Swagger container */
+    .swagger-wrap {
+      max-width: 900px; margin: 0 auto; padding: 0 32px 60px;
+    }
+    .swagger-wrap .section-label {
+      font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 16px; padding-top: 20px;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    /* Dark Swagger overrides */
+    .swagger-ui { background: transparent !important; }
+    .swagger-ui .topbar { display: none !important; }
+    .swagger-ui .info { display: none !important; }
+    .swagger-ui .scheme-container { display: none !important; }
+    .swagger-ui .wrapper { padding: 0 !important; max-width: 100% !important; }
+    .swagger-ui .opblock-tag { color: #e5e5e5 !important; border-bottom: 1px solid #1a1a1a !important; font-family: 'Inter', sans-serif !important; }
+    .swagger-ui .opblock-tag:hover { background: #111 !important; }
+    .swagger-ui .opblock { background: #111 !important; border: 1px solid #1a1a1a !important; border-radius: 8px !important; margin-bottom: 8px !important; }
+    .swagger-ui .opblock .opblock-summary { border: none !important; }
+    .swagger-ui .opblock .opblock-summary-method { border-radius: 6px !important; font-size: 12px !important; font-weight: 700 !important; min-width: 64px !important; }
+    .swagger-ui .opblock .opblock-summary-path { color: #ccc !important; font-family: 'SF Mono', monospace !important; font-size: 13px !important; }
+    .swagger-ui .opblock .opblock-summary-description { color: #888 !important; font-size: 13px !important; }
+    .swagger-ui .opblock-body { background: #0d0d0d !important; }
+    .swagger-ui .opblock-body pre { background: #0a0a0a !important; color: #22c55e !important; border: 1px solid #1a1a1a !important; border-radius: 6px !important; }
+    .swagger-ui .btn { border-radius: 6px !important; }
+    .swagger-ui .btn.execute { background: #2563eb !important; border: none !important; }
+    .swagger-ui .btn.authorize { background: #111 !important; border: 1px solid #333 !important; color: #e5e5e5 !important; }
+    .swagger-ui table tbody tr td { color: #ccc !important; border-bottom: 1px solid #1a1a1a !important; }
+    .swagger-ui table thead tr th { color: #888 !important; border-bottom: 1px solid #1a1a1a !important; }
+    .swagger-ui .model-box { background: #0a0a0a !important; }
+    .swagger-ui .model { color: #ccc !important; }
+    .swagger-ui input[type=text], .swagger-ui textarea, .swagger-ui select { background: #0a0a0a !important; color: #e5e5e5 !important; border: 1px solid #333 !important; border-radius: 6px !important; }
+    .swagger-ui .response-col_status { color: #22c55e !important; }
+    .swagger-ui .responses-inner { background: #0d0d0d !important; }
+    .swagger-ui .filter .operation-filter-input { background: #111 !important; color: #e5e5e5 !important; border: 1px solid #1a1a1a !important; border-radius: 8px !important; font-family: 'Inter', sans-serif !important; }
+    .swagger-ui .opblock-description-wrapper p { color: #888 !important; }
+    .swagger-ui .parameter__name { color: #e5e5e5 !important; }
+    .swagger-ui .parameter__type { color: #888 !important; }
+    .swagger-ui .tab li { color: #888 !important; }
+    .swagger-ui .tab li.active { color: #fff !important; }
+    .swagger-ui .loading-container { background: transparent !important; }
+    .swagger-ui .loading-container .loading:after { color: #888 !important; }
+    .swagger-ui section.models { border: 1px solid #1a1a1a !important; border-radius: 8px !important; }
+    .swagger-ui section.models h4 { color: #888 !important; border-bottom: 1px solid #1a1a1a !important; }
+
+    @media (max-width: 768px) {
+      .quick-cards { grid-template-columns: 1fr; }
+      .api-header nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="api-header">
+  <a href="https://vani.live" class="logo">
+    <span class="dot-grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+    Vani
+  </a>
+  <span class="badge">API v1</span>
+  <nav>
+    <a href="https://dashboard.vani.live">Dashboard</a>
+    <a href="https://vani.live">Website</a>
+    <a href="mailto:hello@vani.live">Support</a>
+  </nav>
+</header>
+
+<div class="api-hero">
+  <h1>API Reference</h1>
+  <p>Build voice AI agents that answer calls, qualify leads, and handle support. Authenticate with your API key, then start making calls.</p>
+</div>
+
+<div class="quick-cards">
+  <div class="qcard">
+    <div class="label">Base URL</div>
+    <div class="value">api.vani.live/v1</div>
+    <code>https://api.vani.live/v1</code>
+  </div>
+  <div class="qcard">
+    <div class="label">Authentication</div>
+    <div class="value">Bearer Token</div>
+    <code>Authorization: Bearer vani_...</code>
+  </div>
+  <div class="qcard">
+    <div class="label">Rate Limit</div>
+    <div class="value">60 req/min</div>
+    <div class="hint">10/min for outbound calls</div>
+  </div>
+</div>
+
+<div class="swagger-wrap">
+  <div class="section-label">Endpoints</div>
+  <div id="swagger-ui"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+<script>
+  SwaggerUIBundle({
+    url: '/openapi.json',
+    dom_id: '#swagger-ui',
+    layout: 'BaseLayout',
+    deepLinking: true,
+    docExpansion: 'none',
+    filter: true,
+    tryItOutEnabled: true,
+    syntaxHighlight: { theme: 'monokai' },
+    presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+  });
+</script>
+
+</body>
+</html>""")
 
 
 app.add_middleware(UsageMeteringMiddleware)
