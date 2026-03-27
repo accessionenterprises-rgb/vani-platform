@@ -179,6 +179,8 @@ export const api = {
   searchTelnyxNumbers:(params) => request('GET', `/numbers/telnyx/available?${new URLSearchParams(params)}`),
   buyTelnyxNumber:    (data)   => request('POST', '/numbers/telnyx/buy', data),
   syncTelnyxNumbers:  ()       => request('POST', '/numbers/telnyx/sync'),
+  searchVobizNumbers: (params) => request('GET', `/numbers/vobiz/available?${new URLSearchParams(params)}`),
+  buyVobizNumber:     (data)   => request('POST', '/numbers/vobiz/buy', data),
 
   // API Keys
   listKeys:  ()     => request('GET', '/api-keys'),

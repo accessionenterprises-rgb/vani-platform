@@ -101,6 +101,47 @@ async def _initiate_twilio_call(to: str, from_number: str, call_id: str, twilio_
         return None
 
 
+async def _initiate_vobiz_call(to: str, from_number: str, call_id: str, vobiz_config: dict) -> str | None:
+    """
+    Place outbound call via Vobiz REST API.
+    Returns the Vobiz CallUUID on success.
+    """
+    auth_id    = vobiz_config.get("vobiz_auth_id")    or os.getenv("VOBIZ_AUTH_ID", "")
+    auth_token = vobiz_config.get("vobiz_auth_token")  or os.getenv("VOBIZ_AUTH_TOKEN", "")
+
+    if not auth_id or not auth_token:
+        logger.error("vobiz_credentials_missing", call_id=call_id)
+        return None
+
+    orchestrator_url = os.getenv("ORCHESTRATOR_PUBLIC_URL", "https://orchestrator.vani.live")
+    answer_url = f"{orchestrator_url}/telephony/vobiz/answer/{call_id}"
+    status_url = f"{orchestrator_url}/telephony/outbound/status/{call_id}"
+
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                f"https://api.vobiz.ai/api/v1/Account/{auth_id}/Call/",
+                headers={
+                    "X-Auth-ID": auth_id,
+                    "X-Auth-Token": auth_token,
+                },
+                json={
+                    "from": from_number,
+                    "to": to,
+                    "answer_url": answer_url,
+                    "hangup_url": status_url,
+                },
+            )
+        if resp.status_code in (200, 201):
+            return resp.json().get("call_uuid") or resp.json().get("CallUUID") or resp.json().get("sid")
+        else:
+            logger.error("vobiz_call_failed", status=resp.status_code, body=resp.text[:200])
+            return None
+    except Exception as e:
+        logger.error("vobiz_call_exception", error=str(e))
+        return None
+
+
 async def _initiate_exotel_call(to: str, from_number: str, call_id: str, exotel_config: dict) -> str | None:
     """Place outbound call via Exotel REST API."""
     api_key   = exotel_config.get("exotel_api_key")   or os.getenv("EXOTEL_API_KEY", "")
@@ -169,11 +210,17 @@ async def _process_outbound_job(job: dict) -> None:
     db.table("calls").update({"status": "routing"}).eq("id", call_id).execute()
 
     # 3. Determine provider and dial
+    #    Check explicit provider flag first (set by API when number is vobiz),
+    #    then fall back to credential detection.
+    explicit_provider = telephony_config.get("provider") or job.get("provider")
+    has_vobiz  = explicit_provider == "vobiz" or bool(telephony_config.get("vobiz_auth_id") or os.getenv("VOBIZ_AUTH_ID"))
     has_twilio = bool(telephony_config.get("twilio_account_sid") or os.getenv("TWILIO_ACCOUNT_SID"))
     has_exotel = bool(telephony_config.get("exotel_api_key")     or os.getenv("EXOTEL_API_KEY"))
 
     call_sid = None
-    if has_twilio:
+    if explicit_provider == "vobiz" or (has_vobiz and not has_twilio):
+        call_sid = await _initiate_vobiz_call(to, from_num, call_id, telephony_config)
+    elif has_twilio:
         call_sid = await _initiate_twilio_call(to, from_num, call_id, telephony_config)
     elif has_exotel:
         call_sid = await _initiate_exotel_call(to, from_num, call_id, telephony_config)

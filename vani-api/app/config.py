@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     # Telnyx — set TELNYX_API_KEY on Railway for number search
     telnyx_api_key: str = ""
 
+    # Vobiz — Indian telephony provider
+    vobiz_auth_id: str = ""
+    vobiz_auth_token: str = ""
+
     # Admin panel — set ADMIN_SECRET on Railway
     admin_secret: str = "vani-admin-change-me"
 

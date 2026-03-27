@@ -267,7 +267,9 @@ function BuyModal({ agents, onBought, onClose }) {
       const params = { country, number_type: type, limit: 20 }
       if (type === 'local' && areaCode.trim()) params.area_code = areaCode.trim()
       if (contains.trim()) params.contains = contains.trim()
-      const res = provider === 'telnyx'
+      const res = provider === 'vobiz'
+        ? await api.searchVobizNumbers(params)
+        : provider === 'telnyx'
         ? await api.searchTelnyxNumbers(params)
         : await api.searchTwilioNumbers(params)
       setResults(res || [])
@@ -288,7 +290,9 @@ function BuyModal({ agents, onBought, onClose }) {
     setError('')
     setBuying(true)
     try {
-      const num = provider === 'telnyx'
+      const num = provider === 'vobiz'
+        ? await api.buyVobizNumber({ phone_number: selected.phone_number, number_id: selected.number_id, agent_id: agentId || null })
+        : provider === 'telnyx'
         ? await api.buyTelnyxNumber({ phone_number: selected.phone_number, agent_id: agentId || null })
         : await api.buyTwilioNumber({ phone_number: selected.phone_number, agent_id: agentId || null })
       onBought(num)
@@ -318,6 +322,7 @@ function BuyModal({ agents, onBought, onClose }) {
             {[
               { id: 'twilio',  label: 'Twilio',  desc: '$1.15/mo · 60+ countries' },
               { id: 'telnyx',  label: 'Telnyx',  desc: '$1.00/mo · cheaper rates' },
+              { id: 'vobiz',   label: 'Vobiz',   desc: '₹500/mo · Indian DIDs' },
             ].map(p => (
               <button key={p.id} type="button"
                 onClick={() => { setProvider(p.id); setResults([]); setSelected(null); setSearched(false) }}
@@ -393,9 +398,9 @@ function BuyModal({ agents, onBought, onClose }) {
           <button onClick={search} disabled={searching}
             className="w-full flex items-center justify-center gap-2 bg-white hover:bg-[#F5F5F4] border border-[#E8E5E2] hover:border-[#D6D3D1] text-[#44403C] text-base font-medium py-2.5 rounded-xl transition-colors disabled:opacity-50">
             {searching ? (
-              <><div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />Searching {provider === 'telnyx' ? 'Telnyx' : 'Twilio'}…</>
+              <><div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />Searching {provider === 'vobiz' ? 'Vobiz' : provider === 'telnyx' ? 'Telnyx' : 'Twilio'}…</>
             ) : (
-              <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search {provider === 'telnyx' ? 'Telnyx' : 'Twilio'} Numbers</>
+              <><svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Search {provider === 'vobiz' ? 'Vobiz' : provider === 'telnyx' ? 'Telnyx' : 'Twilio'} Numbers</>
             )}
           </button>
 
@@ -467,7 +472,7 @@ function BuyModal({ agents, onBought, onClose }) {
                   <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
                 <p className="text-sm text-amber-400">
-                  This will charge your {provider === 'telnyx' ? 'Telnyx' : 'Twilio'} account — typically ~${provider === 'telnyx' ? '1.00' : '1.15'}/month for US local numbers.
+                  This will charge your {provider === 'vobiz' ? 'Vobiz' : provider === 'telnyx' ? 'Telnyx' : 'Twilio'} account — typically {provider === 'vobiz' ? '~₹500' : provider === 'telnyx' ? '~$1.00' : '~$1.15'}/month{provider === 'vobiz' ? ' for Indian DIDs' : ' for US local numbers'}.
                 </p>
               </div>
             </div>
@@ -547,6 +552,7 @@ function ManualModal({ agents, onAdded, onClose }) {
               <select value={form.provider} onChange={e => setForm(f => ({...f, provider: e.target.value}))}
                 className="w-full bg-[#FAFAF9] border border-[#E8E5E2] focus:border-[#2563EB] rounded-lg px-3 py-2.5 text-base text-[#1A1816] focus:outline-none transition-colors">
                 <option value="twilio">Twilio</option>
+                <option value="vobiz">Vobiz</option>
                 <option value="exotel">Exotel</option>
                 <option value="plivo">Plivo</option>
               </select>

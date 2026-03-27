@@ -59,10 +59,11 @@ async def trigger_outbound(body: OutboundCallRequest, tenant_id: str = Depends(g
 
     # Resolve from_number — use provided or find first active number for agent
     from_number = body.from_number
+    number_provider = None
     if not from_number:
         num_row = (
             db.table("phone_numbers")
-            .select("number")
+            .select("number, provider")
             .eq("agent_id", body.agent_id)
             .eq("tenant_id", tenant_id)
             .eq("status", "active")
@@ -71,6 +72,19 @@ async def trigger_outbound(body: OutboundCallRequest, tenant_id: str = Depends(g
         )
         if num_row.data:
             from_number = num_row.data[0]["number"]
+            number_provider = num_row.data[0].get("provider")
+    else:
+        # Look up provider for the explicitly provided number
+        num_lookup = (
+            db.table("phone_numbers")
+            .select("provider")
+            .eq("number", from_number)
+            .eq("tenant_id", tenant_id)
+            .maybe_single()
+            .execute()
+        )
+        if num_lookup.data:
+            number_provider = num_lookup.data.get("provider")
 
     if not from_number:
         raise HTTPException(
@@ -114,6 +128,7 @@ async def trigger_outbound(body: OutboundCallRequest, tenant_id: str = Depends(g
             "agent_id": body.agent_id,
             "to": body.to,
             "from_number": from_number,
+            "provider": number_provider or "twilio",
             "telephony_config": telephony_config,
             "agent_config": {
                 "name": agent_row.data["name"],

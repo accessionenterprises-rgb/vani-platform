@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
 
+    # Vobiz — Indian telephony provider
+    vobiz_auth_id: str = ""
+    vobiz_auth_token: str = ""
+
     environment: str = "development"
     port: int = 8001
 
