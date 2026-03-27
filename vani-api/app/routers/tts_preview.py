@@ -31,14 +31,19 @@ OPENAI_VOICES = {f"openai-{v}": v for v in [
     "fable", "marin", "nova", "onyx", "sage", "shimmer", "verse",
 ]}
 
-# Sarvam voices (bulbul:v3 — all 39 voices)
-SARVAM_VOICES = {f"sarvam-{v}": {"speaker": v} for v in [
-    "priya","neha","shreya","kavya","simran","ritu","pooja","ishita","roopa",
+# Sarvam v2 voices (bulbul:v2)
+_SARVAM_V2 = {"anushka", "abhilash", "manisha", "vidya", "arya", "karun", "hitesh"}
+
+# All Sarvam voices (v2 + v3)
+SARVAM_VOICES = {}
+for v in ["anushka", "abhilash", "manisha", "vidya", "arya", "karun", "hitesh"]:
+    SARVAM_VOICES[f"sarvam-{v}"] = {"speaker": v, "model": "bulbul:v2"}
+for v in ["priya","neha","shreya","kavya","simran","ritu","pooja","ishita","roopa",
     "tanya","shruti","suhani","rupali","kavitha","amelia","sophia",
     "rahul","amit","dev","rohan","kabir","aditya","ashutosh","ratan","varun",
     "manan","sumit","aayan","shubh","advait","anand","tarun","sunny","mani",
-    "gokul","vijay","mohit","rehan","soham",
-]}
+    "gokul","vijay","mohit","rehan","soham"]:
+    SARVAM_VOICES[f"sarvam-{v}"] = {"speaker": v, "model": "bulbul:v3"}
 
 
 @router.get("/voices")
@@ -48,7 +53,7 @@ async def list_previewable_voices(tenant_id: str = Depends(get_tenant_id)):
     for vid, vname in OPENAI_VOICES.items():
         voices.append({"id": vid, "name": vname.capitalize(), "vendor": "OpenAI", "type": "openai"})
     for vid, meta in SARVAM_VOICES.items():
-        voices.append({"id": vid, "name": meta["label"], "vendor": "Sarvam AI", "type": "sarvam"})
+        voices.append({"id": vid, "name": meta["speaker"].capitalize(), "vendor": "Sarvam AI", "type": "sarvam", "model": meta.get("model", "bulbul:v2")})
     return voices
 
 
@@ -109,10 +114,10 @@ async def _preview_sarvam_live(voice_meta: dict, lang: str = "hi") -> Response:
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(
                 "https://api.sarvam.ai/text-to-speech",
-                headers={"API-Subscription-Key": api_key, "Content-Type": "application/json"},
+                headers={"api-subscription-key": api_key, "Content-Type": "application/json"},
                 json={
                     "inputs": [preview_text], "target_language_code": lang_code,
-                    "speaker": voice_meta["speaker"], "model": "bulbul:v3",
+                    "speaker": voice_meta["speaker"], "model": voice_meta.get("model", "bulbul:v2"),
                     "pace": 1.0, "speech_sample_rate": 22050, "enable_preprocessing": True,
                 },
             )
