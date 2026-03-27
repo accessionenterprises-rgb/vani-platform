@@ -87,19 +87,25 @@ async def _check_rate_limit(phone: str) -> bool:
 
 async def _lookup_agent(to_number: str) -> dict | None:
     """Find tenant + agent for an inbound phone number."""
+    # Normalize: ensure + prefix for E.164 lookup
+    num = to_number.strip()
+    if num and not num.startswith("+"):
+        num = f"+{num}"
     try:
         db = get_db()
         result = (
             db.table("phone_numbers")
             .select("tenant_id, agent_id, engine, agents(id, name, greeting, prompt, language, voice, stt_provider, llm_provider, tts_provider, behavior, tuning, active)")
-            .eq("number", to_number)
+            .eq("number", num)
             .eq("status", "active")
             .maybe_single()
             .execute()
         )
+        if result is None:
+            return None
         return result.data
     except Exception as e:
-        logger.error("phone_lookup_failed", number=to_number, error=str(e))
+        logger.error("phone_lookup_failed", number=num, error=str(e))
         return None
 
 
