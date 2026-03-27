@@ -20,62 +20,89 @@ logger = structlog.get_logger()
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
 
-# ── Pricing: Option C — Platform fee + Provider markup ────────────────────────
-# Platform fee: ₹1.00/min ($0.012/min)
-# Provider markup: 1.5x actual cost (telephony, STT, TTS), 2x (LLM)
-PLATFORM_FEE_PER_MIN = 0.012  # ~₹1.00
+# ── Pricing: Engine fee (auto-tiered by provider selection) ───────────────────
+# Engine fee per minute — determined by the most expensive provider in the stack
+# ₹1.00/min ($0.0105) — cheap providers (Groq, Sarvam v2, Deepgram)
+# ₹1.50/min ($0.0158) — mid providers (GPT-4o-mini, DeepSeek, Sarvam v3, OpenAI TTS)
+# ₹2.00/min ($0.0211) — premium providers (Cartesia, ElevenLabs, GPT-5)
 
-# Actual provider costs (USD/min) — what WE pay
-_ACTUAL_COSTS = {
+_ENGINE_FEE_TIERS = {
+    "cheap":   0.0105,  # ₹1.00/min
+    "mid":     0.0158,  # ₹1.50/min
+    "premium": 0.0211,  # ₹2.00/min
+}
+
+# Provider → tier mapping
+_PROVIDER_TIER = {
+    # Cheap
+    "groq": "cheap", "llama-3.3-70b": "cheap", "llama-3.1-8b": "cheap",
+    "gemma2-9b": "cheap", "deepgram": "cheap", "deepgram-nova-3": "cheap",
+    "sarvam": "cheap", "twilio": "cheap", "exotel": "cheap",
+    # Mid
+    "gpt-4o-mini": "mid", "gpt-4.1-mini": "mid", "gpt-4.1-nano": "mid",
+    "gemini-2.0-flash": "mid", "deepseek-chat": "mid",
+    "sarvam-v3": "mid", "openai": "mid",
+    # Premium
+    "gpt-5-mini": "premium", "gpt-5": "premium", "gpt-5.4": "premium",
+    "gpt-4o": "premium", "gpt-4.1": "premium",
+    "cartesia": "premium", "elevenlabs": "premium",
+    "claude-haiku": "premium", "claude-sonnet": "premium",
+    "mistral-large": "premium",
+}
+
+def _get_engine_fee(llm: str = "", tts: str = "", stt: str = "") -> float:
+    """Determine engine fee based on highest-tier provider in the stack."""
+    tier_order = {"cheap": 0, "mid": 1, "premium": 2}
+    max_tier = "cheap"
+    for provider in [llm, tts, stt]:
+        if not provider:
+            continue
+        key = provider.lower().strip()
+        t = _PROVIDER_TIER.get(key)
+        if not t:
+            for k, v in _PROVIDER_TIER.items():
+                if k in key or key in k:
+                    t = v
+                    break
+        if t and tier_order.get(t, 0) > tier_order.get(max_tier, 0):
+            max_tier = t
+    return _ENGINE_FEE_TIERS[max_tier]
+
+# Actual provider costs (USD/min) — pass-through at cost
+PROVIDER_RATES = {
     # Telephony
     "twilio":          0.013,
     "exotel":          0.0024,
     # STT
     "deepgram":        0.006,
     "deepgram-nova-3": 0.006,
-    # LLM (2x markup)
+    # LLM
     "groq":            0.001,
     "llama-3.3-70b":   0.001,
     "gpt-4o-mini":     0.005,
     "gpt-4.1-mini":    0.005,
     "gpt-5-mini":      0.008,
     "gemini-2.0-flash": 0.003,
+    "deepseek-chat":   0.004,
     # TTS
-    "openai":          0.008,   # ₹0.70/min
-    "sarvam":          0.010,   # ₹0.83/min (Bulbul v2)
-    "sarvam-v3":       0.020,   # ₹1.65/min (Bulbul v3)
-    "cartesia":        0.036,   # ₹3.00/min
-    "elevenlabs":      0.048,   # ₹4.07/min
+    "openai":          0.008,
+    "sarvam":          0.010,
+    "sarvam-v3":       0.020,
+    "cartesia":        0.036,
+    "elevenlabs":      0.048,
 }
 
-# Markup multipliers
-_MARKUP = {
-    "telephony": 1.5,
-    "stt":       1.5,
-    "llm":       2.0,
-    "tts":       1.5,
-}
-
-def _customer_rate(provider: str, provider_type: str) -> float:
-    """What the CUSTOMER pays per minute (actual cost × markup + platform fee share)."""
-    actual = _actual_rate(provider)
-    markup = _MARKUP.get(provider_type, 1.5)
-    return actual * markup
-
-def _actual_rate(provider: str) -> float:
-    """What WE pay per minute for this provider."""
+def _provider_rate(provider: str) -> float:
+    """What the provider actually costs per minute (pass-through)."""
     if not provider:
         return 0.0
     key = provider.lower().strip()
-    if key in _ACTUAL_COSTS:
-        return _ACTUAL_COSTS[key]
-    for k, v in _ACTUAL_COSTS.items():
+    if key in PROVIDER_RATES:
+        return PROVIDER_RATES[key]
+    for k, v in PROVIDER_RATES.items():
         if k in key or key in k:
             return v
     return 0.0
-
-# Keep old name for backwards compat
-PROVIDER_RATES = _ACTUAL_COSTS
 
 
 def _current_month_range() -> tuple[str, str]:
@@ -102,7 +129,7 @@ def _rate(provider: Optional[str]) -> float:
 # ── Response models ──────────────────────────────────────────────────────────
 
 class CostBreakdown(BaseModel):
-    platform: float
+    engine_fee: float
     telephony: float
     stt: float
     llm: float
@@ -168,8 +195,8 @@ async def get_usage(tenant_id: str = Depends(get_tenant_id)):
     total_seconds = sum(r.get("duration_sec") or 0 for r in rows)
     total_minutes = round(total_seconds / 60, 2)
 
-    # Cost breakdown — customer-facing (with markup)
-    platform_cost = 0.0
+    # Cost breakdown — providers at cost + engine fee
+    engine_cost = 0.0
     telephony_cost = 0.0
     stt_cost = 0.0
     llm_cost = 0.0
@@ -178,25 +205,25 @@ async def get_usage(tenant_id: str = Depends(get_tenant_id)):
 
     for r in rows:
         dur_min = (r.get("duration_sec") or 0) / 60
+        r_llm = r.get("llm_provider") or "groq"
+        r_tts = r.get("tts_provider") or "openai"
+        r_stt = r.get("stt_provider") or "deepgram"
 
-        # Platform fee
-        call_platform = dur_min * PLATFORM_FEE_PER_MIN
-        platform_cost += call_platform
+        # Engine fee (auto-tiered by providers)
+        call_engine = dur_min * _get_engine_fee(r_llm, r_tts, r_stt)
+        engine_cost += call_engine
 
-        # Telephony (1.5x markup)
-        call_telephony = dur_min * _customer_rate("twilio", "telephony")
+        # Providers at cost (pass-through)
+        call_telephony = dur_min * _provider_rate("twilio")
         telephony_cost += call_telephony
 
-        # STT (1.5x markup)
-        call_stt = dur_min * _customer_rate(r.get("stt_provider") or "deepgram", "stt")
+        call_stt = dur_min * _provider_rate(r_stt)
         stt_cost += call_stt
 
-        # LLM (2x markup)
-        call_llm = dur_min * _customer_rate(r.get("llm_provider") or "groq", "llm")
+        call_llm = dur_min * _provider_rate(r_llm)
         llm_cost += call_llm
 
-        # TTS (1.5x markup)
-        call_tts = dur_min * _customer_rate(r.get("tts_provider") or "openai", "tts")
+        call_tts = dur_min * _provider_rate(r_tts)
         tts_cost += call_tts
 
         # Daily bucket
@@ -207,10 +234,10 @@ async def get_usage(tenant_id: str = Depends(get_tenant_id)):
             daily_map[day]["calls"] += 1
             daily_map[day]["minutes"] = round(daily_map[day]["minutes"] + dur_min, 2)
             daily_map[day]["cost"] = round(
-                daily_map[day]["cost"] + call_platform + call_telephony + call_stt + call_llm + call_tts, 4
+                daily_map[day]["cost"] + call_engine + call_telephony + call_stt + call_llm + call_tts, 4
             )
 
-    total_cost = round(platform_cost + telephony_cost + stt_cost + llm_cost + tts_cost, 4)
+    total_cost = round(engine_cost + telephony_cost + stt_cost + llm_cost + tts_cost, 4)
     effective_rate = round(total_cost / total_minutes, 4) if total_minutes > 0 else 0.0
 
     return UsageResponse(
@@ -219,7 +246,7 @@ async def get_usage(tenant_id: str = Depends(get_tenant_id)):
         total_calls=total_calls,
         total_minutes=total_minutes,
         cost_breakdown=CostBreakdown(
-            platform=round(platform_cost, 4),
+            engine_fee=round(engine_cost, 4),
             telephony=round(telephony_cost, 4),
             stt=round(stt_cost, 4),
             llm=round(llm_cost, 4),
@@ -330,66 +357,49 @@ async def get_plan(tenant_id: str = Depends(get_tenant_id)):
 
 @router.get("/pricing")
 async def get_pricing():
-    """Public pricing — shows per-minute cost for each provider combination."""
+    """Public pricing — engine fee + provider costs at pass-through rates."""
+    INR = 95
+
     stacks = [
-        {
-            "name": "Standard",
-            "description": "Sarvam v2 + Groq — best for India",
-            "tts": "sarvam", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
-            "telephony": "twilio",
-        },
-        {
-            "name": "Standard (Exotel)",
-            "description": "Sarvam v2 + Groq + Exotel — cheapest India",
-            "tts": "sarvam", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
-            "telephony": "exotel",
-        },
-        {
-            "name": "Global",
-            "description": "OpenAI Nova + Groq — best for international",
-            "tts": "openai", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
-            "telephony": "twilio",
-        },
-        {
-            "name": "Premium",
-            "description": "Cartesia Brooke + Groq — best voice quality",
-            "tts": "cartesia", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
-            "telephony": "twilio",
-        },
-        {
-            "name": "Ultra",
-            "description": "ElevenLabs + Groq — most expressive",
-            "tts": "elevenlabs", "llm": "llama-3.3-70b", "stt": "deepgram-nova-3",
-            "telephony": "twilio",
-        },
+        {"name": "Standard India", "desc": "Groq + Sarvam v2 + Exotel", "llm": "llama-3.3-70b", "tts": "sarvam", "stt": "deepgram-nova-3", "tel": "exotel"},
+        {"name": "Standard Global", "desc": "Groq + Sarvam v2 + Twilio", "llm": "llama-3.3-70b", "tts": "sarvam", "stt": "deepgram-nova-3", "tel": "twilio"},
+        {"name": "Mid-Range", "desc": "GPT-4o-mini + OpenAI TTS", "llm": "gpt-4o-mini", "tts": "openai", "stt": "deepgram-nova-3", "tel": "twilio"},
+        {"name": "Premium", "desc": "Groq + Cartesia Brooke", "llm": "llama-3.3-70b", "tts": "cartesia", "stt": "deepgram-nova-3", "tel": "twilio"},
+        {"name": "Ultra", "desc": "Groq + ElevenLabs", "llm": "llama-3.3-70b", "tts": "elevenlabs", "stt": "deepgram-nova-3", "tel": "twilio"},
     ]
+
     result = []
     for s in stacks:
-        platform = PLATFORM_FEE_PER_MIN
-        telephony = _customer_rate(s["telephony"], "telephony")
-        stt = _customer_rate(s["stt"], "stt")
-        llm = _customer_rate(s["llm"], "llm")
-        tts = _customer_rate(s["tts"], "tts")
-        total = platform + telephony + stt + llm + tts
+        engine = _get_engine_fee(s["llm"], s["tts"], s["stt"])
+        tel = _provider_rate(s["tel"])
+        stt = _provider_rate(s["stt"])
+        llm = _provider_rate(s["llm"])
+        tts = _provider_rate(s["tts"])
+        total = engine + tel + stt + llm + tts
         result.append({
             "name": s["name"],
-            "description": s["description"],
+            "description": s["desc"],
             "per_minute_usd": round(total, 4),
-            "per_minute_inr": round(total * 84, 2),
+            "per_minute_inr": round(total * INR, 2),
             "breakdown": {
-                "platform": round(platform, 4),
-                "telephony": round(telephony, 4),
+                "engine_fee": round(engine, 4),
+                "engine_fee_inr": round(engine * INR, 2),
+                "telephony": round(tel, 4),
                 "stt": round(stt, 4),
                 "llm": round(llm, 4),
                 "tts": round(tts, 4),
             },
         })
-    return {"plans": [
-        {"name": "Starter", "price_monthly": 0, "included_minutes": 50, "overage_rate": "per stack"},
-        {"name": "Growth", "price_monthly": 4999, "currency": "INR", "included_minutes": 1000, "overage_rate": "per stack"},
-        {"name": "Business", "price_monthly": 14999, "currency": "INR", "included_minutes": 5000, "overage_rate": "per stack"},
-        {"name": "Enterprise", "price_monthly": "custom", "included_minutes": "unlimited"},
-    ], "stacks": result}
+
+    return {
+        "engine_fee_tiers": {
+            "cheap": {"fee_usd": 0.0105, "fee_inr": round(0.0105 * INR, 2), "providers": "Groq, Sarvam v2, Deepgram, Exotel"},
+            "mid": {"fee_usd": 0.0158, "fee_inr": round(0.0158 * INR, 2), "providers": "GPT-4o-mini, DeepSeek, Sarvam v3, OpenAI TTS, Gemini Flash"},
+            "premium": {"fee_usd": 0.0211, "fee_inr": round(0.0211 * INR, 2), "providers": "Cartesia, ElevenLabs, GPT-5, Claude"},
+        },
+        "note": "Engine fee is auto-determined by the highest-tier provider in your stack. Provider costs are pass-through at actual rates. Connect your own provider keys (BYOK) to pay $0 for that component.",
+        "stacks": result,
+    }
 
 
 @router.post("/upgrade")
