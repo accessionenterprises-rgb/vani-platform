@@ -759,7 +759,35 @@ async def media_stream(ws: WebSocket, call_id: str):
                         log.info("ws_raw_message", count=_msg_count, ws_event=ev, keys=list(data.keys())[:10])
                     if ev == "connected":
                         log.info("ws_connected_event", protocol=data.get("protocol"))
-                        continue  # Skip — wait for "start" which has streamSid
+                        continue
+                    # Treat first media event as stream start if no start event received (Vobiz)
+                    if ev == "media" and not session["stream_sid"]:
+                        session["stream_sid"] = data.get("streamId") or data.get("streamSid") or call_id
+                        log.info("stream_started_from_media", stream_sid=session["stream_sid"])
+                        try:
+                            await update_status(call_id, CallStatus.ACTIVE)
+                        except Exception:
+                            pass
+                        if greeting:
+                            messages.append({"role": "assistant", "content": greeting})
+                            messages_log.append(f"AGENT: {greeting}")
+                            session["state"] = "RESPONDING"
+                            playback.is_playing = True
+                            playback.current_task = asyncio.create_task(play_text(greeting))
+                            async def _post_greeting_v():
+                                try:
+                                    await playback.current_task
+                                except Exception:
+                                    pass
+                                playback.is_playing = False
+                                session["state"] = "LISTENING"
+                            asyncio.create_task(_post_greeting_v())
+                        # Also forward this first media packet to Deepgram
+                        media = data.get("media", {})
+                        payload = media.get("payload") or data.get("payload") or ""
+                        if payload:
+                            await dg_ws.send(base64.b64decode(payload))
+                        continue
                     if ev == "start":
                         # Twilio: data["start"]["streamSid"], Vobiz: may differ
                         start_data = data.get("start") or {}
