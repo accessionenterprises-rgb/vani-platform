@@ -614,20 +614,21 @@ async def media_stream(ws: WebSocket, call_id: str):
             }))
             await asyncio.sleep(0.01)
 
-    async def play_audio(pcm: bytes) -> None:
-        """Stream PCM-16 audio in small chunks (50ms) for Vobiz (l16 format).
-        Vobiz docs: send as event=media with streamSid, same as receiving."""
-        chunk_size = 800  # 800 bytes = 50ms at 8kHz PCM-16 (2 bytes/sample)
+    async def play_vobiz(mulaw: bytes) -> None:
+        """Stream audio to Vobiz using playAudio event (bidirectional streaming).
+        Vobiz docs: bidirectional accepts playAudio events with contentType + payload."""
+        chunk_size = 400  # 400 bytes = 50ms mulaw
         sid = session["stream_sid"]
-        for i in range(0, len(pcm), chunk_size):
+        for i in range(0, len(mulaw), chunk_size):
             if not playback.is_playing:
                 return
             await _ws_send(json.dumps({
-                "event": "media",
-                "streamSid": sid,
+                "event": "playAudio",
                 "streamId": sid,
                 "media": {
-                    "payload": base64.b64encode(pcm[i:i + chunk_size]).decode(),
+                    "contentType": "audio/x-mulaw",
+                    "sampleRate": 8000,
+                    "payload": base64.b64encode(mulaw[i:i + chunk_size]).decode(),
                 },
             }))
             await asyncio.sleep(0.01)
@@ -640,9 +641,12 @@ async def media_stream(ws: WebSocket, call_id: str):
         try:
             log.info("play_text_tts_start", text=text[:50], fmt=session["audio_format"])
             mulaw = await _tts(text, tts_provider, voice_raw, language)
-            # Always send mulaw — works for both Twilio and Vobiz
-            log.info("play_text_tts_done", mulaw_len=len(mulaw))
-            await play_mulaw(mulaw)
+            log.info("play_text_tts_done", mulaw_len=len(mulaw), fmt=session["audio_format"])
+            if session["audio_format"] == "l16":
+                # Vobiz bidirectional: use playAudio event with mulaw payload
+                await play_vobiz(mulaw)
+            else:
+                await play_mulaw(mulaw)
             log.info("play_text_sent")
         except asyncio.CancelledError:
             log.info("play_text_cancelled")
