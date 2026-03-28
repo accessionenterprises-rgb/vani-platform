@@ -41,6 +41,13 @@ export function AuthProvider({ children }) {
     return me
   }
 
+  async function loginWithGoogle() {
+    // Redirect to Supabase Google OAuth
+    const supabaseUrl = 'https://osimjsbgxhoqlrfutloh.supabase.co'
+    const redirectTo = `${window.location.origin}/auth/callback`
+    window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`
+  }
+
   function logout() {
     localStorage.removeItem('vani_token')
     localStorage.removeItem('vani_tenant')
@@ -48,7 +55,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, loginWithGoogle }}>
       {children}
     </AuthContext.Provider>
   )

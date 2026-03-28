@@ -1,5 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { api } from './api/client'
 import Sidebar from './components/Sidebar'
 import LoginPage          from './pages/LoginPage'
 import DashboardPage      from './pages/DashboardPage'
@@ -74,12 +76,41 @@ function RequireAuth({ children }) {
   return children
 }
 
+function AuthCallback() {
+  const navigate = useNavigate()
+  useEffect(() => {
+    // Supabase OAuth returns tokens in the URL hash: #access_token=...&refresh_token=...
+    const hash = window.location.hash.substring(1)
+    const params = new URLSearchParams(hash)
+    const accessToken = params.get('access_token')
+    if (accessToken) {
+      localStorage.setItem('vani_token', accessToken)
+      // Extract tenant_id from JWT payload
+      try {
+        const payload = JSON.parse(atob(accessToken.split('.')[1]))
+        localStorage.setItem('vani_tenant', payload.sub || '')
+      } catch {}
+      // Ensure tenant row exists (Google OAuth may be first-time user)
+      api.me().catch(() => {})
+      window.location.href = '/'
+    } else {
+      navigate('/login')
+    }
+  }, [navigate])
+  return (
+    <div className="flex-1 flex items-center justify-center bg-[#FAFAF9]">
+      <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
           <Route path="/login"  element={<LoginPage />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/kiosk"  element={<KioskPage />} />
           <Route path="/*" element={
             <RequireAuth>

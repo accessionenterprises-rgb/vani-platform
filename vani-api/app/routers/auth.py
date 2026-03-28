@@ -108,5 +108,28 @@ async def me(tenant_id: str = Depends(get_tenant_id)):
     db = get_db()
     row = db.table("tenants").select("*").eq("id", tenant_id).maybe_single().execute()
     if row.data is None:
+        # Auto-provision tenant for OAuth users (first login via Google)
+        # Fetch user info from Supabase auth
+        try:
+            async with httpx.AsyncClient() as client:
+                r = await client.get(
+                    f"{_AUTH_URL}/admin/users/{tenant_id}",
+                    headers={**_HEADERS, "Authorization": f"Bearer {settings.supabase_service_key}"},
+                )
+            if r.status_code == 200:
+                user_data = r.json()
+                email = user_data.get("email", "")
+                name = user_data.get("user_metadata", {}).get("full_name") or email.split("@")[0]
+                db.table("tenants").insert({
+                    "id": tenant_id,
+                    "name": name,
+                    "email": email,
+                    "plan": "starter",
+                }).execute()
+                row = db.table("tenants").select("*").eq("id", tenant_id).maybe_single().execute()
+                if row.data:
+                    return MeResponse(**row.data)
+        except Exception:
+            pass
         raise HTTPException(status_code=404, detail="Tenant not found")
     return MeResponse(**row.data)
