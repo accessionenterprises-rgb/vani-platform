@@ -405,6 +405,9 @@ class VaaniAssistant(Agent):
         self._products     = {p["name"].lower(): p for p in (products or [])}
 
     async def on_enter(self):
+        # Gemini Live has no separate TTS — greeting is in system instructions
+        if self.session._llm and hasattr(self.session._llm, '__class__') and 'Realtime' in type(self.session._llm).__name__:
+            return  # Skip say() — Gemini Live handles greeting via instructions
         await self.session.say(self._greeting)
 
     async def _publish_data(self, payload: dict):
@@ -635,13 +638,15 @@ async def vani_agent(ctx: JobContext):
     # ── Gemini Live: speech-to-speech (replaces STT+LLM+TTS) ────────────────
     if tts_provider == "gemini-live" or llm_model.startswith("gemini-live"):
         gemini_voice = voice or "Puck"
+        # Add greeting to instructions so Gemini speaks it naturally
+        gemini_instructions = f"When the call starts, greet the caller by saying: \"{greeting}\"\n\n{full_instructions}"
         print(f">>> GEMINI LIVE: voice={gemini_voice} model=gemini-3.1-flash-live-preview", flush=True)
         session = AgentSession(
             llm=google.realtime.RealtimeModel(
                 model="gemini-3.1-flash-live-preview",
                 voice=gemini_voice,
                 temperature=0.7,
-                instructions=full_instructions,
+                instructions=gemini_instructions,
                 api_key=os.getenv("GOOGLE_API_KEY", ""),
             ),
         )
