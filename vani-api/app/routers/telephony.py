@@ -27,6 +27,8 @@ async def twiml_webhook(
 
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
+  <Say voice="Polly.Joanna">Please hold while we connect you.</Say>
+  <Pause length="2"/>
   <Dial timeout="120">
     <Sip>sip:{sip_number}@{SIP_HOST};transport=tcp</Sip>
   </Dial>

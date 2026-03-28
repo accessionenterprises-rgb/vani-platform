@@ -8,6 +8,7 @@ This route handles:
   3. Recording status callback from Twilio
   4. Rate limiting + call logging
 """
+import os
 import uuid
 
 import structlog
@@ -23,7 +24,7 @@ logger = structlog.get_logger()
 router = APIRouter(prefix="/telephony", tags=["telephony"])
 
 # LiveKit SIP URI from project settings
-LIVEKIT_SIP_HOST = "1kf73cgub7v.sip.livekit.cloud"
+LIVEKIT_SIP_HOST = os.getenv("LIVEKIT_SIP_HOST", "1kf73cgub7v.sip.livekit.cloud")
 
 # ── TwiML Templates ─────────────────────────────────────────────────────────
 

@@ -671,13 +671,18 @@ async def vani_agent(ctx: JobContext):
             use_realtime = False
 
     if not use_realtime:
+        # SIP audio is 8kHz/mulaw — needs longer endpointing to avoid dropped finals
+        stt_endpointing = 600 if is_sip_call else 300
+        print(f">>> STT endpointing: {stt_endpointing}ms ({'SIP' if is_sip_call else 'WebRTC'})", flush=True)
         session = AgentSession(
             stt=deepgram.STT(
                 model=deepgram_model,
                 language=dg_language,
                 smart_format=True,
                 filler_words=False,
-                endpointing_ms=300,
+                endpointing_ms=stt_endpointing,
+                interim_results=True,
+                utterance_end_ms=1200 if is_sip_call else 0,
             ),
             llm=llm,
             tts=tts,

@@ -27,7 +27,7 @@ async def livekit_connect_twiml(call_id: str, room_name: str):
     """
     # LiveKit SIP trunk host — separate from project URL
     import os
-    sip_host = os.getenv("LIVEKIT_SIP_HOST", "1h5xw3nwkcn.sip.livekit.cloud")
+    sip_host = os.getenv("LIVEKIT_SIP_HOST", "1kf73cgub7v.sip.livekit.cloud")
     sip_uri = f"sip:{room_name}@{sip_host}"
 
     twiml = f"""<?xml version="1.0" encoding="UTF-8"?>

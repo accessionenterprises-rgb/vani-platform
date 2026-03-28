@@ -21,7 +21,7 @@ logger = structlog.get_logger()
 
 router = APIRouter(prefix="/playground", tags=["Playground"])
 
-LIVEKIT_URL = os.getenv("LIVEKIT_URL", "wss://vaani-voice-s42m8zzi.livekit.cloud")
+LIVEKIT_URL = os.getenv("LIVEKIT_URL", "wss://vaani-production-ph9tiyzv.livekit.cloud")
 LIVEKIT_API_KEY = os.getenv("LIVEKIT_API_KEY", "")
 LIVEKIT_API_SECRET = os.getenv("LIVEKIT_API_SECRET", "")
 
