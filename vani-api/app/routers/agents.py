@@ -320,11 +320,13 @@ async def update_agent(agent_id: UUID, body: UpdateAgentRequest, tenant_id: str 
         "polly": "Danielle",
         "google": "en-US-Neural2-F",
         "azure": "en-US-JennyNeural",
+        "gemini-live": "Puck",
     }
     _TTS_VALID_VOICES = {
         "openai": {"alloy", "ash", "ballad", "cedar", "coral", "echo", "fable", "marin", "nova", "onyx", "sage", "shimmer", "verse"},
         "sarvam": {"anushka", "abhilash", "manisha", "vidya", "arya", "karun", "hitesh"},
         "sarvam-v3": {"shreya", "amelia", "sophia", "priya", "neha", "kavya", "simran", "ritu", "pooja", "ishita", "roopa", "tanya", "shruti", "suhani", "rupali", "kavitha", "rahul", "amit", "dev", "rohan", "kabir", "aditya", "ashutosh", "ratan", "varun", "manan", "sumit", "aayan", "shubh", "advait", "anand", "tarun", "sunny", "mani", "gokul", "vijay", "mohit", "rehan", "soham"},
+        "gemini-live": {"Zephyr", "Kore", "Orus", "Autonoe", "Umbriel", "Erinome", "Laomedeia", "Schedar", "Achird", "Sadachbia", "Puck", "Fenrir", "Aoede", "Enceladus", "Algieba", "Algenib", "Achernar", "Gacrux", "Zubenelgenubi", "Sadaltager", "Charon", "Leda", "Callirrhoe", "Iapetus", "Despina", "Rasalgethi", "Alnilam", "Pulcherrima", "Vindemiatrix", "Sulafat"},
     }
     tts = updates.get("tts_provider") or (body.stack.tts if body.stack else None)
     voice = updates.get("voice")

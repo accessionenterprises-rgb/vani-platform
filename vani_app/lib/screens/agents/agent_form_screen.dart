@@ -53,6 +53,20 @@ const _voicesByProvider = <String, List<_Voice>>{
     _Voice('Jessica', 'cgSgspJ2msm6clMCkdW9'),
     _Voice('Bella', 'hpp4J3VqNfWAUOO0d1Us'),
   ],
+  'gemini-live': [
+    _Voice('Puck', 'Puck'), _Voice('Zephyr', 'Zephyr'), _Voice('Kore', 'Kore'),
+    _Voice('Charon', 'Charon'), _Voice('Aoede', 'Aoede'), _Voice('Leda', 'Leda'),
+    _Voice('Fenrir', 'Fenrir'), _Voice('Orus', 'Orus'), _Voice('Erinome', 'Erinome'),
+    _Voice('Autonoe', 'Autonoe'), _Voice('Umbriel', 'Umbriel'), _Voice('Schedar', 'Schedar'),
+    _Voice('Gacrux', 'Gacrux'), _Voice('Achernar', 'Achernar'), _Voice('Sulafat', 'Sulafat'),
+    _Voice('Despina', 'Despina'), _Voice('Algieba', 'Algieba'), _Voice('Laomedeia', 'Laomedeia'),
+    _Voice('Achird', 'Achird'), _Voice('Sadachbia', 'Sadachbia'), _Voice('Enceladus', 'Enceladus'),
+    _Voice('Algenib', 'Algenib'), _Voice('Zubenelgenubi', 'Zubenelgenubi'),
+    _Voice('Sadaltager', 'Sadaltager'), _Voice('Callirrhoe', 'Callirrhoe'),
+    _Voice('Iapetus', 'Iapetus'), _Voice('Rasalgethi', 'Rasalgethi'),
+    _Voice('Alnilam', 'Alnilam'), _Voice('Pulcherrima', 'Pulcherrima'),
+    _Voice('Vindemiatrix', 'Vindemiatrix'),
+  ],
 };
 
 const _llmOptions = <String, String>{
@@ -74,6 +88,7 @@ const _ttsOptions = <String, String>{
   'Sarvam v3': 'sarvam-v3',
   'Cartesia': 'cartesia',
   'ElevenLabs': 'elevenlabs',
+  'Gemini Live': 'gemini-live',
 };
 
 const _languages = <String, String>{
@@ -447,6 +462,15 @@ class _AgentFormScreenState extends State<AgentFormScreen> {
           });
         },
       ),
+      if (_tts == 'gemini-live') ...[
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: const Color(0xFFFFF8E1), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFFFE082))),
+          child: const Text('Gemini Live is a speech-to-speech model. It replaces STT + LLM + TTS with a single model. STT and LLM selections above will be ignored.',
+            style: TextStyle(color: Color(0xFF795548), fontSize: 12)),
+        ),
+      ],
       _label('Voice'),
       const SizedBox(height: 8),
       _voiceGrid(),

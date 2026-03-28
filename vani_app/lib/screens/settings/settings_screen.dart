@@ -83,6 +83,23 @@ final _ttsProviders = <_TtsProviderInfo>[
   _TtsProviderInfo('azure', 'Azure Neural', [
     _VoiceInfo('en-US-JennyNeural'), _VoiceInfo('en-US-AriaNeural'),
   ]),
+  _TtsProviderInfo('gemini-live', 'Gemini Live \u00b7 \u20b92.19/min', [
+    _VoiceInfo('Puck', id: 'Puck', isMale: true), _VoiceInfo('Zephyr', id: 'Zephyr'),
+    _VoiceInfo('Kore', id: 'Kore'), _VoiceInfo('Charon', id: 'Charon', isMale: true),
+    _VoiceInfo('Aoede', id: 'Aoede'), _VoiceInfo('Leda', id: 'Leda'),
+    _VoiceInfo('Fenrir', id: 'Fenrir', isMale: true), _VoiceInfo('Orus', id: 'Orus', isMale: true),
+    _VoiceInfo('Erinome', id: 'Erinome'), _VoiceInfo('Autonoe', id: 'Autonoe'),
+    _VoiceInfo('Umbriel', id: 'Umbriel', isMale: true), _VoiceInfo('Schedar', id: 'Schedar', isMale: true),
+    _VoiceInfo('Gacrux', id: 'Gacrux', isMale: true), _VoiceInfo('Achernar', id: 'Achernar'),
+    _VoiceInfo('Sulafat', id: 'Sulafat'), _VoiceInfo('Despina', id: 'Despina'),
+    _VoiceInfo('Algieba', id: 'Algieba', isMale: true), _VoiceInfo('Laomedeia', id: 'Laomedeia'),
+    _VoiceInfo('Achird', id: 'Achird', isMale: true), _VoiceInfo('Sadachbia', id: 'Sadachbia', isMale: true),
+    _VoiceInfo('Enceladus', id: 'Enceladus', isMale: true), _VoiceInfo('Algenib', id: 'Algenib', isMale: true),
+    _VoiceInfo('Zubenelgenubi', id: 'Zubenelgenubi', isMale: true), _VoiceInfo('Sadaltager', id: 'Sadaltager', isMale: true),
+    _VoiceInfo('Callirrhoe', id: 'Callirrhoe'), _VoiceInfo('Iapetus', id: 'Iapetus', isMale: true),
+    _VoiceInfo('Rasalgethi', id: 'Rasalgethi', isMale: true), _VoiceInfo('Alnilam', id: 'Alnilam', isMale: true),
+    _VoiceInfo('Pulcherrima', id: 'Pulcherrima'), _VoiceInfo('Vindemiatrix', id: 'Vindemiatrix'),
+  ]),
 ];
 
 final _llmOptions = <_LlmOption>[
@@ -296,6 +313,15 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                         });
                       },
                     ),
+                    if (_ttsProvider == 'gemini-live') ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: const Color(0xFFFFF8E1), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFFFE082))),
+                        child: const Text('Gemini Live is a speech-to-speech model. It replaces STT + LLM + TTS with a single model. STT and LLM selections above will be ignored.',
+                          style: TextStyle(color: Color(0xFF795548), fontSize: 12)),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     Text('Voices', style: const TextStyle(color: V.textSub, fontSize: 13, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 10),

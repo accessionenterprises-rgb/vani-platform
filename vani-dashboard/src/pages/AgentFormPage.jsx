@@ -58,6 +58,8 @@ const TTS_PROVIDERS = [
   // Premium
   { id: 'cartesia',        name: 'Cartesia',        vendor: 'Cartesia', desc: 'Best quality — Brooke voice',       badge: 'Premium',     latency: '~500ms', cost: '₹3.00/min' },
   { id: 'elevenlabs',      name: 'ElevenLabs',      vendor: 'ElevenLabs',desc: 'Most expressive, voice cloning',   badge: 'Premium',     latency: '~400ms', cost: '₹4.07/min' },
+  // Speech-to-Speech
+  { id: 'gemini-live',     name: 'Gemini Live',     vendor: 'Google',    desc: 'Speech-to-speech — replaces STT+LLM+TTS', badge: 'Realtime', latency: '~200ms', cost: '₹2.19/min' },
 ]
 
 const OPENAI_VOICES = [
@@ -656,6 +658,7 @@ function StackStep({ form, set }) {
             'amazon-standard': 'Joanna',
             'amazon-neural': 'Joanna',
             'azure-neural': 'en-US-JennyNeural',
+            'gemini-live': 'Puck',
           }
           if (defaults[v]) set('voice', defaults[v])
         }}
@@ -711,6 +714,22 @@ function StackStep({ form, set }) {
           onSelect={v => { set('tts_provider', 'elevenlabs'); set('voice', v) }}
           previewPrefix="elevenlabs"
         />
+      )}
+
+      {/* Gemini Live voice picker */}
+      {form.tts_provider === 'gemini-live' && (
+        <>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+            <strong>Gemini Live</strong> is a speech-to-speech model. It replaces STT + LLM + TTS with a single model. STT and LLM selections above will be ignored.
+          </div>
+          <VoiceGrid
+            title="Gemini Live"
+            subtitle="Speech-to-speech — 30 voices"
+            voices={GEMINI_LIVE_VOICES}
+            selected={form.voice}
+            onSelect={v => { set('tts_provider', 'gemini-live'); set('voice', v) }}
+          />
+        </>
       )}
     </div>
   )
@@ -1688,6 +1707,40 @@ const SARVAM_V3_VOICES = [
 
 // Combined for display — provider picker shows which model
 const SARVAM_VOICES = [...SARVAM_V2_VOICES, ...SARVAM_V3_VOICES]
+
+// Gemini 3.1 Flash Live — 30 speech-to-speech voices
+const GEMINI_LIVE_VOICES = [
+  { id: 'Zephyr',         name: 'Zephyr',         gender: 'Female', desc: 'Bright' },
+  { id: 'Kore',           name: 'Kore',           gender: 'Female', desc: 'Firm' },
+  { id: 'Orus',           name: 'Orus',           gender: 'Male',   desc: 'Firm' },
+  { id: 'Autonoe',        name: 'Autonoe',        gender: 'Female', desc: 'Bright' },
+  { id: 'Umbriel',        name: 'Umbriel',        gender: 'Male',   desc: 'Easy-going' },
+  { id: 'Erinome',        name: 'Erinome',        gender: 'Female', desc: 'Clear' },
+  { id: 'Laomedeia',      name: 'Laomedeia',      gender: 'Female', desc: 'Upbeat' },
+  { id: 'Schedar',        name: 'Schedar',        gender: 'Male',   desc: 'Even-keeled' },
+  { id: 'Achird',         name: 'Achird',         gender: 'Male',   desc: 'Friendly' },
+  { id: 'Sadachbia',      name: 'Sadachbia',      gender: 'Male',   desc: 'Lively' },
+  { id: 'Puck',           name: 'Puck',           gender: 'Male',   desc: 'Upbeat' },
+  { id: 'Fenrir',         name: 'Fenrir',         gender: 'Male',   desc: 'Excitable' },
+  { id: 'Aoede',          name: 'Aoede',          gender: 'Female', desc: 'Breezy' },
+  { id: 'Enceladus',      name: 'Enceladus',      gender: 'Male',   desc: 'Breathy' },
+  { id: 'Algieba',        name: 'Algieba',        gender: 'Male',   desc: 'Smooth' },
+  { id: 'Algenib',        name: 'Algenib',        gender: 'Male',   desc: 'Gravelly' },
+  { id: 'Achernar',       name: 'Achernar',       gender: 'Female', desc: 'Soft' },
+  { id: 'Gacrux',         name: 'Gacrux',         gender: 'Male',   desc: 'Mature' },
+  { id: 'Zubenelgenubi',  name: 'Zubenelgenubi',  gender: 'Male',   desc: 'Casual' },
+  { id: 'Sadaltager',     name: 'Sadaltager',     gender: 'Male',   desc: 'Knowledgeable' },
+  { id: 'Charon',         name: 'Charon',         gender: 'Male',   desc: 'Warm' },
+  { id: 'Leda',           name: 'Leda',           gender: 'Female', desc: 'Youthful' },
+  { id: 'Callirrhoe',     name: 'Callirrhoe',     gender: 'Female', desc: 'Easy-going' },
+  { id: 'Iapetus',        name: 'Iapetus',        gender: 'Male',   desc: 'Clear' },
+  { id: 'Despina',        name: 'Despina',        gender: 'Female', desc: 'Smooth' },
+  { id: 'Rasalgethi',     name: 'Rasalgethi',     gender: 'Male',   desc: 'Informative' },
+  { id: 'Alnilam',        name: 'Alnilam',        gender: 'Male',   desc: 'Firm' },
+  { id: 'Pulcherrima',    name: 'Pulcherrima',    gender: 'Female', desc: 'Forward' },
+  { id: 'Vindemiatrix',   name: 'Vindemiatrix',   gender: 'Female', desc: 'Gentle' },
+  { id: 'Sulafat',        name: 'Sulafat',        gender: 'Female', desc: 'Warm' },
+]
 
 function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix }) {
   const [playing, setPlaying] = useState(null)
