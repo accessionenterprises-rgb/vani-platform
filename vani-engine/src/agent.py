@@ -405,9 +405,10 @@ class VaaniAssistant(Agent):
         self._products     = {p["name"].lower(): p for p in (products or [])}
 
     async def on_enter(self):
-        # Gemini Live has no separate TTS — greeting is in system instructions
-        if self.session._llm and hasattr(self.session._llm, '__class__') and 'Realtime' in type(self.session._llm).__name__:
-            return  # Skip say() — Gemini Live handles greeting via instructions
+        # Gemini Live: use generate_reply to trigger first speech
+        if self.session._llm and 'Realtime' in type(self.session._llm).__name__:
+            await self.session.generate_reply()
+            return
         await self.session.say(self._greeting)
 
     async def _publish_data(self, payload: dict):
