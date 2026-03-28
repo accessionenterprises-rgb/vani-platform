@@ -23,19 +23,22 @@ except ImportError:
 SARVAM_WS_URL = "wss://api.sarvam.ai/text-to-speech/ws"
 SARVAM_HTTP_URL = "https://api.sarvam.ai/text-to-speech"
 
-VOICE_MAP = {
-    "priya": "priya", "neha": "neha", "shreya": "shreya", "kavya": "kavya",
-    "simran": "simran", "ritu": "ritu", "pooja": "pooja", "ishita": "ishita",
-    "roopa": "roopa", "tanya": "tanya", "shruti": "shruti", "suhani": "suhani",
-    "rupali": "rupali", "kavitha": "kavitha", "amelia": "amelia", "sophia": "sophia",
-    "niharika": "niharika",
-    "rahul": "rahul", "amit": "amit", "dev": "dev", "rohan": "rohan",
-    "kabir": "kabir", "aditya": "aditya", "ashutosh": "ashutosh", "ratan": "ratan",
-    "varun": "varun", "manan": "manan", "sumit": "sumit", "aayan": "aayan",
-    "shubh": "shubh", "advait": "advait", "anand": "anand", "tarun": "tarun",
-    "sunny": "sunny", "mani": "mani", "gokul": "gokul", "vijay": "vijay",
-    "mohit": "mohit", "rehan": "rehan", "soham": "soham",
+_V2_VOICES = {"anushka", "abhilash", "manisha", "vidya", "arya", "karun", "hitesh"}
+
+_V3_VOICES = {
+    "priya", "neha", "shreya", "kavya", "simran", "ritu", "pooja", "ishita",
+    "roopa", "tanya", "shruti", "suhani", "rupali", "kavitha", "amelia", "sophia",
+    "niharika", "rahul", "amit", "dev", "rohan", "kabir", "aditya", "ashutosh",
+    "ratan", "varun", "manan", "sumit", "aayan", "shubh", "advait", "anand",
+    "tarun", "sunny", "mani", "gokul", "vijay", "mohit", "rehan", "soham",
 }
+
+VOICE_MAP = {v: v for v in (_V2_VOICES | _V3_VOICES)}
+
+
+def _model_for_voice(voice: str) -> str:
+    """Return bulbul:v2 or bulbul:v3 based on the voice name."""
+    return "bulbul:v2" if voice in _V2_VOICES else "bulbul:v3"
 
 LANG_MAP = {
     "en": "en-IN", "hi": "hi-IN", "multi": "hi-IN",
@@ -190,7 +193,7 @@ if _SDK_AVAILABLE:
             self._voice = VOICE_MAP.get(voice, voice)
             self._lang_code = LANG_MAP.get(language, "en-IN")
             self._language = language
-            self._model = "bulbul:v3"
+            self._model = _model_for_voice(self._voice)
 
         def synthesize(self, text: str, *, conn_options: APIConnectOptions = DEFAULT_API_CONNECT_OPTIONS) -> _SarvamStreamingChunkedStream:
             return _SarvamStreamingChunkedStream(
