@@ -715,7 +715,10 @@ async def media_stream(ws: WebSocket, call_id: str):
                         break
 
                     # Start playing this sentence
-                    play_task = asyncio.create_task(play_mulaw(mulaw))
+                    if session["audio_format"] == "vobiz":
+                        play_task = asyncio.create_task(play_vobiz(mulaw))
+                    else:
+                        play_task = asyncio.create_task(play_mulaw(mulaw))
 
                     # While playing, pre-fetch TTS for whatever comes next
                     # (the next iteration of the loop will use it)
