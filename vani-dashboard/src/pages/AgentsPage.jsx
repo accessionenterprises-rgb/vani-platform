@@ -110,9 +110,16 @@ export default function AgentsPage() {
                     </div>
                     <p className="text-sm text-[#A8A29E] mt-0.5 truncate">{agent.greeting}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      {agent.agent_type !== 'chatbot' && <Chip>{agent.stt_provider}</Chip>}
-                      <Chip>{agent.llm_provider}</Chip>
-                      {agent.agent_type !== 'chatbot' && <Chip>{agent.tts_provider}</Chip>}
+                      {agent.agent_type !== 'chatbot' && (['gemini-live','gpt-4o-mini-realtime','gpt-4o-realtime'].includes(agent.tts_provider) ? (
+                        <Chip accent="violet">Realtime: {agent.tts_provider}</Chip>
+                      ) : (
+                        <>
+                          <Chip>{agent.stt_provider}</Chip>
+                          <Chip>{agent.llm_provider}</Chip>
+                          <Chip>{agent.tts_provider}</Chip>
+                        </>
+                      ))}
+                      {agent.agent_type === 'chatbot' && <Chip>{agent.llm_provider}</Chip>}
                       <Chip>{agent.language?.toUpperCase()}</Chip>
                     </div>
                   </div>
@@ -154,10 +161,9 @@ export default function AgentsPage() {
   )
 }
 
-function Chip({ children }) {
-  return (
-    <span className="text-sm text-[#A8A29E] bg-[#F5F5F4] px-2 py-0.5 rounded font-mono">
-      {children}
-    </span>
-  )
+function Chip({ children, accent }) {
+  const cls = accent === 'violet'
+    ? 'text-sm text-violet-600 bg-violet-50 border border-violet-200 px-2 py-0.5 rounded font-mono'
+    : 'text-sm text-[#A8A29E] bg-[#F5F5F4] px-2 py-0.5 rounded font-mono'
+  return <span className={cls}>{children}</span>
 }
