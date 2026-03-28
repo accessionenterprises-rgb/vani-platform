@@ -414,11 +414,14 @@ async def vobiz_inbound(request: Request):
     # Return XML that tells Vobiz to stream audio to our WebSocket
     # Vobiz uses bare <Stream> (not <Connect><Stream>) — confirmed by testing
     orchestrator_ws = settings.orchestrator_public_url.replace("https://", "wss://")
+    # Vobiz: <Speak> greeting first, then <Stream> for WebSocket (per official Pipecat example)
+    agent_greeting = agent_row.get("greeting", "Hello, how can I help you?")
     stream_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Connect>
-    <Stream url="{orchestrator_ws}/media/stream/{call_id}" />
-  </Connect>
+  <Speak>{agent_greeting}</Speak>
+  <Stream bidirectional="true" keepCallAlive="true" contentType="audio/x-mulaw;rate=8000">
+    {orchestrator_ws}/media/stream/{call_id}
+  </Stream>
 </Response>"""
 
     log.info("vobiz_stream_xml_served", call_id=call_id, engine=engine)
@@ -470,11 +473,14 @@ async def vobiz_answer(call_id: str, request: Request):
             )
 
     orchestrator_ws = settings.orchestrator_public_url.replace("https://", "wss://")
+    # Vobiz: <Speak> greeting first, then <Stream> for WebSocket (per official Pipecat example)
+    agent_greeting = agent_row.get("greeting", "Hello, how can I help you?")
     stream_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Connect>
-    <Stream url="{orchestrator_ws}/media/stream/{call_id}" />
-  </Connect>
+  <Speak>{agent_greeting}</Speak>
+  <Stream bidirectional="true" keepCallAlive="true" contentType="audio/x-mulaw;rate=8000">
+    {orchestrator_ws}/media/stream/{call_id}
+  </Stream>
 </Response>"""
 
     log.info("vobiz_answer_stream_xml_served", call_id=call_id)
