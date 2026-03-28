@@ -25,7 +25,7 @@ from livekit.agents import (
     JobContext,
     cli,
 )
-from livekit.plugins import deepgram, openai
+from livekit.plugins import deepgram, openai, google
 
 import circuit_breaker
 from call_limits import CallLimits
@@ -632,17 +632,31 @@ async def vani_agent(ctx: JobContext):
     # ── LLM tools: external + built-in product tools ──────────────────────────
     lk_tools = build_livekit_tools(tools_config) + build_product_tools(products)
 
-    session = AgentSession(
-        stt=deepgram.STT(
-            model=deepgram_model,
-            language=dg_language,
-            smart_format=True,
-            filler_words=False,
-            endpointing_ms=300,
-        ),
-        llm=llm,
-        tts=tts,
-    )
+    # ── Gemini Live: speech-to-speech (replaces STT+LLM+TTS) ────────────────
+    if llm_model.startswith("gemini-live") or llm_model.startswith("gemini-3") and "live" in llm_model:
+        gemini_voice = voice or "Puck"
+        print(f">>> GEMINI LIVE: voice={gemini_voice} model=gemini-3.1-flash-live-preview", flush=True)
+        session = AgentSession(
+            llm=google.realtime.RealtimeModel(
+                model="gemini-3.1-flash-live-preview",
+                voice=gemini_voice,
+                temperature=0.7,
+                instructions=full_instructions,
+                api_key=os.getenv("GOOGLE_API_KEY", ""),
+            ),
+        )
+    else:
+        session = AgentSession(
+            stt=deepgram.STT(
+                model=deepgram_model,
+                language=dg_language,
+                smart_format=True,
+                filler_words=False,
+                endpointing_ms=300,
+            ),
+            llm=llm,
+            tts=tts,
+        )
 
     filler = FillerSystem(session, language=language, delay_ms=9999)  # effectively disabled — fillers make it worse
     limits = CallLimits(session, language=language)
