@@ -1855,9 +1855,13 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
 
     setLoadingVoice(voice.id)
     try {
-      // Try API-based TTS preview first
+      // Use GET endpoint for Gemini Live voices, POST for others
       const voiceParam = previewPrefix === 'cartesia' ? `cartesia-${voice.id}` : previewPrefix === 'elevenlabs' ? `elevenlabs-${voice.id}` : voice.id
-      const blob = await api.ttsPreview(voiceParam)
+      const url = api.ttsPreviewUrl(voiceParam)
+      const token = localStorage.getItem('token')
+      const resp = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
+      const blob = await resp.blob()
       const audio = new Audio(URL.createObjectURL(blob))
       audio.onended = () => setPlaying(null)
       audio.onerror = () => setPlaying(null)
@@ -1867,7 +1871,7 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
     } catch {
       // Fallback to static preview
       const nameLower = voice.name.toLowerCase()
-      const url = `https://api.vani.live/static/voice-previews/${previewPrefix}-${nameLower}.mp3`
+      const url = `https://api.vani.live/static/voice-previews/${previewPrefix || 'gemini'}-${nameLower}.mp3`
       const audio = new Audio(url)
       audio.onended = () => setPlaying(null)
       audio.onerror = () => { setPlaying(null); setLoadingVoice(null) }

@@ -46,6 +46,15 @@ for v in ["priya","neha","shreya","kavya","simran","ritu","pooja","ishita","roop
     SARVAM_VOICES[f"sarvam-{v}"] = {"speaker": v, "model": "bulbul:v3"}
 
 
+GEMINI_LIVE_VOICES = [
+    "Zephyr", "Kore", "Orus", "Autonoe", "Umbriel", "Erinome", "Laomedeia",
+    "Schedar", "Achird", "Sadachbia", "Puck", "Fenrir", "Aoede", "Enceladus",
+    "Algieba", "Algenib", "Achernar", "Gacrux", "Zubenelgenubi", "Sadaltager",
+    "Charon", "Leda", "Callirrhoe", "Iapetus", "Despina", "Rasalgethi",
+    "Alnilam", "Pulcherrima", "Vindemiatrix", "Sulafat",
+]
+
+
 @router.get("/voices")
 async def list_previewable_voices(tenant_id: str = Depends(get_tenant_id)):
     """List all voices that support preview."""
@@ -54,6 +63,8 @@ async def list_previewable_voices(tenant_id: str = Depends(get_tenant_id)):
         voices.append({"id": vid, "name": vname.capitalize(), "vendor": "OpenAI", "type": "openai"})
     for vid, meta in SARVAM_VOICES.items():
         voices.append({"id": vid, "name": meta["speaker"].capitalize(), "vendor": "Sarvam AI", "type": "sarvam", "model": meta.get("model", "bulbul:v2")})
+    for v in GEMINI_LIVE_VOICES:
+        voices.append({"id": v, "name": v, "vendor": "Google", "type": "gemini-live"})
     return voices
 
 
@@ -79,6 +90,14 @@ async def preview_voice(voice: str, lang: str = "hi", tenant_id: str = Depends(g
             return FileResponse(static_file, media_type="audio/mpeg",
                                 headers={"Cache-Control": "public, max-age=604800"})
         return await _preview_openai_live(OPENAI_VOICES[voice])
+
+    # Gemini Live voices
+    if voice in GEMINI_LIVE_VOICES:
+        static_file = STATIC_DIR / f"gemini-{voice}.mp3"
+        if static_file.exists():
+            return FileResponse(static_file, media_type="audio/mpeg",
+                                headers={"Cache-Control": "public, max-age=604800"})
+        return await _preview_gemini_live(voice)
 
     raise HTTPException(status_code=400, detail=f"Preview not available for '{voice}'.")
 
@@ -129,3 +148,46 @@ async def _preview_sarvam_live(voice_meta: dict, lang: str = "hi") -> Response:
     except Exception as exc:
         logger.error("tts_preview_sarvam_failed", voice=voice_meta["speaker"], error=str(exc))
         raise HTTPException(status_code=502, detail="Sarvam TTS preview failed")
+
+
+async def _preview_gemini_live(voice_name: str) -> Response:
+    """Generate a voice preview using Gemini's TTS API."""
+    api_key = os.getenv("GOOGLE_API_KEY", "")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Google API key not configured")
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key={api_key}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "contents": [{"parts": [{"text": PREVIEW_TEXT_EN}]}],
+                    "generationConfig": {
+                        "responseModalities": ["AUDIO"],
+                        "speechConfig": {
+                            "voiceConfig": {
+                                "prebuiltVoiceConfig": {"voiceName": voice_name}
+                            }
+                        },
+                    },
+                },
+            )
+        resp.raise_for_status()
+        data = resp.json()
+        # Extract audio from response
+        parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+        for part in parts:
+            inline = part.get("inlineData", {})
+            if inline.get("mimeType", "").startswith("audio/"):
+                audio_bytes = base64.b64decode(inline["data"])
+                return Response(
+                    content=audio_bytes,
+                    media_type=inline["mimeType"],
+                    headers={"Cache-Control": "public, max-age=86400"},
+                )
+        raise HTTPException(status_code=502, detail="No audio in Gemini response")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("tts_preview_gemini_failed", voice=voice_name, error=str(exc))
+        raise HTTPException(status_code=502, detail="Gemini voice preview failed")
