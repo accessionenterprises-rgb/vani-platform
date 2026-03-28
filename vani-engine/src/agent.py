@@ -638,8 +638,8 @@ async def vani_agent(ctx: JobContext):
     # ── Gemini Live: speech-to-speech (replaces STT+LLM+TTS) ────────────────
     if tts_provider == "gemini-live" or llm_model.startswith("gemini-live"):
         gemini_voice = voice or "Puck"
-        # Add greeting to instructions so Gemini speaks it naturally
-        gemini_instructions = f"When the call starts, greet the caller by saying: \"{greeting}\"\n\n{full_instructions}"
+        # Add greeting to instructions — tell Gemini to speak FIRST without waiting
+        gemini_instructions = f"IMPORTANT: You MUST speak first. Do NOT wait for the caller to speak. Immediately say: \"{greeting}\" as your very first response. Then listen for the caller.\n\n{full_instructions}"
         print(f">>> GEMINI LIVE: voice={gemini_voice} model=gemini-3.1-flash-live-preview", flush=True)
         session = AgentSession(
             llm=google.realtime.RealtimeModel(
