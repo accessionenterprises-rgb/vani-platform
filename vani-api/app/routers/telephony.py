@@ -10,9 +10,7 @@ from fastapi.responses import Response
 
 router = APIRouter(prefix="/telephony", tags=["telephony"])
 
-SIP_HOST = os.getenv("LIVEKIT_SIP_HOST", "vaani-voice-s42m8zzi.sip.livekit.cloud")
-SIP_USER = os.getenv("LIVEKIT_SIP_USER", "vanisip")
-SIP_PASS = os.getenv("LIVEKIT_SIP_PASS", "Vani2026Sip!")
+SIP_HOST = os.getenv("LIVEKIT_SIP_HOST", "1kf73cgub7v.sip.livekit.cloud")
 
 
 @router.post("/twiml")
