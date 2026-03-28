@@ -8,6 +8,36 @@ import { api } from '../api/client'
  * Tab 1: Text Chat  — browser-based, no phone needed
  * Tab 2: Phone Test — triggers a real outbound call + live transcript
  */
+
+// ── Cost tables (verified rates, ₹/min) ──────────────────────────────────────
+const STT_COSTS = { 'deepgram-nova-3': 0.57, 'deepgram-nova-2': 0.32, 'sarvam-saaras': 0.46, 'openai-whisper': 0.23, 'google': 0.61, 'azure': 0.64 }
+const LLM_COSTS = {
+  'groq': 0.10, 'gpt-4o-mini': 0.48, 'gpt-5-mini': 0.76, 'gemini-2.0-flash': 0.29,
+  'gpt-5-nano': 0.07, 'gpt-5': 1.76, 'gpt-4o': 2.56,
+  'gemini-2.5-flash': 0.16, 'gemini-2.0-flash-lite': 0.08,
+  'claude-haiku-4-5-20251001': 0.93, 'claude-sonnet-4-20250514': 3.51,
+  'llama-3.3-70b': 0.51, 'deepseek-chat': 0.29, 'mistral-large': 2.00,
+  'gpt-4.1-nano': 0.10, 'gpt-4.1-mini': 0.43, 'gpt-4.1': 2.05,
+}
+const TTS_COSTS = { 'openai': 0.76, 'sarvam': 0.95, 'sarvam-v3': 1.90, 'cartesia': 3.42, 'elevenlabs': 4.56, 'gemini-live': 2.19, 'google-wavenet': 1.37 }
+const ENGINE_COST = 1.00  // base engine
+const TELEPHONY_COSTS = { 'twilio': 1.23, 'vobiz': 0.62, 'exotel': 0.23 }
+
+function isGeminiLive(agent) {
+  return agent?.tts_provider === 'gemini-live'
+}
+
+function getAgentCosts(agent) {
+  if (!agent) return null
+  const gemini = isGeminiLive(agent)
+  const ai = gemini
+    ? 2.19
+    : (STT_COSTS[agent.stt_provider] || 0.57) + (LLM_COSTS[agent.llm_provider] || 0.29) + (TTS_COSTS[agent.tts_provider] || 0.76)
+  const engine = ENGINE_COST
+  const tel = TELEPHONY_COSTS[agent.telephony_provider] || null
+  return { ai, engine, tel, total: ai + engine + (tel || 0), gemini }
+}
+
 export default function PlaygroundPage() {
   const [searchParams] = useSearchParams()
   const [tab, setTab] = useState('chat')
@@ -28,6 +58,7 @@ export default function PlaygroundPage() {
   }, [searchParams])
 
   const agent = agents.find(a => a.id === selectedAgent)
+  const costs = getAgentCosts(agent)
 
   return (
     <div className="flex-1 overflow-auto">
@@ -37,7 +68,7 @@ export default function PlaygroundPage() {
           <p className="text-base text-[#A8A29E] mt-0.5">Test agents before going live</p>
         </div>
 
-        {/* Agent selector + quick stack controls */}
+        {/* Agent selector + stack display */}
         <div className="bg-white rounded-xl border border-[#E8E5E2] p-4 mb-5 space-y-3">
           <div className="flex items-center gap-4">
             <label className="text-sm font-medium text-[#78716C] shrink-0">Agent</label>
@@ -50,64 +81,40 @@ export default function PlaygroundPage() {
           </div>
           {agent && (
             <div className="flex items-center gap-3 flex-wrap">
-              <StackDropdown label="STT" field="stt_provider" value={agent.stt_provider} agentId={agent.id}
-                options={[
-                  { id: 'deepgram-nova-3', name: 'Nova-3', cost: '₹0.16' },
-                  { id: 'deepgram-nova-2', name: 'Nova-2', cost: '₹0.13' },
-                  { id: 'sarvam-saaras', name: 'Saaras v2', cost: '₹0.46' },
-                  { id: 'openai-whisper', name: 'Whisper', cost: '₹0.23' },
-                ]}
-                onUpdate={(field, val) => setAgents(prev => prev.map(a => a.id === agent.id ? {...a, [field]: val} : a))}
-              />
-              <StackDropdown label="LLM" field="llm_provider" value={agent.llm_provider} agentId={agent.id}
-                options={[
-                  { id: 'gpt-5-nano', name: 'GPT-5 Nano', cost: '₹0.07' },
-                  { id: 'gpt-5-mini', name: 'GPT-5 Mini', cost: '₹0.35' },
-                  { id: 'gpt-4o-mini', name: 'GPT-4o Mini', cost: '₹0.16' },
-                  { id: 'gpt-5', name: 'GPT-5', cost: '₹1.76' },
-                  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', cost: '₹0.16' },
-                  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', cost: '₹0.10' },
-                  { id: 'gemini-2.0-flash-lite', name: 'Flash Lite', cost: '₹0.08' },
-                  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku', cost: '₹0.93' },
-                ]}
-                onUpdate={(field, val) => setAgents(prev => prev.map(a => a.id === agent.id ? {...a, [field]: val} : a))}
-              />
-              <StackDropdown label="TTS" field="tts_provider" value={agent.tts_provider} agentId={agent.id}
-                options={[
-                  { id: 'cartesia', name: 'Cartesia Sonic 3', cost: '₹0.20' },
-                  { id: 'openai', name: 'OpenAI', cost: '₹1.28' },
-                  { id: 'sarvam', name: 'Sarvam', cost: '₹0.30' },
-                  { id: 'elevenlabs', name: 'ElevenLabs', cost: '₹4.24' },
-                ]}
-                onUpdate={(field, val) => setAgents(prev => prev.map(a => a.id === agent.id ? {...a, [field]: val} : a))}
-              />
-              <div className="ml-auto text-right">
-                {(() => {
-                  // Real measured costs per min (from actual call data, ₹95/USD)
-                  const sttCosts = { 'deepgram-nova-3': 0.37, 'deepgram-nova-2': 0.32, 'sarvam-saaras': 0.46, 'openai-whisper': 0.23, 'google': 0.61, 'azure': 0.64 }
-                  const llmCosts = { 'gpt-5-nano': 0.07, 'gpt-5-mini': 0.06, 'gpt-4o-mini': 0.06, 'gpt-5': 1.76, 'gpt-5.4': 3.11,
-                    'gpt-4.1-nano': 0.10, 'gpt-4.1-mini': 0.43, 'gpt-4.1': 2.05, 'gpt-4o': 2.56,
-                    'gemini-2.5-flash': 0.16, 'gemini-2.0-flash': 0.10, 'gemini-2.0-flash-lite': 0.08,
-                    'claude-haiku-4-5-20251001': 0.93, 'claude-sonnet-4-20250514': 3.51,
-                    'llama-3.3-70b': 0.51, 'deepseek-chat': 0.29, 'mistral-large': 2.00 }
-                  const ttsCosts = { 'cartesia': 0.20, 'openai': 0.89, 'sarvam': 0.30, 'elevenlabs': 4.24, 'google-wavenet': 1.37 }
-                  const stt = sttCosts[agent.stt_provider] || 0.37
-                  const llm = llmCosts[agent.llm_provider] || 0.06
-                  const tts = ttsCosts[agent.tts_provider] || 0.20
-                  const engine = 1.33   // Vani engine (transport + SIP)
-                  const telephony = 0.81  // Telephony provider
-                  const total = stt + llm + tts + engine + telephony
-                  return (
-                    <div>
-                      <span className="text-[10px] text-[#A8A29E]">Est. total cost</span>
-                      <p className="text-base font-bold text-[#1A1816]">₹{total.toFixed(1)}/min</p>
-                      <div className="text-[9px] text-[#A8A29E] font-mono mt-0.5 space-y-px">
-                        <p>AI: ₹{(stt+llm+tts).toFixed(2)} | Engine: ₹{engine.toFixed(2)} | Tel: ₹{telephony.toFixed(2)}</p>
-                      </div>
-                    </div>
-                  )
-                })()}
-              </div>
+              {isGeminiLive(agent) ? (
+                /* Gemini Live badge */
+                <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-violet-50 border border-blue-200 rounded-lg px-3 py-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="text-[13px] font-semibold text-blue-700">Gemini Live</span>
+                  <span className="text-[11px] text-blue-500/80 font-medium">Speech-to-speech</span>
+                  {agent.voice && (
+                    <span className="text-[11px] text-[#78716C] bg-white/60 rounded px-1.5 py-0.5">
+                      Voice: {agent.voice}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-[#78716C] bg-white/60 rounded px-1.5 py-0.5">
+                    AI: ₹2.19/min
+                  </span>
+                </div>
+              ) : (
+                /* Regular STT + LLM + TTS read-only display */
+                <>
+                  <StackBadge label="STT" value={agent.stt_provider} cost={STT_COSTS[agent.stt_provider]} />
+                  <StackBadge label="LLM" value={agent.llm_provider} cost={LLM_COSTS[agent.llm_provider]} />
+                  <StackBadge label="TTS" value={agent.tts_provider} cost={TTS_COSTS[agent.tts_provider]} />
+                </>
+              )}
+
+              {/* Cost estimator */}
+              {costs && (
+                <div className="ml-auto text-right">
+                  <span className="text-[10px] text-[#A8A29E]">Est. total cost</span>
+                  <p className="text-base font-bold text-[#1A1816]">₹{costs.total.toFixed(1)}/min</p>
+                  <div className="text-[9px] text-[#A8A29E] font-mono mt-0.5 space-y-px">
+                    <p>AI: ₹{costs.ai.toFixed(2)} | Engine: ₹{costs.engine.toFixed(2)} | Tel: {costs.tel != null ? `₹${costs.tel.toFixed(2)}` : 'varies'}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -136,38 +143,22 @@ export default function PlaygroundPage() {
 }
 
 
-// ── Text Chat Tab ─────────────────────────────────────────────────────────────
+// ── Stack Badge (read-only display) ──────────────────────────────────────────
 
-// ── Voice Call Tab (WebRTC) ───────────────────────────────────────────────────
-
-function StackDropdown({ label, field, value, agentId, options, onUpdate }) {
-  const [saving, setSaving] = useState(false)
-  const handleChange = async (e) => {
-    const val = e.target.value
-    setSaving(true)
-    try {
-      await api.updateAgent(agentId, { [field]: val })
-      onUpdate(field, val)
-    } catch (err) {
-      console.error(err)
-    }
-    setSaving(false)
-  }
-  const opt = options.find(o => o.id === value || value?.startsWith(o.id))
+function StackBadge({ label, value, cost }) {
   return (
     <div className="flex items-center gap-1.5">
       <span className="text-[11px] font-bold text-[#A8A29E] uppercase tracking-wider">{label}</span>
-      <select value={value || ''} onChange={handleChange} disabled={saving}
-        className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-md px-2 py-1 text-[13px] text-[#1A1816] focus:outline-none focus:border-[#2563EB] disabled:opacity-50">
-        {options.map(o => (
-          <option key={o.id} value={o.id}>{o.name} ({o.cost}/min)</option>
-        ))}
-      </select>
-      {saving && <div className="w-3 h-3 border border-[#2563EB] border-t-transparent rounded-full animate-spin" />}
+      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-md px-2 py-1 text-[13px] text-[#1A1816]">
+        {value || '—'}
+        {cost != null && <span className="text-[#A8A29E] ml-1">(₹{cost.toFixed(2)}/min)</span>}
+      </div>
     </div>
   )
 }
 
+
+// ── Voice Call Tab (WebRTC) ───────────────────────────────────────────────────
 
 function VoiceCallTab({ selectedAgent, agent }) {
   const [status, setStatus] = useState('idle') // idle | connecting | connected | ended
@@ -255,6 +246,7 @@ function VoiceCallTab({ selectedAgent, agent }) {
   }, [])
 
   const fmtTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+  const gemini = isGeminiLive(agent)
 
   return (
     <div className="bg-white rounded-2xl border border-[#E8E5E2] p-8 flex flex-col items-center justify-center min-h-[400px] gap-6">
@@ -298,9 +290,12 @@ function VoiceCallTab({ selectedAgent, agent }) {
         <p className="text-sm text-[#A8A29E] mt-1">
           {status === 'idle' && (agent?.name || 'Select an agent')}
           {status === 'connecting' && 'Setting up voice channel...'}
-          {status === 'connected' && `Speaking with ${agent?.name || 'Agent'}`}
+          {status === 'connected' && `Speaking with ${agent?.name || 'Agent'}${gemini ? ' (Gemini Live)' : ''}`}
           {status === 'ended' && `Duration: ${fmtTime(duration)}`}
         </p>
+        {gemini && status !== 'connected' && (
+          <p className="text-xs text-blue-500 mt-1 font-medium">Gemini Live — speech-to-speech</p>
+        )}
       </div>
 
       {/* Controls */}
