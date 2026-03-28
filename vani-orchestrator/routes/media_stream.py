@@ -615,19 +615,18 @@ async def media_stream(ws: WebSocket, call_id: str):
             await asyncio.sleep(0.01)
 
     async def play_vobiz(mulaw: bytes) -> None:
-        """Stream audio to Vobiz using playAudio event (bidirectional streaming).
-        Vobiz docs: bidirectional accepts playAudio events with contentType + payload."""
+        """Stream audio to Vobiz — same media event format as receiving.
+        Vobiz docs: 'To send audio to the caller, you send the same format back'"""
         chunk_size = 400  # 400 bytes = 50ms mulaw
         sid = session["stream_sid"]
         for i in range(0, len(mulaw), chunk_size):
             if not playback.is_playing:
                 return
             await _ws_send(json.dumps({
-                "event": "playAudio",
+                "event": "media",
+                "streamSid": sid,
                 "streamId": sid,
                 "media": {
-                    "contentType": "audio/x-mulaw",
-                    "sampleRate": 8000,
                     "payload": base64.b64encode(mulaw[i:i + chunk_size]).decode(),
                 },
             }))
