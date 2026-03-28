@@ -405,13 +405,8 @@ class VaaniAssistant(Agent):
         self._products     = {p["name"].lower(): p for p in (products or [])}
 
     async def on_enter(self):
-        # Gemini Live: use OpenAI TTS for greeting only, then Gemini takes over
+        # Gemini Live: no separate TTS, greeting is in system instructions
         if self.session._llm and 'Realtime' in type(self.session._llm).__name__:
-            try:
-                greeting_tts = openai.TTS(voice="nova")
-                await self.session.say(self._greeting, tts=greeting_tts)
-            except Exception:
-                pass  # If greeting fails, Gemini will still respond to user speech
             return
         await self.session.say(self._greeting)
 
