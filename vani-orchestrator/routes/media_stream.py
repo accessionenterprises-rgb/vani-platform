@@ -594,13 +594,13 @@ async def media_stream(ws: WebSocket, call_id: str):
         if session["stream_sid"]:
             try:
                 await _ws_send(json.dumps(
-                    {"event": "clear", "streamSid": session["stream_sid"], "streamId": session["stream_sid"]}
+                    {"event": "clear", "streamSid": session["stream_sid"]}
                 ))
             except Exception:
                 pass
 
     async def play_mulaw(mulaw: bytes) -> None:
-        """Stream mulaw audio in small chunks (50ms) for fast interrupt response."""
+        """Stream mulaw audio in small chunks (50ms) for Twilio."""
         chunk_size = 400  # 400 bytes = 50ms at 8kHz mulaw
         sid = session["stream_sid"]
         for i in range(0, len(mulaw), chunk_size):
@@ -609,7 +609,6 @@ async def media_stream(ws: WebSocket, call_id: str):
             await _ws_send(json.dumps({
                 "event": "media",
                 "streamSid": sid,
-                "streamId": sid,
                 "media": {"payload": base64.b64encode(mulaw[i:i + chunk_size]).decode()},
             }))
             await asyncio.sleep(0.01)
