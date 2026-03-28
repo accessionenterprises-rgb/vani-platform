@@ -13,6 +13,24 @@ const STT_PROVIDERS = [
   { id: 'azure',           name: 'Speech',        vendor: 'Azure',    desc: 'Enterprise-grade reliability',         badge: 'Enterprise',  latency: '~300ms', cost: '$0.0067/min' },
 ]
 
+// ─── Realtime Models (Speech-to-Speech) ───────────────────────────────────
+const REALTIME_PROVIDERS = [
+  { id: 'gemini-live',          name: 'Gemini Live',       vendor: 'Google',  desc: 'Speech-to-speech — lowest latency, 30 voices', badge: 'Recommended', latency: '~200ms', cost: '₹2.19/min' },
+  { id: 'gpt-4o-mini-realtime', name: 'GPT-4o Mini RT',   vendor: 'OpenAI',  desc: 'Speech-to-speech — fast & affordable',         badge: null,          latency: '~150ms', cost: '$0.096/min' },
+  { id: 'gpt-4o-realtime',      name: 'GPT-4o Realtime',  vendor: 'OpenAI',  desc: 'Speech-to-speech — most capable',              badge: 'Premium',     latency: '~150ms', cost: '$0.39/min' },
+]
+
+const OPENAI_RT_VOICES = [
+  { id: 'alloy',    name: 'Alloy',    gender: 'Neutral', desc: 'Balanced' },
+  { id: 'ash',      name: 'Ash',      gender: 'Male',    desc: 'Warm' },
+  { id: 'ballad',   name: 'Ballad',   gender: 'Male',    desc: 'Smooth' },
+  { id: 'coral',    name: 'Coral',    gender: 'Female',  desc: 'Bright' },
+  { id: 'echo',     name: 'Echo',     gender: 'Male',    desc: 'Clear' },
+  { id: 'sage',     name: 'Sage',     gender: 'Female',  desc: 'Calm' },
+  { id: 'shimmer',  name: 'Shimmer',  gender: 'Female',  desc: 'Expressive' },
+  { id: 'verse',    name: 'Verse',    gender: 'Male',    desc: 'Dynamic' },
+]
+
 const LLM_PROVIDERS = [
   // OpenAI — GPT-5 family
   { id: 'gpt-5-nano',                name: 'GPT-5 Nano',       vendor: 'OpenAI',    desc: 'Cheapest GPT-5, ultra-fast',        badge: 'Speed',       latency: '~150ms', cost: '$0.0007/min' },
@@ -34,9 +52,6 @@ const LLM_PROVIDERS = [
   // Anthropic
   { id: 'claude-haiku-4-5-20251001', name: 'Claude 4.5 Haiku', vendor: 'Anthropic', desc: 'Fast, nuanced, instruction-following', badge: null,       latency: '~400ms', cost: '$0.0098/min' },
   { id: 'claude-sonnet-4-20250514',  name: 'Claude 4 Sonnet',  vendor: 'Anthropic', desc: 'Best reasoning, highest quality',   badge: 'Premium',     latency: '~600ms', cost: '$0.0369/min' },
-  // Realtime (Speech-to-Speech)
-  { id: 'gpt-4o-mini-realtime',      name: 'GPT-4o Mini RT',   vendor: 'OpenAI',    desc: 'Speech-to-speech, replaces STT+TTS',badge: 'Realtime',   latency: '~150ms', cost: '$0.096/min' },
-  { id: 'gpt-4o-realtime',           name: 'GPT-4o Realtime',  vendor: 'OpenAI',    desc: 'Speech-to-speech, most capable',    badge: 'Realtime',    latency: '~150ms', cost: '$0.39/min' },
   // Open Source / Other
   { id: 'llama-3.3-70b',             name: 'Llama 3.3 70B',    vendor: 'Groq',      desc: 'Open-source via Groq — ultra-fast', badge: 'Fast',       latency: '~200ms', cost: '$0.0054/min' },
   { id: 'deepseek-chat',             name: 'DeepSeek V3',      vendor: 'DeepSeek',  desc: 'Cost-effective, strong reasoning',  badge: null,          latency: '~300ms', cost: '$0.0031/min' },
@@ -58,8 +73,6 @@ const TTS_PROVIDERS = [
   // Premium
   { id: 'cartesia',        name: 'Cartesia',        vendor: 'Cartesia', desc: 'Best quality — Brooke voice',       badge: 'Premium',     latency: '~500ms', cost: '₹3.00/min' },
   { id: 'elevenlabs',      name: 'ElevenLabs',      vendor: 'ElevenLabs',desc: 'Most expressive, voice cloning',   badge: 'Premium',     latency: '~400ms', cost: '₹4.07/min' },
-  // Speech-to-Speech
-  { id: 'gemini-live',     name: 'Gemini Live',     vendor: 'Google',    desc: 'Speech-to-speech — replaces STT+LLM+TTS', badge: 'Realtime', latency: '~200ms', cost: '₹2.19/min' },
 ]
 
 const OPENAI_VOICES = [
@@ -574,161 +587,247 @@ function IdentityStep({ form, set, isNew }) {
 // ─── Step: AI Stack ────────────────────────────────────────────────────────
 
 function StackStep({ form, set }) {
+  // Derive mode from current tts_provider — realtime providers store their id in tts_provider
+  const REALTIME_IDS = REALTIME_PROVIDERS.map(p => p.id)
+  const isRealtime = REALTIME_IDS.includes(form.tts_provider)
+
+  const switchToRealtime = () => {
+    set('tts_provider', 'gemini-live')
+    set('voice', 'Puck')
+  }
+  const switchToTraditional = () => {
+    set('tts_provider', 'openai')
+    set('voice', 'nova')
+  }
+
   return (
     <div className="space-y-8">
       <StepHeader
         title="AI Stack"
-        desc="Choose the providers for each stage of the voice pipeline."
+        desc="Choose how your agent processes voice — realtime or traditional pipeline."
       />
 
-      {/* Pipeline diagram */}
-      <div className="flex items-center gap-2 bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-4">
-        {[
-          { label: 'Audio In',        type: 'io' },
-          { label: null,              type: 'arrow' },
-          { label: 'Speech-to-Text',  type: 'stage', color: 'blue' },
-          { label: null,              type: 'arrow' },
-          { label: 'Language Model',  type: 'stage', color: 'purple' },
-          { label: null,              type: 'arrow' },
-          { label: 'Voice Synthesis', type: 'stage', color: 'emerald' },
-          { label: null,              type: 'arrow' },
-          { label: 'Audio Out',       type: 'io' },
-        ].map((item, i) => {
-          if (item.type === 'arrow') return (
-            <svg key={i} className="w-4 h-4 text-[#D6D3D1] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          )
-          if (item.type === 'io') return (
-            <div key={i} className="text-[12px] text-[#A8A29E] font-medium shrink-0">{item.label}</div>
-          )
-          const colors = {
-            blue:    'bg-blue-500/10 border-blue-500/20 text-blue-400',
-            purple:  'bg-purple-500/10 border-purple-500/20 text-purple-400',
-            emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-          }
-          return (
-            <div key={i} className={`text-[12px] font-medium px-2.5 py-1 rounded-lg border ${colors[item.color]}`}>
-              {item.label}
-            </div>
-          )
-        })}
+      {/* ── Mode Toggle: Realtime vs Traditional ─────────────────────────── */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={switchToRealtime}
+          className={`relative flex flex-col items-start gap-1.5 p-4 rounded-xl border-2 transition-all text-left ${
+            isRealtime
+              ? 'border-violet-500 bg-violet-500/5'
+              : 'border-[#E8E5E2] bg-white hover:border-[#D6D3D1]'
+          }`}
+        >
+          {isRealtime && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-violet-500" />}
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-violet-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M2 12h20" /><circle cx="12" cy="12" r="3" /></svg>
+            <span className="font-semibold text-[#1C1917]">Realtime</span>
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-violet-100 text-violet-700">Speech-to-Speech</span>
+          </div>
+          <p className="text-[13px] text-[#78716C]">Single model handles listening + thinking + speaking. Lowest latency, no pipeline.</p>
+        </button>
+        <button
+          type="button"
+          onClick={switchToTraditional}
+          className={`relative flex flex-col items-start gap-1.5 p-4 rounded-xl border-2 transition-all text-left ${
+            !isRealtime
+              ? 'border-emerald-500 bg-emerald-500/5'
+              : 'border-[#E8E5E2] bg-white hover:border-[#D6D3D1]'
+          }`}
+        >
+          {!isRealtime && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-emerald-500" />}
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+            <span className="font-semibold text-[#1C1917]">Traditional</span>
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">STT + LLM + TTS</span>
+          </div>
+          <p className="text-[13px] text-[#78716C]">Pick each provider separately. More control over quality, cost, and voice selection.</p>
+        </button>
       </div>
 
-      {/* Total latency estimator */}
-      <LatencyEstimator stt={form.stt_provider} llm={form.llm_provider} tts={form.tts_provider} />
-
-      <ProviderSection
-        title="Speech Recognition" stepTag="STT"
-        subtitle="Transcribes caller audio to text in real-time"
-        providers={STT_PROVIDERS}
-        selected={form.stt_provider}
-        onSelect={v => set('stt_provider', v)}
-      />
-
-      <PipelineConnector label="transcript passed to LLM" />
-
-      <ProviderSection
-        title="Language Model" stepTag="LLM"
-        subtitle="Generates intelligent responses based on your agent prompt"
-        providers={LLM_PROVIDERS}
-        selected={form.llm_provider}
-        onSelect={v => set('llm_provider', v)}
-      />
-
-      <PipelineConnector label="response synthesised to speech" />
-
-      <ProviderSection
-        title="Voice Synthesis" stepTag="TTS"
-        subtitle="Converts LLM text responses into natural-sounding audio"
-        providers={TTS_PROVIDERS}
-        selected={form.tts_provider}
-        onSelect={v => {
-          set('tts_provider', v)
-          // Auto-set default voice for each provider
-          const defaults = {
-            'openai': 'nova',
-            'cartesia': 'e07c00bc-4134-4eae-9ea4-1a55fb45746b',
-            'elevenlabs': 'EXAVITQu4vr4xnSDxMaL',
-            'sarvam': 'manisha',
-            'sarvam-v3': 'shreya',
-            'google-standard': 'en-US-Standard-F',
-            'google-wavenet': 'en-US-Wavenet-F',
-            'google-neural2': 'en-US-Neural2-F',
-            'amazon-standard': 'Joanna',
-            'amazon-neural': 'Joanna',
-            'azure-neural': 'en-US-JennyNeural',
-            'gemini-live': 'Puck',
-          }
-          if (defaults[v]) set('voice', defaults[v])
-        }}
-      />
-
-      {/* OpenAI voice picker */}
-      {form.tts_provider === 'openai' && (
-        <OpenAIVoicePicker
-          selected={form.voice ? `openai-${form.voice}` : 'openai-nova'}
-          onSelect={v => { set('tts_provider', 'openai'); set('voice', v.replace('openai-', '')) }}
-        />
-      )}
-
-      {/* Sarvam v2 voice picker */}
-      {form.tts_provider === 'sarvam' && (
-        <SarvamVoicePicker
-          voices={SARVAM_V2_VOICES}
-          selected={form.voice ? `sarvam-${form.voice}` : 'sarvam-manisha'}
-          onSelect={v => { set('tts_provider', 'sarvam'); set('voice', v.replace('sarvam-', '')) }}
-          title="Sarvam v2 Voices (₹0.83/min)"
-        />
-      )}
-
-      {/* Sarvam v3 voice picker */}
-      {form.tts_provider === 'sarvam-v3' && (
-        <SarvamVoicePicker
-          voices={SARVAM_V3_VOICES}
-          selected={form.voice ? `sarvam-${form.voice}` : 'sarvam-shreya'}
-          onSelect={v => { set('tts_provider', 'sarvam-v3'); set('voice', v.replace('sarvam-', '')) }}
-          title="Sarvam v3 Voices (₹1.65/min)"
-        />
-      )}
-
-      {/* Cartesia voice picker */}
-      {form.tts_provider === 'cartesia' && (
-        <VoiceGrid
-          title="Cartesia Sonic 3"
-          subtitle="Ultra-low latency — ~40ms"
-          voices={CARTESIA_VOICES}
-          selected={form.voice}
-          onSelect={v => { set('tts_provider', 'cartesia'); set('voice', v) }}
-          previewPrefix="cartesia"
-        />
-      )}
-
-      {/* ElevenLabs voice picker */}
-      {form.tts_provider === 'elevenlabs' && (
-        <VoiceGrid
-          title="ElevenLabs"
-          subtitle="Ultra-realistic, expressive"
-          voices={ELEVENLABS_VOICES}
-          selected={form.voice}
-          onSelect={v => { set('tts_provider', 'elevenlabs'); set('voice', v) }}
-          previewPrefix="elevenlabs"
-        />
-      )}
-
-      {/* Gemini Live voice picker */}
-      {form.tts_provider === 'gemini-live' && (
+      {/* ── Realtime Mode ─────────────────────────────────────────────────── */}
+      {isRealtime && (
         <>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-            <strong>Gemini Live</strong> is a speech-to-speech model. It replaces STT + LLM + TTS with a single model. STT and LLM selections above will be ignored.
+          {/* Pipeline diagram — simplified */}
+          <div className="flex items-center gap-2 bg-violet-50/50 border border-violet-200/50 rounded-2xl p-4">
+            <div className="text-[12px] text-[#A8A29E] font-medium">Audio In</div>
+            <svg className="w-4 h-4 text-[#D6D3D1] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+            <div className="text-[12px] font-medium px-2.5 py-1 rounded-lg border bg-violet-500/10 border-violet-500/20 text-violet-500">Realtime Model</div>
+            <svg className="w-4 h-4 text-[#D6D3D1] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+            <div className="text-[12px] text-[#A8A29E] font-medium">Audio Out</div>
           </div>
-          <VoiceGrid
-            title="Gemini Live"
-            subtitle="Speech-to-speech — 30 voices"
-            voices={GEMINI_LIVE_VOICES}
-            selected={form.voice}
-            onSelect={v => { set('tts_provider', 'gemini-live'); set('voice', v) }}
+
+          <ProviderSection
+            title="Realtime Model" stepTag="RT"
+            subtitle="Speech-to-speech — one model replaces STT + LLM + TTS"
+            providers={REALTIME_PROVIDERS}
+            selected={form.tts_provider}
+            onSelect={v => {
+              set('tts_provider', v)
+              const defaults = { 'gemini-live': 'Puck', 'gpt-4o-mini-realtime': 'alloy', 'gpt-4o-realtime': 'alloy' }
+              if (defaults[v]) set('voice', defaults[v])
+            }}
           />
+
+          {/* Gemini Live voices */}
+          {form.tts_provider === 'gemini-live' && (
+            <VoiceGrid
+              title="Gemini Live"
+              subtitle="Speech-to-speech — 30 voices"
+              voices={GEMINI_LIVE_VOICES}
+              selected={form.voice}
+              onSelect={v => set('voice', v)}
+            />
+          )}
+
+          {/* OpenAI Realtime voices */}
+          {(form.tts_provider === 'gpt-4o-mini-realtime' || form.tts_provider === 'gpt-4o-realtime') && (
+            <VoiceGrid
+              title="OpenAI Realtime"
+              subtitle="8 voices — natural, expressive"
+              voices={OPENAI_RT_VOICES}
+              selected={form.voice}
+              onSelect={v => set('voice', v)}
+            />
+          )}
+        </>
+      )}
+
+      {/* ── Traditional Mode ──────────────────────────────────────────────── */}
+      {!isRealtime && (
+        <>
+          {/* Pipeline diagram */}
+          <div className="flex items-center gap-2 bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-4">
+            {[
+              { label: 'Audio In',        type: 'io' },
+              { label: null,              type: 'arrow' },
+              { label: 'Speech-to-Text',  type: 'stage', color: 'blue' },
+              { label: null,              type: 'arrow' },
+              { label: 'Language Model',  type: 'stage', color: 'purple' },
+              { label: null,              type: 'arrow' },
+              { label: 'Voice Synthesis', type: 'stage', color: 'emerald' },
+              { label: null,              type: 'arrow' },
+              { label: 'Audio Out',       type: 'io' },
+            ].map((item, i) => {
+              if (item.type === 'arrow') return (
+                <svg key={i} className="w-4 h-4 text-[#D6D3D1] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              )
+              if (item.type === 'io') return (
+                <div key={i} className="text-[12px] text-[#A8A29E] font-medium shrink-0">{item.label}</div>
+              )
+              const colors = {
+                blue:    'bg-blue-500/10 border-blue-500/20 text-blue-400',
+                purple:  'bg-purple-500/10 border-purple-500/20 text-purple-400',
+                emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+              }
+              return (
+                <div key={i} className={`text-[12px] font-medium px-2.5 py-1 rounded-lg border ${colors[item.color]}`}>
+                  {item.label}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Total latency estimator */}
+          <LatencyEstimator stt={form.stt_provider} llm={form.llm_provider} tts={form.tts_provider} />
+
+          <ProviderSection
+            title="Speech Recognition" stepTag="STT"
+            subtitle="Transcribes caller audio to text in real-time"
+            providers={STT_PROVIDERS}
+            selected={form.stt_provider}
+            onSelect={v => set('stt_provider', v)}
+          />
+
+          <PipelineConnector label="transcript passed to LLM" />
+
+          <ProviderSection
+            title="Language Model" stepTag="LLM"
+            subtitle="Generates intelligent responses based on your agent prompt"
+            providers={LLM_PROVIDERS}
+            selected={form.llm_provider}
+            onSelect={v => set('llm_provider', v)}
+          />
+
+          <PipelineConnector label="response synthesised to speech" />
+
+          <ProviderSection
+            title="Voice Synthesis" stepTag="TTS"
+            subtitle="Converts LLM text responses into natural-sounding audio"
+            providers={TTS_PROVIDERS}
+            selected={form.tts_provider}
+            onSelect={v => {
+              set('tts_provider', v)
+              const defaults = {
+                'openai': 'nova',
+                'cartesia': 'e07c00bc-4134-4eae-9ea4-1a55fb45746b',
+                'elevenlabs': 'EXAVITQu4vr4xnSDxMaL',
+                'sarvam': 'manisha',
+                'sarvam-v3': 'shreya',
+                'google-standard': 'en-US-Standard-F',
+                'google-wavenet': 'en-US-Wavenet-F',
+                'google-neural2': 'en-US-Neural2-F',
+                'amazon-standard': 'Joanna',
+                'amazon-neural': 'Joanna',
+                'azure-neural': 'en-US-JennyNeural',
+              }
+              if (defaults[v]) set('voice', defaults[v])
+            }}
+          />
+
+          {/* OpenAI voice picker */}
+          {form.tts_provider === 'openai' && (
+            <OpenAIVoicePicker
+              selected={form.voice ? `openai-${form.voice}` : 'openai-nova'}
+              onSelect={v => { set('tts_provider', 'openai'); set('voice', v.replace('openai-', '')) }}
+            />
+          )}
+
+          {/* Sarvam v2 voice picker */}
+          {form.tts_provider === 'sarvam' && (
+            <SarvamVoicePicker
+              voices={SARVAM_V2_VOICES}
+              selected={form.voice ? `sarvam-${form.voice}` : 'sarvam-manisha'}
+              onSelect={v => { set('tts_provider', 'sarvam'); set('voice', v.replace('sarvam-', '')) }}
+              title="Sarvam v2 Voices (₹0.83/min)"
+            />
+          )}
+
+          {/* Sarvam v3 voice picker */}
+          {form.tts_provider === 'sarvam-v3' && (
+            <SarvamVoicePicker
+              voices={SARVAM_V3_VOICES}
+              selected={form.voice ? `sarvam-${form.voice}` : 'sarvam-shreya'}
+              onSelect={v => { set('tts_provider', 'sarvam-v3'); set('voice', v.replace('sarvam-', '')) }}
+              title="Sarvam v3 Voices (₹1.65/min)"
+            />
+          )}
+
+          {/* Cartesia voice picker */}
+          {form.tts_provider === 'cartesia' && (
+            <VoiceGrid
+              title="Cartesia Sonic 3"
+              subtitle="Ultra-low latency — ~40ms"
+              voices={CARTESIA_VOICES}
+              selected={form.voice}
+              onSelect={v => { set('tts_provider', 'cartesia'); set('voice', v) }}
+              previewPrefix="cartesia"
+            />
+          )}
+
+          {/* ElevenLabs voice picker */}
+          {form.tts_provider === 'elevenlabs' && (
+            <VoiceGrid
+              title="ElevenLabs"
+              subtitle="Ultra-realistic, expressive"
+              voices={ELEVENLABS_VOICES}
+              selected={form.voice}
+              onSelect={v => { set('tts_provider', 'elevenlabs'); set('voice', v) }}
+              previewPrefix="elevenlabs"
+            />
+          )}
         </>
       )}
     </div>

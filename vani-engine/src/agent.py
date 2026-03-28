@@ -635,22 +635,42 @@ async def vani_agent(ctx: JobContext):
     # ── LLM tools: external + built-in product tools ──────────────────────────
     lk_tools = build_livekit_tools(tools_config) + build_product_tools(products)
 
-    # ── Gemini Live: speech-to-speech (replaces STT+LLM+TTS) ────────────────
-    if tts_provider == "gemini-live" or llm_model.startswith("gemini-live"):
-        gemini_voice = voice or "Puck"
-        # Add greeting to instructions — tell Gemini to speak FIRST without waiting
-        gemini_instructions = f"IMPORTANT: You MUST speak first. Do NOT wait for the caller to speak. Immediately say: \"{greeting}\" as your very first response. Then listen for the caller.\n\n{full_instructions}"
-        print(f">>> GEMINI LIVE: voice={gemini_voice} model=gemini-3.1-flash-live-preview", flush=True)
-        session = AgentSession(
-            llm=google.realtime.RealtimeModel(
-                model="gemini-3.1-flash-live-preview",
-                voice=gemini_voice,
-                temperature=0.7,
-                instructions=gemini_instructions,
-                api_key=os.getenv("GOOGLE_API_KEY", ""),
-            ),
-        )
-    else:
+    # ── Build session: Realtime (speech-to-speech) or Traditional ─────────────
+    REALTIME_IDS = {"gemini-live", "gpt-4o-mini-realtime", "gpt-4o-realtime"}
+    use_realtime = tts_provider in REALTIME_IDS
+
+    if use_realtime:
+        try:
+            rt_instructions = f"{full_instructions}\n\nGreeting: When the conversation starts, say: \"{greeting}\""
+
+            if tts_provider == "gemini-live":
+                gemini_voice = voice or "Puck"
+                print(f">>> REALTIME: Gemini Live | voice={gemini_voice}", flush=True)
+                rt_llm = google.realtime.RealtimeModel(
+                    model="gemini-3.1-flash-live-preview",
+                    voice=gemini_voice,
+                    temperature=0.7,
+                    instructions=rt_instructions,
+                    api_key=os.getenv("GOOGLE_API_KEY", ""),
+                )
+            else:
+                # OpenAI Realtime
+                rt_voice = voice or "alloy"
+                rt_model = "gpt-4o-mini-realtime-preview" if tts_provider == "gpt-4o-mini-realtime" else "gpt-4o-realtime-preview"
+                print(f">>> REALTIME: OpenAI | model={rt_model} voice={rt_voice}", flush=True)
+                rt_llm = openai.realtime.RealtimeModel(
+                    model=rt_model,
+                    voice=rt_voice,
+                    temperature=0.7,
+                    instructions=rt_instructions,
+                )
+
+            session = AgentSession(llm=rt_llm)
+        except Exception as e:
+            print(f">>> REALTIME FAILED: {e} — falling back to Traditional", flush=True)
+            use_realtime = False
+
+    if not use_realtime:
         session = AgentSession(
             stt=deepgram.STT(
                 model=deepgram_model,
