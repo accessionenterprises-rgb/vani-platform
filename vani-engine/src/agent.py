@@ -633,7 +633,7 @@ async def vani_agent(ctx: JobContext):
     lk_tools = build_livekit_tools(tools_config) + build_product_tools(products)
 
     # ── Gemini Live: speech-to-speech (replaces STT+LLM+TTS) ────────────────
-    if llm_model.startswith("gemini-live") or llm_model.startswith("gemini-3") and "live" in llm_model:
+    if tts_provider == "gemini-live" or llm_model.startswith("gemini-live"):
         gemini_voice = voice or "Puck"
         print(f">>> GEMINI LIVE: voice={gemini_voice} model=gemini-3.1-flash-live-preview", flush=True)
         session = AgentSession(
