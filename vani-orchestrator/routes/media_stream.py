@@ -590,12 +590,19 @@ async def media_stream(ws: WebSocket, call_id: str):
             await ws.send_text(payload)
 
     async def _clear_twilio():
-        """Send clear event to stop audio buffer immediately (Twilio + Vobiz)."""
+        """Send clear event to stop audio buffer immediately."""
         if session["stream_sid"]:
             try:
-                await _ws_send(json.dumps(
-                    {"event": "clear", "streamSid": session["stream_sid"]}
-                ))
+                if session["audio_format"] == "vobiz":
+                    # Vobiz uses clearAudio event
+                    await _ws_send(json.dumps(
+                        {"event": "clearAudio", "streamId": session["stream_sid"]}
+                    ))
+                else:
+                    # Twilio uses clear event
+                    await _ws_send(json.dumps(
+                        {"event": "clear", "streamSid": session["stream_sid"]}
+                    ))
             except Exception:
                 pass
 
@@ -614,23 +621,21 @@ async def media_stream(ws: WebSocket, call_id: str):
             await asyncio.sleep(0.01)
 
     async def play_vobiz(mulaw: bytes) -> None:
-        """Stream audio to Vobiz via playAudio event (bidirectional).
-        Vobiz docs: bidirectional accepts playAudio events with contentType + sampleRate + payload."""
-        chunk_size = 400  # 400 bytes = 50ms mulaw
-        sid = session["stream_sid"]
+        """Stream audio to Vobiz via playAudio event.
+        Vobiz spec: 160-byte chunks = 20ms of 8kHz mulaw (telephony standard)."""
+        chunk_size = 160  # 160 bytes = 20ms at 8kHz mulaw (G.711 standard framing)
         for i in range(0, len(mulaw), chunk_size):
             if not playback.is_playing:
                 return
             await _ws_send(json.dumps({
                 "event": "playAudio",
-                "streamId": sid,
                 "media": {
                     "contentType": "audio/x-mulaw",
                     "sampleRate": 8000,
                     "payload": base64.b64encode(mulaw[i:i + chunk_size]).decode(),
                 },
             }))
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.02)  # 20ms per chunk — matches telephony framing
 
     async def play_text(text: str) -> None:
         """Generate TTS and stream to Twilio. Respects playback.is_playing."""
@@ -840,18 +845,23 @@ async def media_stream(ws: WebSocket, call_id: str):
                         if greeting:
                             messages.append({"role": "assistant", "content": greeting})
                             messages_log.append(f"AGENT: {greeting}")
-                            session["state"] = "RESPONDING"
-                            playback.is_playing = True
-                            playback.current_task = asyncio.create_task(play_text(greeting))
-                            # After greeting, switch to listening
-                            async def _post_greeting():
-                                try:
-                                    await playback.current_task
-                                except (asyncio.CancelledError, Exception):
-                                    pass
+                            if session["audio_format"] == "vobiz":
+                                # Vobiz: greeting already played via <Speak> in XML
                                 session["state"] = "LISTENING"
-                                playback.is_playing = False
-                            asyncio.create_task(_post_greeting())
+                                log.info("greeting_via_xml_speak")
+                            else:
+                                # Twilio: play greeting over WebSocket
+                                session["state"] = "RESPONDING"
+                                playback.is_playing = True
+                                playback.current_task = asyncio.create_task(play_text(greeting))
+                                async def _post_greeting():
+                                    try:
+                                        await playback.current_task
+                                    except (asyncio.CancelledError, Exception):
+                                        pass
+                                    session["state"] = "LISTENING"
+                                    playback.is_playing = False
+                                asyncio.create_task(_post_greeting())
                     elif ev == "media":
                         media = data.get("media", {})
                         payload = media.get("payload") or data.get("payload") or ""
