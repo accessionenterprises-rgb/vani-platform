@@ -150,6 +150,21 @@ async def _preview_sarvam_live(voice_meta: dict, lang: str = "hi") -> Response:
         raise HTTPException(status_code=502, detail="Sarvam TTS preview failed")
 
 
+def _pcm_to_wav(pcm_bytes: bytes, sample_rate: int = 24000, channels: int = 1, bits: int = 16) -> bytes:
+    """Wrap raw PCM bytes in a WAV header."""
+    import struct
+    data_size = len(pcm_bytes)
+    byte_rate = sample_rate * channels * bits // 8
+    block_align = channels * bits // 8
+    header = struct.pack(
+        '<4sI4s4sIHHIIHH4sI',
+        b'RIFF', 36 + data_size, b'WAVE',
+        b'fmt ', 16, 1, channels, sample_rate, byte_rate, block_align, bits,
+        b'data', data_size,
+    )
+    return header + pcm_bytes
+
+
 async def _preview_gemini_live(voice_name: str) -> Response:
     """Generate a voice preview using Gemini's TTS API."""
     api_key = os.getenv("GOOGLE_API_KEY", "")
@@ -174,15 +189,22 @@ async def _preview_gemini_live(voice_name: str) -> Response:
             )
         resp.raise_for_status()
         data = resp.json()
-        # Extract audio from response
+        # Extract audio from response — Gemini returns raw PCM (audio/L16), wrap in WAV
         parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
         for part in parts:
             inline = part.get("inlineData", {})
-            if inline.get("mimeType", "").startswith("audio/"):
-                audio_bytes = base64.b64decode(inline["data"])
+            mime = inline.get("mimeType", "")
+            if mime.startswith("audio/"):
+                pcm_bytes = base64.b64decode(inline["data"])
+                # Parse sample rate from mime (audio/L16;codec=pcm;rate=24000)
+                rate = 24000
+                for token in mime.split(";"):
+                    if token.strip().startswith("rate="):
+                        rate = int(token.strip().split("=")[1])
+                wav_bytes = _pcm_to_wav(pcm_bytes, sample_rate=rate)
                 return Response(
-                    content=audio_bytes,
-                    media_type=inline["mimeType"],
+                    content=wav_bytes,
+                    media_type="audio/wav",
                     headers={"Cache-Control": "public, max-age=86400"},
                 )
         raise HTTPException(status_code=502, detail="No audio in Gemini response")
