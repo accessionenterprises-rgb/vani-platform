@@ -622,21 +622,21 @@ async def media_stream(ws: WebSocket, call_id: str):
 
     async def play_vobiz(mulaw: bytes) -> None:
         """Stream audio to Vobiz via playAudio event.
-        Send full audio in one message — Vobiz buffers internally."""
-        if not playback.is_playing:
-            return
-        log.info("play_vobiz_start", total_bytes=len(mulaw))
-        await _ws_send(json.dumps({
-            "event": "playAudio",
-            "media": {
-                "contentType": "audio/x-mulaw",
-                "sampleRate": 8000,
-                "payload": base64.b64encode(mulaw).decode(),
-            },
-        }))
-        # Yield to event loop so interrupts can fire
-        await asyncio.sleep(0.01)
-        log.info("play_vobiz_done")
+        Per Pipecat PlivoFrameSerializer: playAudio + streamId + 160-byte chunks."""
+        chunk_size = 160  # 160 bytes = 20ms at 8kHz mulaw (G.711 standard)
+        sid = session["stream_sid"]
+        for i in range(0, len(mulaw), chunk_size):
+            if not playback.is_playing:
+                return
+            await _ws_send(json.dumps({
+                "event": "playAudio",
+                "media": {
+                    "contentType": "audio/x-mulaw",
+                    "sampleRate": 8000,
+                    "payload": base64.b64encode(mulaw[i:i + chunk_size]).decode(),
+                },
+                "streamId": sid,
+            }))
 
     async def play_text(text: str) -> None:
         """Generate TTS and stream to Twilio. Respects playback.is_playing."""
