@@ -1847,7 +1847,7 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
   const audioRef = useRef(null)
   const [genderFilter, setGenderFilter] = useState('All')
 
-  const filtered = genderFilter === 'All' ? voices : voices.filter(v => v.gender === genderFilter)
+  const filtered = genderFilter === 'All' ? voices : voices.filter(v => v.gender === genderFilter || v.gender?.charAt(0) === genderFilter)
 
   const playPreview = async (voice) => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null }
@@ -1910,7 +1910,7 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
             }`}>
             <p className={`text-[13px] font-semibold ${selected === v.id ? 'text-[#3B82F6]' : 'text-[#1A1816]'}`}>{v.name}</p>
             <p className="text-[9px] text-[#A8A29E]">{v.desc}</p>
-            <p className="text-[9px] text-[#A8A29E]">{v.accent} {v.gender === 'F' ? '♀' : '♂'}</p>
+            <p className="text-[9px] text-[#A8A29E]">{v.accent} {v.gender === 'F' || v.gender === 'Female' || v.gender === 'Neutral' ? '♀' : '♂'}</p>
             <button type="button" onClick={(e) => { e.stopPropagation(); playPreview(v) }}
               disabled={loadingVoice === v.id}
               className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#F5F5F4] hover:bg-[#E8E5E2] flex items-center justify-center transition-colors disabled:opacity-60">
@@ -1933,7 +1933,7 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
 function SarvamVoicePicker({ selected, onSelect, voices = SARVAM_VOICES, title = "Choose Sarvam Voice" }) {
   const [previewLang, setPreviewLang] = useState('en')
   const [genderFilter, setGenderFilter] = useState('All')
-  const filtered = genderFilter === 'All' ? voices : voices.filter(v => v.gender === genderFilter)
+  const filtered = genderFilter === 'All' ? voices : voices.filter(v => v.gender === genderFilter || v.gender?.charAt(0) === genderFilter)
   return (
     <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
