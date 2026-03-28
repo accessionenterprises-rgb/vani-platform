@@ -615,18 +615,19 @@ async def media_stream(ws: WebSocket, call_id: str):
             await asyncio.sleep(0.01)
 
     async def play_vobiz(mulaw: bytes) -> None:
-        """Stream audio to Vobiz — same media event format as receiving.
-        Vobiz docs: 'To send audio to the caller, you send the same format back'"""
+        """Stream audio to Vobiz via playAudio event (bidirectional).
+        Vobiz docs: bidirectional accepts playAudio events with contentType + sampleRate + payload."""
         chunk_size = 400  # 400 bytes = 50ms mulaw
         sid = session["stream_sid"]
         for i in range(0, len(mulaw), chunk_size):
             if not playback.is_playing:
                 return
             await _ws_send(json.dumps({
-                "event": "media",
-                "streamSid": sid,
+                "event": "playAudio",
                 "streamId": sid,
                 "media": {
+                    "contentType": "audio/x-mulaw",
+                    "sampleRate": 8000,
                     "payload": base64.b64encode(mulaw[i:i + chunk_size]).decode(),
                 },
             }))
@@ -640,8 +641,11 @@ async def media_stream(ws: WebSocket, call_id: str):
         try:
             log.info("play_text_tts_start", text=text[:50], fmt=session["audio_format"])
             mulaw = await _tts(text, tts_provider, voice_raw, language)
-            log.info("play_text_tts_done", mulaw_len=len(mulaw))
-            await play_mulaw(mulaw)
+            log.info("play_text_tts_done", mulaw_len=len(mulaw), fmt=session["audio_format"])
+            if session["audio_format"] == "vobiz":
+                await play_vobiz(mulaw)
+            else:
+                await play_mulaw(mulaw)
             log.info("play_text_sent")
         except asyncio.CancelledError:
             log.info("play_text_cancelled")
@@ -817,10 +821,10 @@ async def media_stream(ws: WebSocket, call_id: str):
                         if isinstance(start_data, str):
                             start_data = {}
                         log.info("start_event_debug", start_type=type(start_data).__name__, start_keys=list(start_data.keys())[:10] if isinstance(start_data, dict) else str(start_data)[:100], top_keys=list(data.keys()), media_format=str(start_data.get("mediaFormat", ""))[:200] if isinstance(start_data, dict) else "", tracks=str(start_data.get("tracks", ""))[:100] if isinstance(start_data, dict) else "")
-                        # Detect audio format
-                        mf = start_data.get("mediaFormat", {}) if isinstance(start_data, dict) else {}
-                        if isinstance(mf, dict) and "l16" in str(mf.get("encoding", "")).lower():
-                            session["audio_format"] = "l16"
+                        # Detect provider: Vobiz sends accountId in start, Twilio doesn't
+                        if isinstance(start_data, dict) and start_data.get("accountId"):
+                            session["audio_format"] = "vobiz"
+                            log.info("detected_vobiz_provider")
                         session["stream_sid"] = (
                             (start_data.get("streamSid") if isinstance(start_data, dict) else None)
                             or (start_data.get("streamId") if isinstance(start_data, dict) else None)
