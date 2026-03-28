@@ -640,12 +640,8 @@ async def media_stream(ws: WebSocket, call_id: str):
         try:
             log.info("play_text_tts_start", text=text[:50], fmt=session["audio_format"])
             mulaw = await _tts(text, tts_provider, voice_raw, language)
-            log.info("play_text_tts_done", mulaw_len=len(mulaw), fmt=session["audio_format"])
-            if session["audio_format"] == "l16":
-                # Vobiz bidirectional: use playAudio event with mulaw payload
-                await play_vobiz(mulaw)
-            else:
-                await play_mulaw(mulaw)
+            log.info("play_text_tts_done", mulaw_len=len(mulaw))
+            await play_mulaw(mulaw)
             log.info("play_text_sent")
         except asyncio.CancelledError:
             log.info("play_text_cancelled")
@@ -857,11 +853,7 @@ async def media_stream(ws: WebSocket, call_id: str):
                         media = data.get("media", {})
                         payload = media.get("payload") or data.get("payload") or ""
                         if payload:
-                            raw = base64.b64decode(payload)
-                            if session["audio_format"] == "l16":
-                                # Vobiz sends PCM-16, Deepgram needs mulaw
-                                raw = audioop.lin2ulaw(raw, 2)
-                            await dg_ws.send(raw)
+                            await dg_ws.send(base64.b64decode(payload))
                     elif ev == "stop":
                         session["active"] = False
                         break
