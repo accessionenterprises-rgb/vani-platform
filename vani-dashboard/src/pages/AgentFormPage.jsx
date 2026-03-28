@@ -1858,7 +1858,7 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
       // Use GET endpoint for Gemini Live voices, POST for others
       const voiceParam = previewPrefix === 'cartesia' ? `cartesia-${voice.id}` : previewPrefix === 'elevenlabs' ? `elevenlabs-${voice.id}` : voice.id
       const url = api.ttsPreviewUrl(voiceParam)
-      const token = localStorage.getItem('token')
+      const token = localStorage.getItem('vani_token')
       const resp = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`)
       const blob = await resp.blob()
