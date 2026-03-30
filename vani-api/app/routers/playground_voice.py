@@ -95,3 +95,29 @@ async def start_voice_session(
     except Exception as e:
         logger.error("playground_voice_start_failed", error=str(e))
         raise HTTPException(status_code=500, detail=f"Failed to start voice session: {e}")
+
+
+@router.post("/keepalive")
+async def keepalive_ping():
+    """Create a short-lived room to keep the agent warm. Called by cron every 4 min."""
+    if not LIVEKIT_API_KEY or not LIVEKIT_API_SECRET:
+        return {"ok": False, "reason": "not configured"}
+    try:
+        from livekit import api as lk_api
+        import json, secrets
+
+        lk = lk_api.LiveKitAPI(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
+        room_name = f"keepalive-{secrets.token_hex(4)}"
+        await lk.room.create_room(lk_api.CreateRoomRequest(name=room_name, empty_timeout=10))
+        await lk.agent_dispatch.create_dispatch(
+            lk_api.CreateAgentDispatchRequest(
+                agent_name="vani-agent",
+                room=room_name,
+                metadata=json.dumps({"source": "keepalive"}),
+            )
+        )
+        await lk.aclose()
+        return {"ok": True, "room": room_name}
+    except Exception as e:
+        logger.error("keepalive_failed", error=str(e))
+        return {"ok": False, "reason": str(e)}

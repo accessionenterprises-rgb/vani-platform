@@ -484,6 +484,11 @@ async def vani_agent(ctx: JobContext):
 
     metadata = _parse_metadata(getattr(ctx.job, "metadata", None))
 
+    # Keepalive ping — exit immediately, just warms the process
+    if metadata.get("source") == "keepalive":
+        print(">>> KEEPALIVE ping — agent warm", flush=True)
+        return
+
     # If no metadata (direct SIP dispatch), look up agent by called number
     if not metadata.get("agent_config"):
         called_number = ""
@@ -623,14 +628,20 @@ async def vani_agent(ctx: JobContext):
     llm = _build_llm(llm_model, custom_llm_url=custom_llm_url, custom_llm_model=custom_llm_model)
     tts = _build_tts(tts_provider, voice, dg_language)
 
-    # ── Telephone audio preprocessing ──────────────────────────────────────
-    # Disabled for now — wrapper causes crash on session teardown.
-    # TODO: re-enable once wrapper is compatible with SDK v1.5 session lifecycle
+    # ── Call type detection ─────────────────────────────────────────────────
     is_sip_call = any(
         p.attributes.get("sip.trunkPhoneNumber") or p.attributes.get("sip.phoneNumber")
         for p in ctx.room.remote_participants.values()
     ) or ctx.room.name.startswith("call")
-    print(f">>> Call type: {'SIP/phone' if is_sip_call else 'browser/WebRTC'} (audio preprocessing disabled)", flush=True)
+
+    # ── Audio preprocessing: DTLN noise suppression (self-hosted, no cloud needed)
+    nc_processor = None
+    try:
+        from livekit.plugins import dtln
+        nc_processor = dtln.noise_suppression(strength=0.5)
+        print(f">>> Call type: {'SIP/phone' if is_sip_call else 'browser/WebRTC'} (DTLN noise suppression enabled)", flush=True)
+    except Exception as e:
+        print(f">>> Call type: {'SIP/phone' if is_sip_call else 'browser/WebRTC'} (no noise suppression: {e})", flush=True)
 
     # ── LLM tools: external + built-in product tools ──────────────────────────
     lk_tools = build_livekit_tools(tools_config) + build_product_tools(products)
@@ -641,7 +652,7 @@ async def vani_agent(ctx: JobContext):
 
     if use_realtime:
         try:
-            rt_instructions = f"{full_instructions}\n\nGreeting: When the conversation starts, say: \"{greeting}\""
+            rt_instructions = f"{full_instructions}\n\nIMPORTANT CONVERSATION BEHAVIOR:\n- When you first hear the caller speak, your FIRST response must ALWAYS include: \"I can speak multiple languages, so feel free to talk to me in any language you are comfortable with.\"\n- Work this naturally into your first reply. For example: \"Hi! Welcome to Fairshift. I can speak multiple languages, so feel free to talk to me in any language you are comfortable with. How can I help you today?\""
 
             if tts_provider == "gemini-live":
                 gemini_voice = voice or "Puck"
@@ -671,21 +682,43 @@ async def vani_agent(ctx: JobContext):
             use_realtime = False
 
     if not use_realtime:
-        # SIP audio is 8kHz/mulaw — needs longer endpointing to avoid dropped finals
-        stt_endpointing = 600 if is_sip_call else 300
-        print(f">>> STT endpointing: {stt_endpointing}ms ({'SIP' if is_sip_call else 'WebRTC'})", flush=True)
+        # Silero VAD for better turn detection
+        vad = None
+        try:
+            from livekit.plugins import silero
+            vad = silero.VAD.load(
+                min_speech_duration=0.05,
+                min_silence_duration=0.55,
+                activation_threshold=0.5,
+                sample_rate=16000,
+            )
+            print(">>> VAD: Silero loaded", flush=True)
+        except Exception as e:
+            print(f">>> VAD: Silero failed ({e}), using default", flush=True)
+
+        from speech_orchestrator import speech_orchestrator
+
         session = AgentSession(
+            vad=vad,
             stt=deepgram.STT(
                 model=deepgram_model,
                 language=dg_language,
                 smart_format=True,
                 filler_words=False,
-                endpointing_ms=stt_endpointing,
-                interim_results=True,
-                utterance_end_ms=1200 if is_sip_call else 0,
+                endpointing_ms=200,
             ),
             llm=llm,
             tts=tts,
+            tts_text_transforms=[
+                "filter_markdown",
+                "filter_emoji",
+                speech_orchestrator(
+                    min_chunk_words=5,
+                    max_chunk_words=12,
+                    buffer_chars=60,
+                ),
+            ],
+            preemptive_generation=True,
         )
 
     filler = FillerSystem(session, language=language, delay_ms=9999)  # effectively disabled — fillers make it worse
@@ -706,6 +739,7 @@ async def vani_agent(ctx: JobContext):
         if text:
             ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
             transcript_lines.append(f"[{ts}] User: {text}")
+            print(f">>> [{ts}] USER: {text}", flush=True)
         if not language_locked[0]:
             detected = _detect_language(getattr(msg, "language", None))
             if detected:
@@ -720,6 +754,7 @@ async def vani_agent(ctx: JobContext):
         if last_user_ts[0] > 0:
             latency_ms = int((time.monotonic() - last_user_ts[0]) * 1000)
             turn_latencies.append(latency_ms)
+            print(f">>> LATENCY: {latency_ms}ms (turn {len(turn_latencies)})", flush=True)
             last_user_ts[0] = 0.0  # reset until next user turn
         filler.on_agent_started()
 
@@ -729,6 +764,7 @@ async def vani_agent(ctx: JobContext):
         if text:
             ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
             transcript_lines.append(f"[{ts}] Agent: {text}")
+            print(f">>> [{ts}] AGENT: {text}", flush=True)
         filler.on_agent_stopped()
         limits.on_agent_stopped()
 
@@ -744,6 +780,17 @@ async def vani_agent(ctx: JobContext):
     }
 
     try:
+        from livekit.agents import room_io
+
+        # Build room options with DTLN noise suppression
+        room_opts = None
+        if nc_processor:
+            room_opts = room_io.RoomOptions(
+                audio_input=room_io.AudioInputOptions(
+                    noise_cancellation=nc_processor,
+                ),
+            )
+
         await session.start(
             agent=VaaniAssistant(
                 instructions=full_instructions,
@@ -755,6 +802,7 @@ async def vani_agent(ctx: JobContext):
             ),
             room=ctx.room,
             record=False,
+            room_options=room_opts,
         )
         # Circuit breaker: session started successfully — providers are healthy
         circuit_breaker.record_success(llm_model)

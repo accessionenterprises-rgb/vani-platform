@@ -31,7 +31,7 @@ export default function AgentsPage() {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="px-8 py-7 max-w-5xl">
+      <div className="px-8 py-7 w-full">
         <div className="flex items-center justify-between mb-7">
           <div>
             <h1 className="text-2xl font-semibold text-[#1A1816]">Agents</h1>
@@ -84,54 +84,56 @@ export default function AgentsPage() {
           </div>
         ) : (
           <>
-            <div className="grid gap-3">
+            <div className="grid gap-3 w-full">
               {pageData.map(agent => (
                 <div key={agent.id}
-                  className="bg-white rounded-xl border border-[#E8E5E2] p-5 flex items-center gap-4 hover:border-[#E8E5E2] transition-colors">
-                  <div className="w-10 h-10 rounded-xl bg-[#2563EB]/15 flex items-center justify-center text-[#2563EB] font-bold text-base shrink-0">
-                    {agent.name[0].toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-medium text-[#1A1816]">{agent.name}</p>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        agent.agent_type === 'chatbot'
-                          ? 'bg-cyan-500/15 text-cyan-400'
-                          : 'bg-violet-500/15 text-violet-400'
-                      }`}>
-                        {agent.agent_type === 'chatbot' ? '💬 Chatbot' : '🎙️ Voice'}
-                      </span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${agent.active ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-500/15 text-[#78716C]'}`}>
-                        {agent.active ? 'Active' : 'Inactive'}
-                      </span>
-                      {agent.pii_redaction && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">PII</span>
-                      )}
+                  className="bg-white rounded-xl border border-[#E8E5E2] p-5 hover:border-[#D6D3D1] transition-colors">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-[#2563EB]/15 flex items-center justify-center text-[#2563EB] font-bold text-base shrink-0">
+                      {agent.name[0].toUpperCase()}
                     </div>
-                    <p className="text-sm text-[#A8A29E] mt-0.5 truncate">{agent.greeting}</p>
-                    <div className="flex items-center gap-3 mt-2">
-                      {agent.agent_type !== 'chatbot' && (['gemini-live','gpt-4o-mini-realtime','gpt-4o-realtime'].includes(agent.tts_provider) ? (
-                        <Chip accent="violet">Realtime: {agent.tts_provider}</Chip>
-                      ) : (
-                        <>
-                          <Chip>{agent.stt_provider}</Chip>
-                          <Chip>{agent.llm_provider}</Chip>
-                          <Chip>{agent.tts_provider}</Chip>
-                        </>
-                      ))}
-                      {agent.agent_type === 'chatbot' && <Chip>{agent.llm_provider}</Chip>}
-                      <Chip>{agent.language?.toUpperCase()}</Chip>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-base font-medium text-[#1A1816]">{agent.name}</p>
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${
+                          agent.agent_type === 'chatbot'
+                            ? 'bg-cyan-500/15 text-cyan-400'
+                            : 'bg-violet-500/15 text-violet-400'
+                        }`}>
+                          {agent.agent_type === 'chatbot' ? '💬 Chatbot' : '🎙️ Voice'}
+                        </span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded ${agent.active ? 'bg-emerald-500/15 text-emerald-400' : 'bg-slate-500/15 text-[#78716C]'}`}>
+                          {agent.active ? 'Active' : 'Inactive'}
+                        </span>
+                        {agent.pii_redaction && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">PII</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-[#A8A29E] mt-0.5 truncate max-w-md">{agent.greeting}</p>
+                      <div className="flex items-center gap-2 flex-wrap mt-2">
+                        {agent.agent_type !== 'chatbot' && (['gemini-live','gpt-4o-mini-realtime','gpt-4o-realtime'].includes(agent.tts_provider) ? (
+                          <Chip accent="violet">Realtime: {agent.tts_provider}</Chip>
+                        ) : (
+                          <>
+                            <Chip>{agent.stt_provider}</Chip>
+                            <Chip>{agent.llm_provider}</Chip>
+                            <Chip>{agent.tts_provider}</Chip>
+                          </>
+                        ))}
+                        {agent.agent_type === 'chatbot' && <Chip>{agent.llm_provider}</Chip>}
+                        <Chip>{agent.language?.toUpperCase()}</Chip>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Link to={`/agents/${agent.id}`}
-                      className="text-sm text-[#78716C] hover:text-[#1A1816] bg-[#F5F5F4] hover:bg-[#E8E5E2] px-3 py-1.5 rounded-lg transition-colors">
-                      Edit
-                    </Link>
-                    <button onClick={() => handleDelete(agent.id)}
-                      className="text-sm text-red-400/70 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors">
-                      Delete
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Link to={`/agents/${agent.id}`}
+                        className="text-sm text-[#78716C] hover:text-[#1A1816] bg-[#F5F5F4] hover:bg-[#E8E5E2] px-3 py-1.5 rounded-lg transition-colors">
+                        Edit
+                      </Link>
+                      <button onClick={() => handleDelete(agent.id)}
+                        className="text-sm text-red-400/70 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors">
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
