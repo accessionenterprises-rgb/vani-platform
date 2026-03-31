@@ -61,8 +61,8 @@ export default function PlaygroundPage() {
   const costs = getAgentCosts(agent)
 
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="px-8 py-7 ">
+    <div className="w-full">
+      <div className="px-6 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-semibold text-[#fafafa]">Testing Playground</h1>
           <p className="text-base text-[#71717a] mt-0.5">Test agents before going live</p>
@@ -397,7 +397,7 @@ function TextChatTab({ selectedAgent, agent }) {
         )}
       </div>
 
-      <div className="flex-1 p-5 space-y-3 overflow-y-auto" style={{ maxHeight: 420 }}>
+      <div className="flex-1 p-5 space-y-3 overflow-y-auto" style={{ minHeight: 300, maxHeight: 500 }}>
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center">
             <div className="w-12 h-12 rounded-full bg-[#2563EB]/10 flex items-center justify-center mb-3">

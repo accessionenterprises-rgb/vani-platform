@@ -193,7 +193,7 @@ export default function AgentsPage() {
 
       {/* Tab: Playground */}
       {activeTab === 'playground' && (
-        <div className="glass overflow-hidden" style={{ minHeight: 500 }}>
+        <div className="glass" style={{ minHeight: 500 }}>
           <Suspense fallback={<div className="flex justify-center py-16"><div className="w-5 h-5 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" /></div>}>
             <PlaygroundPage />
           </Suspense>
