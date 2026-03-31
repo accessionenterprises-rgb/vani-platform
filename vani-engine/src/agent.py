@@ -733,22 +733,53 @@ async def vani_agent(ctx: JobContext):
     last_user_ts = [0.0]      # timestamp of last user_speech_committed
     turn_latencies = []       # list of ms from user_speech_committed → agent_speech_started
 
-    @session.on("user_speech_committed")
-    def on_user_speech(msg):
-        last_user_ts[0] = time.monotonic()
-        text = getattr(msg, "transcript", None) or str(msg)
-        if text:
-            ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    @session.on("conversation_item_added")
+    def on_conversation_item(ev):
+        """Works for both Traditional and Gemini Live — fires for every user + agent turn."""
+        item = ev.item
+        role = getattr(item, "role", None)
+        # Extract text content
+        content = getattr(item, "content", None)
+        if isinstance(content, list):
+            text = " ".join(
+                (c.text if hasattr(c, "text") else str(c))
+                for c in content if c
+            ).strip()
+        elif isinstance(content, str):
+            text = content.strip()
+        else:
+            text = ""
+        if not text:
+            return
+        ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
+        if role == "user":
             transcript_lines.append(f"[{ts}] User: {text}")
             print(f">>> [{ts}] USER: {text}", flush=True)
+            last_user_ts[0] = time.monotonic()
+            if not language_locked[0]:
+                detected = _detect_language(getattr(item, "language", None))
+                if detected:
+                    filler.set_language(detected)
+                    limits.set_language(detected)
+                    language_locked[0] = True
+            filler.on_user_speech()
+            limits.on_user_speech()
+        elif role == "assistant":
+            transcript_lines.append(f"[{ts}] Agent: {text}")
+            print(f">>> [{ts}] AGENT: {text}", flush=True)
+            filler.on_agent_stopped()
+            limits.on_agent_stopped()
+
+    @session.on("user_speech_committed")
+    def on_user_speech(ev):
+        # Keep for latency tracking only — transcript handled by conversation_item_added
+        last_user_ts[0] = time.monotonic()
         if not language_locked[0]:
-            detected = _detect_language(getattr(msg, "language", None))
+            detected = _detect_language(getattr(ev, "language", None))
             if detected:
                 filler.set_language(detected)
                 limits.set_language(detected)
                 language_locked[0] = True
-        filler.on_user_speech()
-        limits.on_user_speech()
 
     @session.on("agent_speech_started")
     def on_agent_started(_):
@@ -756,16 +787,12 @@ async def vani_agent(ctx: JobContext):
             latency_ms = int((time.monotonic() - last_user_ts[0]) * 1000)
             turn_latencies.append(latency_ms)
             print(f">>> LATENCY: {latency_ms}ms (turn {len(turn_latencies)})", flush=True)
-            last_user_ts[0] = 0.0  # reset until next user turn
+            last_user_ts[0] = 0.0
         filler.on_agent_started()
 
     @session.on("agent_speech_committed")
     def on_agent_speech(msg):
-        text = getattr(msg, "text", None) or str(msg)
-        if text:
-            ts = datetime.now(timezone.utc).strftime("%H:%M:%S")
-            transcript_lines.append(f"[{ts}] Agent: {text}")
-            print(f">>> [{ts}] AGENT: {text}", flush=True)
+        # Keep for filler/limits — transcript handled by conversation_item_added
         filler.on_agent_stopped()
         limits.on_agent_stopped()
 
