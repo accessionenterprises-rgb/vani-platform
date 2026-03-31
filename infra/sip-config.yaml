@@ -1,0 +1,7 @@
+api_key: APIVaniSelf887cf7c8
+api_secret: W3cYnN/seVvwnQsK/MWmYL9VcicIK5uz86FlkHTt7c8=
+ws_url: ws://localhost:7880
+sip_port: 5060
+nat_1_to_1_ip: 35.244.15.25
+redis:
+  address: localhost:6379

@@ -1,0 +1,3 @@
+api.vani.live {
+    reverse_proxy localhost:8000
+}
