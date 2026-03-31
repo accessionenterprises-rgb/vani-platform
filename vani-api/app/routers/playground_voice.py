@@ -53,7 +53,8 @@ async def start_voice_session(
         from livekit import api as lk_api
         import json
 
-        lk = lk_api.LiveKitAPI(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
+        lk_api_url = LIVEKIT_URL.replace("wss://", "https://").replace("ws://", "http://")
+        lk = lk_api.LiveKitAPI(lk_api_url, LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
 
         # Create room
         import secrets
@@ -106,7 +107,8 @@ async def keepalive_ping():
         from livekit import api as lk_api
         import json, secrets
 
-        lk = lk_api.LiveKitAPI(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
+        lk_api_url = LIVEKIT_URL.replace("wss://", "https://").replace("ws://", "http://")
+        lk = lk_api.LiveKitAPI(lk_api_url, LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
         room_name = f"keepalive-{secrets.token_hex(4)}"
         await lk.room.create_room(lk_api.CreateRoomRequest(name=room_name, empty_timeout=10))
         await lk.agent_dispatch.create_dispatch(
