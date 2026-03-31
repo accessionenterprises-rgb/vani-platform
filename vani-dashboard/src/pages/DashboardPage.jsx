@@ -1,222 +1,148 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import StatusBadge from '../components/StatusBadge'
+import { useAgents } from '../hooks/useAgents'
+import { useCalls } from '../hooks/useCalls'
+import { useNumbers } from '../hooks/useNumbers'
+import KPICard from '../components/shared/KPICard'
+import Badge from '../components/shared/Badge'
+import EmptyState from '../components/shared/EmptyState'
+import { SkeletonCard } from '../components/shared/Skeleton'
 
 export default function DashboardPage() {
-  const [calls, setCalls] = useState([])
-  const [agents, setAgents] = useState([])
-  const [numbers, setNumbers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [dismissChecklist, setDismissChecklist] = useState(false)
+  const { data: calls = [], isLoading: loadingCalls } = useCalls({ limit: 20 })
+  const { data: agents = [], isLoading: loadingAgents } = useAgents()
+  const { data: numbers = [] } = useNumbers()
 
-  useEffect(() => {
-    Promise.all([
-      import('../api/client').then(m => m.api.listCalls({ limit: 20 })),
-      import('../api/client').then(m => m.api.listAgents()),
-      import('../api/client').then(m => m.api.listNumbers()),
-    ])
-      .then(([c, a, n]) => { setCalls(c || []); setAgents(a || []); setNumbers(n || []) })
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
-
+  const loading = loadingCalls || loadingAgents
   const totalCalls  = calls.length
   const activeCalls = calls.filter(c => c.status === 'active').length
   const completed   = calls.filter(c => c.status === 'completed').length
   const avgDuration = calls.filter(c => c.duration_sec).reduce((s, c) => s + c.duration_sec, 0) / (completed || 1)
+  const dismissChecklist = localStorage.getItem('vani_dismiss_checklist')
 
   return (
-    <div className="flex-1 overflow-auto bg-[#FAFAF9]">
-      <div className="px-8 py-8 max-w-[1200px]">
+    <div className="flex flex-col min-h-full w-full px-6 py-6">
 
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-[30px] font-bold text-[#1A1816] tracking-[-0.02em]">Dashboard</h1>
-            <p className="text-[16px] text-[#A8A29E] mt-0.5 font-medium">Your voice AI at a glance</p>
-          </div>
-          <Link to="/agents/build"
-            className="press flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[16px] font-semibold px-5 py-2.5 rounded-[10px] shadow-sm shadow-blue-200 transition-all">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            New Agent
-          </Link>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-[26px] font-bold text-[#fafafa] tracking-[-0.02em]">Dashboard</h1>
+          <p className="text-[13px] text-[#52525b] mt-0.5">Your voice AI at a glance</p>
         </div>
+        <Link to="/agents/build" className="btn-primary press flex items-center gap-2">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Agent
+        </Link>
+      </div>
 
-        {/* Onboarding checklist */}
-        {!loading && !dismissChecklist && !(agents.length > 0 && numbers.length > 0 && calls.length > 0) && (
-          <div className="mb-6 bg-white rounded-2xl border border-[#E8E5E2] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#EFF4FF] flex items-center justify-center">
-                  <svg className="w-4.5 h-4.5 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                </div>
-                <div>
-                  <h3 className="text-[16px] font-bold text-[#1A1816]">Get started with Vani</h3>
-                  <p className="text-[14px] text-[#A8A29E]">Complete these steps to go live</p>
-                </div>
+      {/* Onboarding checklist */}
+      {!loading && !dismissChecklist && !(agents.length > 0 && numbers.length > 0 && calls.length > 0) && (
+        <div className="mb-5 glass p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[rgba(139,92,246,0.10)] flex items-center justify-center">
+                <svg className="w-4 h-4 text-[#8b5cf6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
               </div>
-              <button onClick={() => setDismissChecklist(true)} className="text-[#A8A29E] hover:text-[#78716C] transition-colors">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-            <div className="space-y-2">
-              <Link to="/agents/build" className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${agents.length > 0 ? 'bg-[#F0FDF4] border border-[#BBF7D0]' : 'bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#2563EB]/30'}`}>
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${agents.length > 0 ? 'bg-[#16A34A]' : 'border-2 border-[#D6D3D1]'}`}>
-                  {agents.length > 0 && <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                </div>
-                <div className="flex-1">
-                  <p className={`text-[15px] font-semibold ${agents.length > 0 ? 'text-[#15803D]' : 'text-[#1A1816]'}`}>Create an agent</p>
-                  <p className="text-[13px] text-[#A8A29E]">{agents.length > 0 ? `${agents.length} agent${agents.length > 1 ? 's' : ''} created` : 'Build your first voice AI agent'}</p>
-                </div>
-                {agents.length === 0 && <span className="text-[13px] font-semibold text-[#2563EB]">Start →</span>}
-              </Link>
-              <Link to="/numbers" className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${numbers.length > 0 ? 'bg-[#F0FDF4] border border-[#BBF7D0]' : 'bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#2563EB]/30'}`}>
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${numbers.length > 0 ? 'bg-[#16A34A]' : 'border-2 border-[#D6D3D1]'}`}>
-                  {numbers.length > 0 && <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                </div>
-                <div className="flex-1">
-                  <p className={`text-[15px] font-semibold ${numbers.length > 0 ? 'text-[#15803D]' : 'text-[#1A1816]'}`}>Get a phone number</p>
-                  <p className="text-[13px] text-[#A8A29E]">{numbers.length > 0 ? `${numbers.length} number${numbers.length > 1 ? 's' : ''} active` : 'Buy or connect a phone number'}</p>
-                </div>
-                {numbers.length === 0 && <span className="text-[13px] font-semibold text-[#2563EB]">Get →</span>}
-              </Link>
-              <div className={`flex items-center gap-3 px-4 py-3 rounded-xl ${calls.length > 0 ? 'bg-[#F0FDF4] border border-[#BBF7D0]' : 'bg-[#FAFAF9] border border-[#E8E5E2]'}`}>
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${calls.length > 0 ? 'bg-[#16A34A]' : 'border-2 border-[#D6D3D1]'}`}>
-                  {calls.length > 0 && <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                </div>
-                <div className="flex-1">
-                  <p className={`text-[15px] font-semibold ${calls.length > 0 ? 'text-[#15803D]' : 'text-[#1A1816]'}`}>Receive your first call</p>
-                  <p className="text-[13px] text-[#A8A29E]">{calls.length > 0 ? `${calls.length} call${calls.length > 1 ? 's' : ''} received` : 'Waiting for your first inbound call'}</p>
-                </div>
+              <div>
+                <h3 className="text-[14px] font-semibold text-[#fafafa]">Get started with Vani</h3>
+                <p className="text-[12px] text-[#52525b]">Complete these steps to go live</p>
               </div>
             </div>
+            <button onClick={() => { localStorage.setItem('vani_dismiss_checklist', '1'); location.reload() }} className="text-[#52525b] hover:text-[#a1a1aa] transition-colors">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
           </div>
-        )}
-
-        {/* Active call banner */}
-        {activeCalls > 0 && (
-          <div className="mb-6 bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl p-5 flex items-center gap-5">
-            <div className="flex items-end gap-[3px] h-7">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-[3px] bg-[#16A34A] rounded-full wave-bar" style={{ animationDelay: `${i * 0.12}s` }} />
-              ))}
-            </div>
-            <div className="flex-1">
-              <p className="text-[16px] font-bold text-[#15803D]">{activeCalls} live call{activeCalls > 1 ? 's' : ''}</p>
-              <p className="text-[15px] text-[#16A34A]/70 mt-0.5">Your agents are handling conversations</p>
-            </div>
-            <Link to="/calls" className="press text-[15px] font-semibold text-[#15803D] bg-white border border-[#BBF7D0] px-4 py-1.5 rounded-lg hover:bg-[#F0FDF4] transition-all">
-              View live →
-            </Link>
-          </div>
-        )}
-
-        {/* Stat cards */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Total Calls', value: totalCalls, icon: '📞', bg: '#EFF4FF', color: '#2563EB' },
-            { label: 'Active Now', value: activeCalls, icon: '🎙️', bg: '#F0FDF4', color: '#16A34A', pulse: activeCalls > 0 },
-            { label: 'Completed', value: completed, icon: '✓', bg: '#F5F5F4', color: '#44403C' },
-            { label: 'Avg Duration', value: `${Math.round(avgDuration)}s`, icon: '⏱', bg: '#FFF7ED', color: '#EA580C' },
-          ].map((s, i) => (
-            <div key={i} className="card-hover bg-white rounded-2xl border border-[#E8E5E2] px-5 py-5">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[14px] font-semibold text-[#A8A29E] uppercase tracking-[0.06em]">{s.label}</span>
-                <div className="w-8 h-8 rounded-[8px] flex items-center justify-center text-base" style={{ background: s.bg }}>
-                  {s.icon === '✓'
-                    ? <svg className="w-4 h-4" style={{ color: s.color }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    : s.icon}
+          <div className="space-y-2">
+            {[
+              { done: agents.length > 0, label: 'Create an agent', sub: agents.length > 0 ? `${agents.length} created` : 'Build your first voice AI agent', to: '/agents/build' },
+              { done: numbers.length > 0, label: 'Get a phone number', sub: numbers.length > 0 ? `${numbers.length} active` : 'Buy or connect a phone number', to: '/numbers' },
+              { done: calls.length > 0, label: 'Receive your first call', sub: calls.length > 0 ? `${calls.length} received` : 'Waiting for your first call' },
+            ].map((step, i) => (
+              <Link key={i} to={step.to || '#'}
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all ${
+                  step.done
+                    ? 'bg-[rgba(139,92,246,0.06)] border border-[rgba(139,92,246,0.12)]'
+                    : 'bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] hover:border-[rgba(139,92,246,0.15)]'
+                }`}>
+                <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${step.done ? 'bg-[#8b5cf6]' : 'border-[1.5px] border-[#52525b]'}`}>
+                  {step.done && <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                 </div>
-              </div>
-              <div className="flex items-end gap-2">
-                <span className="text-[40px] font-bold tracking-[-0.03em]" style={{ color: s.color }}>{s.value}</span>
-                {s.pulse && <span className="relative flex h-2 w-2 mb-2"><span className="animate-ping absolute h-full w-full rounded-full bg-[#16A34A] opacity-60"/><span className="relative h-2 w-2 rounded-full bg-[#16A34A]"/></span>}
-              </div>
-            </div>
-          ))}
+                <div className="flex-1">
+                  <p className={`text-[13px] font-medium ${step.done ? 'text-[#8b5cf6]' : 'text-[#fafafa]'}`}>{step.label}</p>
+                  <p className="text-[11px] text-[#52525b]">{step.sub}</p>
+                </div>
+                {!step.done && step.to && <span className="text-[11px] font-semibold text-[#8b5cf6]">Start →</span>}
+              </Link>
+            ))}
+          </div>
         </div>
+      )}
 
-        {/* Main content grid */}
-        <div className="grid grid-cols-5 gap-5">
+      {/* Active call banner */}
+      {activeCalls > 0 && (
+        <div className="mb-5 glass rounded-xl p-4 flex items-center gap-4">
+          <div className="flex items-end gap-[3px] h-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="wave-bar" style={{ animationDelay: `${i * 0.12}s` }} />
+            ))}
+          </div>
+          <div className="flex-1">
+            <p className="text-[14px] font-semibold text-[#fafafa]">{activeCalls} live call{activeCalls > 1 ? 's' : ''}</p>
+            <p className="text-[12px] text-[#52525b]">Agents handling conversations</p>
+          </div>
+          <Link to="/calls?status=active" className="btn-ghost press text-[12px]">View live →</Link>
+        </div>
+      )}
 
-          {/* Recent Calls — 3 cols */}
-          <div className="col-span-3 bg-white rounded-2xl border border-[#E8E5E2] overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#F0EDEA] flex items-center justify-between">
-              <h2 className="text-[16px] font-bold text-[#1A1816]">Recent Calls</h2>
-              <Link to="/calls" className="press text-[14px] font-semibold text-[#2563EB] bg-[#EFF4FF] hover:bg-[#DBEAFE] px-3 py-1 rounded-md transition-colors">
-                View all
-              </Link>
-            </div>
+      {/* KPI Cards */}
+      {loading ? (
+        <div className="grid grid-cols-4 gap-3 mb-5">
+          {[1,2,3,4].map(i => <SkeletonCard key={i} />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-4 gap-3 mb-5">
+          <KPICard label="Total Calls" value={totalCalls} />
+          <KPICard label="Active Now" value={activeCalls} pulse={activeCalls > 0} />
+          <KPICard label="Completed" value={completed} />
+          <KPICard label="Avg Duration" value={`${Math.round(avgDuration)}s`} />
+        </div>
+      )}
+
+      {/* Main content — stretches to fill remaining space */}
+      <div className="flex-1 grid grid-cols-3 gap-3 min-h-0">
+
+        {/* Recent Calls — 2 cols, fills height */}
+        <div className="col-span-2 glass overflow-hidden flex flex-col">
+          <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] flex items-center justify-between shrink-0">
+            <h2 className="text-[13px] font-semibold text-[#a1a1aa] uppercase tracking-[0.04em]">Recent Calls</h2>
+            <Link to="/calls" className="text-[12px] font-medium text-[#8b5cf6] hover:text-[#a78bfa] transition-colors">View all</Link>
+          </div>
+          <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div className="p-12 flex justify-center">
-                <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
+              <div className="p-8 flex justify-center">
+                <div className="w-4 h-4 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : calls.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-[#F5F5F4] flex items-center justify-center mx-auto mb-3 text-2xl">📞</div>
-                <p className="text-[16px] text-[#78716C] font-medium">No calls yet</p>
-                <p className="text-[14px] text-[#A8A29E] mt-1">Waiting for your first inbound call</p>
-              </div>
+              <EmptyState title="No calls yet" description="Calls appear here once your agents go live" />
             ) : (
               <div>
-                {calls.slice(0, 7).map((call, idx) => (
-                  <Link key={call.id} to={`/calls/${call.id}`}
-                    className={`flex items-center gap-4 px-5 py-3 hover:bg-[#FAFAF9] transition-colors ${idx < calls.slice(0,7).length - 1 ? 'border-b border-[#F5F5F4]' : ''}`}>
-                    <div className="w-8 h-8 rounded-full bg-[#F5F5F4] flex items-center justify-center shrink-0">
-                      <svg className="w-3.5 h-3.5 text-[#A8A29E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.73a16 16 0 0 0 7.36 7.36l1.91-1.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[16px] text-[#1A1816] font-semibold truncate">{call.phone || 'Unknown'}</p>
-                      <p className="text-[14px] text-[#A8A29E] mt-0.5">
-                        {agents.find(a => a.id === call.agent_id)?.name || '—'} · {fmtTime(call.started_at)}
-                      </p>
-                    </div>
-                    {call.duration_sec > 0 && (
-                      <span className="text-[14px] text-[#A8A29E] font-mono tabular-nums">{fmtDur(call.duration_sec)}</span>
-                    )}
-                    <StatusBadge status={call.status} />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Agents — 2 cols */}
-          <div className="col-span-2 bg-white rounded-2xl border border-[#E8E5E2] overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#F0EDEA] flex items-center justify-between">
-              <h2 className="text-[16px] font-bold text-[#1A1816]">Agents</h2>
-              <Link to="/agents" className="press text-[14px] font-semibold text-[#2563EB] bg-[#EFF4FF] hover:bg-[#DBEAFE] px-3 py-1 rounded-md transition-colors">
-                Manage
-              </Link>
-            </div>
-            {agents.length === 0 ? (
-              <div className="p-10 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-[#F5F5F4] flex items-center justify-center mx-auto mb-3 text-2xl">🤖</div>
-                <p className="text-[16px] text-[#78716C] font-medium mb-3">No agents yet</p>
-                <Link to="/agents/build" className="press inline-flex items-center gap-1.5 text-[15px] font-semibold text-[#2563EB]">
-                  + Create your first agent
-                </Link>
-              </div>
-            ) : (
-              <div>
-                {agents.map((a, idx) => (
-                  <Link key={a.id} to={`/agents/${a.id}`}
-                    className={`flex items-center gap-3 px-5 py-3 hover:bg-[#FAFAF9] transition-colors ${idx < agents.length - 1 ? 'border-b border-[#F5F5F4]' : ''}`}>
-                    <div className={`w-8 h-8 rounded-[8px] flex items-center justify-center text-[14px] font-bold shrink-0 ${
-                      a.active ? 'bg-[#EFF4FF] text-[#2563EB]' : 'bg-[#F5F5F4] text-[#A8A29E]'
-                    }`}>
-                      {a.name[0].toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[16px] text-[#1A1816] font-semibold truncate">{a.name}</p>
-                      <p className="text-[14px] text-[#A8A29E] mt-0.5">{a.language?.toUpperCase()} · {a.llm_provider}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {a.agent_type === 'chatbot' && (
-                        <span className="text-[10px] font-bold text-[#7C3AED] bg-[#F5F3FF] px-1.5 py-0.5 rounded">CHAT</span>
+                {calls.slice(0, 12).map((call, idx) => (
+                  <Link key={call.id} to={`/calls?detail=${call.id}`}
+                    className={`flex items-center gap-3 px-4 py-2.5 hover:bg-[rgba(255,255,255,0.02)] transition-colors ${idx < Math.min(calls.length, 12) - 1 ? 'border-b border-[rgba(255,255,255,0.03)]' : ''}`}>
+                    <div className="w-7 h-7 rounded-md bg-[rgba(255,255,255,0.04)] flex items-center justify-center shrink-0">
+                      {call.status === 'active' ? (
+                        <div className="flex items-end gap-[2px] h-3">
+                          {[0,1,2].map(i => <div key={i} className="wave-bar" style={{ width: 2, animationDelay: `${i * 0.15}s` }} />)}
+                        </div>
+                      ) : (
+                        <svg className="w-3 h-3 text-[#52525b]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3"/></svg>
                       )}
-                      <div className={`w-[6px] h-[6px] rounded-full ${a.active ? 'bg-[#16A34A]' : 'bg-[#D6D3D1]'}`} />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] text-[#fafafa] font-medium truncate font-mono">{call.phone || 'Unknown'}</p>
+                      <p className="text-[11px] text-[#52525b]">{agents.find(a => a.id === call.agent_id)?.name || '—'} · {fmtTime(call.started_at)}</p>
+                    </div>
+                    {call.duration_sec > 0 && <span className="text-[11px] text-[#52525b] font-mono">{fmtDur(call.duration_sec)}</span>}
+                    <Badge status={call.status} pulse={call.status === 'active'} />
                   </Link>
                 ))}
               </div>
@@ -224,23 +150,58 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick actions */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          {[
-            { to: '/agents/build', icon: '🤖', label: 'Build an Agent', desc: 'Voice or chatbot, guided setup', color: '#EFF4FF' },
-            { to: '/numbers',      icon: '📱', label: 'Get a Number',   desc: 'Buy from Twilio or Telnyx',   color: '#F0FDF4' },
-            { to: '/campaigns',    icon: '🚀', label: 'Launch Campaign', desc: 'Outbound calling at scale',    color: '#FFF7ED' },
-          ].map(a => (
-            <Link key={a.to} to={a.to} className="group card-hover bg-white rounded-2xl border border-[#E8E5E2] p-5 flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 transition-transform group-hover:scale-105" style={{ background: a.color }}>
-                {a.icon}
-              </div>
-              <div>
-                <p className="text-[16px] font-bold text-[#1A1816] group-hover:text-[#2563EB] transition-colors">{a.label}</p>
-                <p className="text-[14px] text-[#A8A29E] mt-0.5">{a.desc}</p>
-              </div>
-            </Link>
-          ))}
+        {/* Right column — Agents + Quick Actions stacked */}
+        <div className="col-span-1 flex flex-col gap-3 min-h-0">
+
+          {/* Agents list — fills available space */}
+          <div className="glass overflow-hidden flex flex-col flex-1 min-h-0">
+            <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.04)] flex items-center justify-between shrink-0">
+              <h2 className="text-[13px] font-semibold text-[#a1a1aa] uppercase tracking-[0.04em]">Agents</h2>
+              <Link to="/agents" className="text-[12px] font-medium text-[#8b5cf6] hover:text-[#a78bfa] transition-colors">Manage</Link>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              {agents.length === 0 ? (
+                <EmptyState title="No agents" action={() => window.location.href = '/agents/build'} actionLabel="Create agent" />
+              ) : (
+                <div>
+                  {agents.map((a, idx) => (
+                    <Link key={a.id} to={`/agents/${a.id}`}
+                      className={`flex items-center gap-3 px-4 py-2.5 hover:bg-[rgba(255,255,255,0.02)] transition-colors ${idx < agents.length - 1 ? 'border-b border-[rgba(255,255,255,0.03)]' : ''}`}>
+                      <div className={`w-7 h-7 rounded-md flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                        a.active ? 'bg-[rgba(139,92,246,0.12)] text-[#8b5cf6]' : 'bg-[rgba(255,255,255,0.04)] text-[#52525b]'
+                      }`}>
+                        {a.name[0].toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] text-[#fafafa] font-medium truncate">{a.name}</p>
+                        <p className="text-[11px] text-[#52525b]">{a.llm_provider}</p>
+                      </div>
+                      <div className={`w-1.5 h-1.5 rounded-full ${a.active ? 'bg-[#8b5cf6]' : 'bg-[#52525b]'}`} />
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick actions — pinned at bottom */}
+          <div className="flex flex-col gap-2 shrink-0">
+            {[
+              { to: '/agents/build', label: 'Build an Agent', desc: 'Voice or chatbot' },
+              { to: '/numbers',      label: 'Get a Number',   desc: 'Twilio, Telnyx, Vobiz' },
+              { to: '/campaigns',    label: 'Launch Campaign', desc: 'Outbound at scale' },
+            ].map(a => (
+              <Link key={a.to} to={a.to} className="group glass card-hover px-4 py-3 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[rgba(139,92,246,0.08)] group-hover:bg-[rgba(139,92,246,0.12)] transition-colors shrink-0">
+                  <svg className="w-3.5 h-3.5 text-[#8b5cf6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+                <div>
+                  <p className="text-[13px] font-medium text-[#fafafa] group-hover:text-[#8b5cf6] transition-colors">{a.label}</p>
+                  <p className="text-[11px] text-[#52525b]">{a.desc}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -1,408 +1,384 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { api } from '../api/client'
-import StatusBadge from '../components/StatusBadge'
+import { useState, useMemo } from 'react'
+import { useCalls, useCall } from '../hooks/useCalls'
+import { useAgents } from '../hooks/useAgents'
+import { useDrawer } from '../hooks/useDrawer'
+import Badge from '../components/shared/Badge'
+import EmptyState from '../components/shared/EmptyState'
+import DrawerShell from '../components/modals/DrawerShell'
 
-const STATUS_FILTERS = ['all', 'active', 'completed', 'failed', 'connecting']
+const STATUS_PILLS = ['all', 'active', 'completed', 'failed']
 const PAGE_SIZE = 25
 
-// Cost-per-minute estimates by provider (USD)
-const COST_RATES = {
-  stt: { deepgram: 0.0017, 'deepgram-nova-3': 0.0017, 'deepgram-nova-2': 0.0014, 'openai-whisper': 0.0024, google: 0.0064, azure: 0.0067, sarvam: 0.0048 },
-  llm: { 'gpt-4o-mini': 0.0017, 'gpt-5-nano': 0.0007, 'gpt-5-mini': 0.0037, 'gemini-2.0-flash': 0.0011, 'claude-haiku': 0.0098, default: 0.003 },
-  tts: { openai: 0.0083, cartesia: 0.036, elevenlabs: 0.049, sarvam: 0.01, 'google-standard': 0.0022, default: 0.01 },
-  telephony: 0.013, // base per-min telephony
+function fmtDate(ts) {
+  if (!ts) return '—'
+  const d = new Date(ts)
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric' })
 }
 
-function estimateCost(durationSec, meta) {
-  if (!durationSec || durationSec < 1) return null
-  const mins = durationSec / 60
-  const sttRate = COST_RATES.stt[meta?.stt_provider] || 0.0017
-  const llmRate = COST_RATES.llm[meta?.llm_provider] || COST_RATES.llm.default
-  const ttsRate = COST_RATES.tts[meta?.tts_provider] || COST_RATES.tts.default
-  return {
-    stt: sttRate * mins,
-    llm: llmRate * mins,
-    tts: ttsRate * mins,
-    telephony: COST_RATES.telephony * mins,
-    total: (sttRate + llmRate + ttsRate + COST_RATES.telephony) * mins,
-  }
+function fmtTime(ts) {
+  if (!ts) return ''
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
-function fmtDuration(sec) {
+function fmtDur(sec) {
   if (!sec) return '—'
-  if (sec < 60) return `${sec}s`
-  return `${Math.floor(sec / 60)}m ${sec % 60}s`
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return m > 0 ? `${m}m ${s}s` : `${s}s`
 }
 
-// ─── Inline Call Detail Panel ─────────────────────────────────────────────
+// ─── Call Detail Drawer ──────────────────────────────────────────────────────
 
-function CallExpandedRow({ call, agentName }) {
-  const [detail, setDetail] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const audioRef = useRef(null)
-  const [audioPlaying, setAudioPlaying] = useState(false)
+function CallDetailDrawer({ callId, isOpen, onClose, agents }) {
+  const { data: call, isLoading } = useCall(callId)
+  const agentName = useMemo(() => {
+    if (!call || !agents) return '—'
+    return agents.find(a => a.id === call.agent_id)?.name || '—'
+  }, [call, agents])
 
-  useEffect(() => {
-    api.getCall(call.id)
-      .then(setDetail)
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [call.id])
-
-  if (loading) {
-    return (
-      <tr><td colSpan={8} className="px-5 py-8 text-center">
-        <div className="flex items-center justify-center gap-2 text-sm text-[#A8A29E]">
-          <div className="w-4 h-4 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
-          Loading call details...
-        </div>
-      </td></tr>
-    )
-  }
-
-  const d = detail || call
-  const meta = d.metadata || {}
-  const cost = meta.cost || estimateCost(d.duration_sec, meta)
-  const transcriptLines = d.transcript ? d.transcript.split('\n').filter(Boolean) : []
-
-  function toggleAudio() {
-    if (!audioRef.current) return
-    if (audioPlaying) { audioRef.current.pause(); setAudioPlaying(false) }
-    else { audioRef.current.play(); setAudioPlaying(true) }
-  }
+  const transcriptLines = useMemo(() => {
+    if (!call?.transcript) return []
+    return call.transcript.split('\n').filter(Boolean)
+  }, [call?.transcript])
 
   return (
-    <tr>
-      <td colSpan={8} className="px-5 py-0">
-        <div className="py-4 border-t border-[#F0EDEA]">
-          <div className="grid grid-cols-3 gap-5">
-            {/* Left: Transcript */}
-            <div className="col-span-2">
-              {/* Recording player */}
-              {d.recording_url && (
-                <div className="mb-4 bg-[#FAFAF9] rounded-xl border border-[#E8E5E2] p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <svg className="w-4 h-4 text-[#2563EB]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
-                    </svg>
-                    <span className="text-sm font-medium text-[#44403C]">Recording</span>
-                  </div>
-                  <audio
-                    ref={audioRef}
-                    controls
-                    src={d.recording_url}
-                    className="w-full h-10"
-                    style={{ colorScheme: 'light' }}
-                    onPlay={() => setAudioPlaying(true)}
-                    onPause={() => setAudioPlaying(false)}
-                    onEnded={() => setAudioPlaying(false)}
-                  />
-                </div>
-              )}
+    <DrawerShell isOpen={isOpen} onClose={onClose} title="Call Details" width={520}>
+      {isLoading || !call ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="w-5 h-5 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : (
+        <div className="space-y-5">
 
-              {/* Transcript */}
-              <div className="bg-[#FAFAF9] rounded-xl border border-[#E8E5E2] p-4">
-                <h3 className="text-sm font-medium text-[#44403C] mb-3">Transcript</h3>
-                {transcriptLines.length === 0 ? (
-                  <p className="text-sm text-[#A8A29E] text-center py-4">No transcript available.</p>
-                ) : (
-                  <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
-                    {transcriptLines.map((line, i) => {
-                      const isUser  = line.includes('] User:')
-                      const isAgent = line.includes('] Agent:')
-                      const text = line.replace(/^\[\d+:\d+:\d+\] (User|Agent): /, '')
-                      const time = line.match(/\[(\d+:\d+:\d+)\]/)?.[1]
-                      return (
-                        <div key={i} className={`flex gap-2.5 ${isAgent ? 'flex-row-reverse' : ''}`}>
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0 mt-0.5 ${
-                            isUser ? 'bg-[#E8E5E2] text-[#44403C]' : 'bg-[#2563EB]/20 text-[#2563EB]'
-                          }`}>
-                            {isUser ? 'U' : 'A'}
-                          </div>
-                          <div className={`flex-1 ${isAgent ? 'text-right' : ''}`}>
-                            <span className={`text-[10px] font-semibold uppercase tracking-wider ${
-                              isUser ? 'text-[#A8A29E]' : 'text-[#2563EB]'
-                            }`}>
-                              {isUser ? 'USER' : 'AGENT'}
-                              {time && <span className="text-[#D6D3D1] font-normal ml-1.5">{time}</span>}
-                            </span>
-                            <p className={`text-sm leading-relaxed mt-0.5 rounded-lg px-3 py-2 inline-block max-w-[85%] ${
-                              isUser ? 'bg-white text-[#44403C] border border-[#E8E5E2]' : 'bg-[#2563EB]/10 text-[#1A1816]'
-                            }`}>
-                              {text}
-                            </p>
-                          </div>
-                        </div>
-                      )
-                    })}
+          {/* Header info */}
+          <div className="glass p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] font-mono text-[#fafafa]">{call.phone || 'Unknown'}</span>
+              <Badge status={call.status} pulse={call.status === 'active'} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <InfoCell label="Agent" value={agentName} />
+              <InfoCell label="Direction" value={call.direction || 'inbound'} />
+              <InfoCell label="Duration" value={fmtDur(call.duration_sec)} />
+              <InfoCell label="Date" value={call.started_at ? `${fmtDate(call.started_at)} ${fmtTime(call.started_at)}` : '—'} />
+            </div>
+          </div>
+
+          {/* Provider metadata */}
+          {call.metadata && (call.metadata.stt_provider || call.metadata.llm_provider || call.metadata.tts_provider) && (
+            <div className="glass p-4">
+              <h3 className="text-[11px] font-semibold text-[#52525b] uppercase tracking-[0.06em] mb-3">Providers</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {call.metadata.stt_provider && <InfoCell label="STT" value={call.metadata.stt_provider} />}
+                {call.metadata.llm_provider && <InfoCell label="LLM" value={call.metadata.llm_provider} />}
+                {call.metadata.tts_provider && <InfoCell label="TTS" value={call.metadata.tts_provider} />}
+              </div>
+            </div>
+          )}
+
+          {/* Summary */}
+          {call.summary && (
+            <div className="glass p-4">
+              <h3 className="text-[11px] font-semibold text-[#52525b] uppercase tracking-[0.06em] mb-2">AI Summary</h3>
+              <p className="text-[13px] text-[#a1a1aa] leading-relaxed">{call.summary}</p>
+            </div>
+          )}
+
+          {/* Recording */}
+          {call.recording_url && (
+            <div className="glass p-4">
+              <h3 className="text-[11px] font-semibold text-[#52525b] uppercase tracking-[0.06em] mb-3">Recording</h3>
+              <audio
+                controls
+                src={call.recording_url}
+                className="w-full h-9"
+                style={{ filter: 'invert(1) hue-rotate(180deg)', opacity: 0.85 }}
+              />
+            </div>
+          )}
+
+          {/* Transcript */}
+          <div className="glass p-4">
+            <h3 className="text-[11px] font-semibold text-[#52525b] uppercase tracking-[0.06em] mb-3">Transcript</h3>
+            {transcriptLines.length === 0 ? (
+              <p className="text-[13px] text-[#52525b] text-center py-6">No transcript available</p>
+            ) : (
+              <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+                {transcriptLines.map((line, i) => {
+                  const isUser = line.includes('] User:')
+                  const text = line.replace(/^\[\d+:\d+:\d+\] (User|Agent): /, '')
+                  const time = line.match(/\[(\d+:\d+:\d+)\]/)?.[1]
+                  return (
+                    <div key={i} className={`flex gap-2 ${!isUser ? 'flex-row-reverse' : ''}`}>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5 ${
+                        isUser ? 'bg-[rgba(255,255,255,0.06)] text-[#a1a1aa]' : 'bg-[rgba(139,92,246,0.15)] text-[#8b5cf6]'
+                      }`}>
+                        {isUser ? 'U' : 'A'}
+                      </div>
+                      <div className={`flex-1 ${!isUser ? 'text-right' : ''}`}>
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-[#52525b]">
+                          {isUser ? 'User' : 'Agent'}
+                          {time && <span className="text-[#3f3f46] ml-1">{time}</span>}
+                        </span>
+                        <p className={`text-[12px] leading-relaxed mt-0.5 rounded-lg px-3 py-1.5 inline-block max-w-[85%] ${
+                          isUser
+                            ? 'bg-[rgba(255,255,255,0.04)] text-[#fafafa] border border-[rgba(255,255,255,0.06)]'
+                            : 'bg-[rgba(139,92,246,0.08)] text-[#e4e4e7]'
+                        }`}>
+                          {text}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Cost */}
+          {call.metadata?.cost && (
+            <div className="glass p-4">
+              <h3 className="text-[11px] font-semibold text-[#52525b] uppercase tracking-[0.06em] mb-3">Cost</h3>
+              <div className="space-y-1.5">
+                {[['STT', call.metadata.cost.stt_usd || call.metadata.cost.stt],
+                  ['LLM', call.metadata.cost.llm_usd || call.metadata.cost.llm],
+                  ['TTS', call.metadata.cost.tts_usd || call.metadata.cost.tts],
+                  ['Telephony', call.metadata.cost.telephony_usd || call.metadata.cost.telephony],
+                ].filter(([, v]) => v).map(([label, val]) => (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-[12px] text-[#52525b]">{label}</span>
+                    <span className="text-[12px] text-[#a1a1aa] font-mono">${Number(val).toFixed(5)}</span>
+                  </div>
+                ))}
+                {(call.metadata.cost.total || call.metadata.cost.total_usd) && (
+                  <div className="flex justify-between border-t border-[rgba(255,255,255,0.06)] pt-1.5 mt-1.5">
+                    <span className="text-[12px] font-medium text-[#a1a1aa]">Total</span>
+                    <span className="text-[12px] font-medium text-[#fafafa] font-mono">
+                      ${Number(call.metadata.cost.total || call.metadata.cost.total_usd).toFixed(5)}
+                    </span>
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Right: Metadata + Cost */}
-            <div className="space-y-4">
-              {/* Call metadata */}
-              <div className="bg-[#FAFAF9] rounded-xl border border-[#E8E5E2] p-4">
-                <h3 className="text-sm font-medium text-[#44403C] mb-3">Call Metadata</h3>
-                <dl className="space-y-2">
-                  <MetaRow label="Duration" value={fmtDuration(d.duration_sec)} />
-                  <MetaRow label="Status" value={<StatusBadge status={d.status} />} />
-                  <MetaRow label="Direction" value={d.direction || 'inbound'} />
-                  {meta.engine && <MetaRow label="Engine" value={meta.engine} />}
-                  {meta.stt_provider && <MetaRow label="STT" value={<span className="text-[#2563EB]">{meta.stt_provider}</span>} />}
-                  {meta.llm_provider && <MetaRow label="LLM" value={<span className="text-[#2563EB]">{meta.llm_provider}</span>} />}
-                  {meta.tts_provider && <MetaRow label="TTS" value={<span className="text-[#2563EB]">{meta.tts_provider}</span>} />}
-                  {meta.intent && <MetaRow label="Intent" value={<span className="capitalize">{meta.intent}</span>} />}
-                  {d.sentiment && <MetaRow label="Sentiment" value={
-                    <span className={d.sentiment === 'positive' ? 'text-emerald-500' : d.sentiment === 'negative' ? 'text-red-400' : 'text-[#78716C]'}>
-                      {d.sentiment}
-                    </span>
-                  } />}
-                </dl>
-              </div>
-
-              {/* Cost estimate */}
-              {cost && (
-                <div className="bg-[#FAFAF9] rounded-xl border border-[#E8E5E2] p-4">
-                  <h3 className="text-sm font-medium text-[#44403C] mb-3">
-                    Cost {meta.cost ? '' : 'Estimate'}
-                  </h3>
-                  <div className="space-y-1.5">
-                    {[['STT', cost.stt || cost.stt_usd], ['LLM', cost.llm || cost.llm_usd], ['TTS', cost.tts || cost.tts_usd], ['Telephony', cost.telephony || cost.telephony_usd]].map(([label, val]) => (
-                      <div key={label} className="flex justify-between">
-                        <span className="text-sm text-[#A8A29E]">{label}</span>
-                        <span className="text-sm text-[#44403C]">${(val || 0).toFixed(5)}</span>
-                      </div>
-                    ))}
-                    <div className="flex justify-between border-t border-[#E8E5E2] pt-1.5 mt-1.5">
-                      <span className="text-sm font-medium text-[#78716C]">Total</span>
-                      <span className="text-sm font-medium text-[#1A1816]">${(cost.total || cost.total_usd || 0).toFixed(5)}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Summary */}
-              {d.summary && (
-                <div className="bg-[#FAFAF9] rounded-xl border border-[#E8E5E2] p-4">
-                  <h3 className="text-sm font-medium text-[#44403C] mb-2">AI Summary</h3>
-                  <p className="text-sm text-[#78716C] leading-relaxed">{d.summary}</p>
-                </div>
-              )}
-
-              <Link to={`/calls/${call.id}`} className="block text-center text-sm text-[#2563EB] hover:text-[#3B82F6] py-2">
-                Open full detail view →
-              </Link>
-            </div>
-          </div>
+          )}
         </div>
-      </td>
-    </tr>
+      )}
+    </DrawerShell>
   )
 }
 
-function MetaRow({ label, value }) {
+function InfoCell({ label, value }) {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <dt className="text-sm text-[#A8A29E] shrink-0">{label}</dt>
-      <dd className="text-sm text-[#44403C] text-right">{value}</dd>
+    <div>
+      <p className="text-[10px] font-semibold text-[#52525b] uppercase tracking-[0.06em]">{label}</p>
+      <p className="text-[13px] text-[#fafafa] mt-0.5 capitalize">{value}</p>
     </div>
   )
 }
 
+// ─── Main Page ───────────────────────────────────────────────────────────────
+
 export default function CallsPage() {
-  const [calls, setCalls]   = useState([])
-  const [agents, setAgents] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
+  const [status, setStatus] = useState('all')
+  const [agentFilter, setAgentFilter] = useState('')
   const [search, setSearch] = useState('')
-  const [page, setPage]     = useState(1)
-  const [expandedId, setExpandedId] = useState(null)
-  const [inlineAudio, setInlineAudio] = useState(null)
-  const inlineAudioRef = useRef(null)
+  const [page, setPage] = useState(0)
 
-  const agentName = (id) => agents.find(a => a.id === id)?.name || id?.slice(0, 8) + '…'
+  const { isOpen, detailId, open, close } = useDrawer('detail')
+  const { data: agents = [] } = useAgents()
 
-  function load() {
-    api.listCalls({ limit: 200 })
-      .then(setCalls)
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }
+  const filters = useMemo(() => ({
+    status: status !== 'all' ? status : undefined,
+    agent_id: agentFilter || undefined,
+    limit: PAGE_SIZE,
+    offset: page * PAGE_SIZE,
+  }), [status, agentFilter, page])
 
-  useEffect(() => { load(); api.listAgents().then(setAgents).catch(() => {}) }, [])
+  const { data: rawCalls = [], isLoading } = useCalls(filters)
 
-  // Auto-refresh every 5 s when active calls exist
-  useEffect(() => {
-    const hasActive = calls.some(c => ['active', 'routing', 'connecting'].includes(c.status))
-    if (!hasActive) return
-    const id = setInterval(load, 5000)
-    return () => clearInterval(id)
-  }, [calls])
+  // Client-side search filter
+  const calls = useMemo(() => {
+    if (!search.trim()) return rawCalls
+    const q = search.toLowerCase()
+    return rawCalls.filter(c =>
+      (c.phone && c.phone.toLowerCase().includes(q)) ||
+      (agents.find(a => a.id === c.agent_id)?.name?.toLowerCase().includes(q))
+    )
+  }, [rawCalls, search, agents])
 
-  const filtered = calls
-    .filter(c => filter === 'all' || c.status === filter)
-    .filter(c => !search.trim() || (c.phone || '').toLowerCase().includes(search.toLowerCase()))
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const pageData   = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-
-  function setFilterReset(f) { setFilter(f); setPage(1) }
-  function setSearchReset(s) { setSearch(s); setPage(1) }
-
-  function playInlineRecording(e, call) {
-    e.stopPropagation()
-    if (inlineAudio === call.id) {
-      if (inlineAudioRef.current) { inlineAudioRef.current.pause(); inlineAudioRef.current = null }
-      setInlineAudio(null)
-      return
-    }
-    if (inlineAudioRef.current) { inlineAudioRef.current.pause() }
-    const audio = new Audio(call.recording_url)
-    audio.onended = () => { setInlineAudio(null); inlineAudioRef.current = null }
-    audio.play()
-    inlineAudioRef.current = audio
-    setInlineAudio(call.id)
-  }
+  const agentMap = useMemo(() => {
+    const m = {}
+    agents.forEach(a => { m[a.id] = a.name })
+    return m
+  }, [agents])
 
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="px-8 py-7 max-w-6xl">
-        <div className="flex items-center justify-between mb-7">
-          <div>
-            <h1 className="text-2xl font-semibold text-[#1A1816]">Calls</h1>
-            <p className="text-base text-[#A8A29E] mt-0.5">{calls.length} total calls</p>
-          </div>
-          <button onClick={load}
-            className="text-sm text-[#A8A29E] hover:text-[#44403C] flex items-center gap-1.5 bg-white border border-[#E8E5E2] px-3 py-1.5 rounded-lg transition-colors">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-            </svg>
-            Refresh
-          </button>
+    <div className="w-full h-full px-6 py-6">
+
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-[26px] font-bold text-[#fafafa] tracking-[-0.02em]">Calls</h1>
+          <p className="text-[13px] text-[#52525b] mt-0.5">Monitor and review all voice conversations</p>
+        </div>
+        <button className="btn-primary press flex items-center gap-2">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72"/>
+          </svg>
+          Open Dialer
+        </button>
+      </div>
+
+      {/* Filter bar */}
+      <div className="glass p-3 mb-4 flex items-center gap-3 flex-wrap">
+
+        {/* Status pills */}
+        <div className="flex items-center gap-1">
+          {STATUS_PILLS.map(s => (
+            <button
+              key={s}
+              onClick={() => { setStatus(s); setPage(0) }}
+              className={`px-3 py-1.5 rounded-md text-[12px] font-medium capitalize transition-all ${
+                status === s
+                  ? 'bg-[rgba(139,92,246,0.15)] text-[#8b5cf6] border border-[rgba(139,92,246,0.25)]'
+                  : 'text-[#52525b] hover:text-[#a1a1aa] hover:bg-[rgba(255,255,255,0.03)]'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
         </div>
 
-        <div className="flex items-center gap-3 mb-5 flex-wrap">
-          {/* Filter tabs */}
-          <div className="flex items-center gap-1 bg-white border border-[#E8E5E2] rounded-lg p-1">
-            {STATUS_FILTERS.map(s => (
-              <button key={s} onClick={() => setFilterReset(s)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                  filter === s ? 'bg-[#2563EB]/20 text-[#2563EB]' : 'text-[#A8A29E] hover:text-[#44403C]'
-                }`}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
+        <div className="w-px h-6 bg-[rgba(255,255,255,0.06)]" />
+
+        {/* Agent dropdown */}
+        <select
+          value={agentFilter}
+          onChange={e => { setAgentFilter(e.target.value); setPage(0) }}
+          className="input text-[12px] py-1.5 px-3 min-w-[140px] bg-transparent appearance-none cursor-pointer"
+        >
+          <option value="">All agents</option>
+          {agents.map(a => (
+            <option key={a.id} value={a.id}>{a.name}</option>
+          ))}
+        </select>
+
+        {/* Search */}
+        <div className="flex-1 min-w-[180px] relative">
+          <svg className="w-3.5 h-3.5 text-[#52525b] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search phone or agent..."
+            className="input w-full text-[12px] py-1.5 pl-9 pr-3"
+          />
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="glass overflow-hidden">
+        {/* Header row */}
+        <div className="grid grid-cols-[1fr_140px_130px_80px_90px_80px] px-4 py-2.5 border-b border-[rgba(255,255,255,0.04)]">
+          {['Date / Time', 'Phone', 'Agent', 'Duration', 'Status', 'Direction'].map(h => (
+            <span key={h} className="text-[11px] font-semibold text-[#52525b] uppercase tracking-[0.06em]">{h}</span>
+          ))}
+        </div>
+
+        {/* Loading */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="w-5 h-5 border-2 border-[#8b5cf6] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : calls.length === 0 ? (
+          <EmptyState
+            icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.73a16 16 0 0 0 7.36 7.36l1.91-1.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>}
+            title={status !== 'all' || search ? 'No calls match your filters' : 'No calls yet'}
+            description={status !== 'all' || search ? 'Try clearing the filters to see all calls' : 'Calls will appear here once your agents start handling conversations'}
+          />
+        ) : (
+          <div>
+            {calls.map((call, idx) => (
+              <button
+                key={call.id}
+                onClick={() => open(call.id)}
+                className={`grid grid-cols-[1fr_140px_130px_80px_90px_80px] px-4 py-2.5 w-full text-left hover:bg-[rgba(255,255,255,0.02)] transition-colors cursor-pointer ${
+                  idx < calls.length - 1 ? 'border-b border-[rgba(255,255,255,0.03)]' : ''
+                }`}
+              >
+                {/* Date/Time */}
+                <span className="text-[13px] text-[#fafafa]">
+                  {fmtDate(call.started_at)}
+                  <span className="text-[#52525b] ml-1.5">{fmtTime(call.started_at)}</span>
+                </span>
+
+                {/* Phone */}
+                <span className="text-[13px] font-mono text-[#a1a1aa] truncate pr-2">{call.phone || '—'}</span>
+
+                {/* Agent */}
+                <span className="text-[13px] text-[#a1a1aa] truncate pr-2">{agentMap[call.agent_id] || '—'}</span>
+
+                {/* Duration */}
+                <span className="text-[13px] font-mono text-[#52525b]">{fmtDur(call.duration_sec)}</span>
+
+                {/* Status */}
+                <span>
+                  <Badge status={call.status} pulse={call.status === 'active'} />
+                </span>
+
+                {/* Direction */}
+                <span className="text-[12px] text-[#52525b] capitalize flex items-center gap-1.5">
+                  {call.direction === 'outbound' ? (
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" />
+                    </svg>
+                  ) : (
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <line x1="17" y1="7" x2="7" y2="17" /><polyline points="17 17 7 17 7 7" />
+                    </svg>
+                  )}
+                  {call.direction || 'inbound'}
+                </span>
               </button>
             ))}
           </div>
-          {/* Search */}
-          <div className="relative">
-            <svg className="w-3.5 h-3.5 text-[#A8A29E] absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              value={search}
-              onChange={e => setSearchReset(e.target.value)}
-              placeholder="Search by phone…"
-              className="pl-8 pr-3 py-1.5 bg-white border border-[#E8E5E2] rounded-lg text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB] w-52"
-            />
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-[#E8E5E2] overflow-hidden">
-          {loading ? (
-            <div className="p-10 text-center text-[#A8A29E] text-base">Loading…</div>
-          ) : pageData.length === 0 ? (
-            <div className="p-10 text-center text-[#A8A29E] text-base">No calls found.</div>
-          ) : (
-            <table className="w-full text-base">
-              <thead>
-                <tr className="border-b border-[#E8E5E2]">
-                  {['', 'Phone', 'Agent', 'Status', 'Direction', 'Duration', 'Started', ''].map((h, i) => (
-                    <th key={h + i} className="px-5 py-3 text-left text-sm font-medium text-[#A8A29E]">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F0EDEA]">
-                {pageData.map(call => (
-                  <>
-                    <tr key={call.id}
-                      onClick={() => setExpandedId(expandedId === call.id ? null : call.id)}
-                      className={`hover:bg-[#FAFAF9] transition-colors cursor-pointer ${expandedId === call.id ? 'bg-[#FAFAF9]' : ''}`}>
-                      <td className="px-5 py-3.5 w-10">
-                        {call.recording_url ? (
-                          <button onClick={(e) => playInlineRecording(e, call)}
-                            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
-                              inlineAudio === call.id
-                                ? 'bg-red-500/15 text-red-400 border border-red-500/30'
-                                : 'bg-[#2563EB]/10 text-[#2563EB] border border-[#2563EB]/20 hover:bg-[#2563EB]/20'
-                            }`}>
-                            {inlineAudio === call.id ? (
-                              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                            ) : (
-                              <svg className="w-3 h-3 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                            )}
-                          </button>
-                        ) : (
-                          <span className="text-[#D6D3D1]">
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5 text-[#44403C] font-medium">{call.phone || '—'}</td>
-                      <td className="px-5 py-3.5 text-[#A8A29E] font-mono text-sm">{agentName(call.agent_id)}</td>
-                      <td className="px-5 py-3.5"><StatusBadge status={call.status} /></td>
-                      <td className="px-5 py-3.5"><StatusBadge status={call.direction} /></td>
-                      <td className="px-5 py-3.5 text-[#78716C]">{call.duration_sec ? `${call.duration_sec}s` : '—'}</td>
-                      <td className="px-5 py-3.5 text-[#A8A29E] text-sm">{formatDate(call.started_at)}</td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2">
-                          <button className="text-sm text-[#A8A29E] hover:text-[#44403C]">
-                            <svg className={`w-4 h-4 transition-transform ${expandedId === call.id ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-                          </button>
-                          <Link to={`/calls/${call.id}`} onClick={e => e.stopPropagation()} className="text-sm text-[#2563EB] hover:text-[#3B82F6]">
-                            View →
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                    {expandedId === call.id && (
-                      <CallExpandedRow key={call.id + '-detail'} call={call} agentName={agentName(call.agent_id)} />
-                    )}
-                  </>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4">
-            <p className="text-sm text-[#A8A29E]">
-              Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
-            </p>
-            <div className="flex items-center gap-2">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                className="px-3 py-1.5 text-sm text-[#78716C] hover:text-[#1A1816] bg-white border border-[#E8E5E2] rounded-lg disabled:opacity-40 transition-colors">
-                ← Prev
-              </button>
-              <span className="text-sm text-[#A8A29E]">{page} / {totalPages}</span>
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                className="px-3 py-1.5 text-sm text-[#78716C] hover:text-[#1A1816] bg-white border border-[#E8E5E2] rounded-lg disabled:opacity-40 transition-colors">
-                Next →
-              </button>
-            </div>
-          </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {!isLoading && calls.length > 0 && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <span className="text-[11px] text-[#52525b]">
+            Showing {page * PAGE_SIZE + 1}–{page * PAGE_SIZE + calls.length}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="btn-ghost text-[12px] py-1 px-3 disabled:opacity-30 disabled:pointer-events-none"
+            >
+              Previous
+            </button>
+            <span className="text-[12px] text-[#52525b] font-mono">{page + 1}</span>
+            <button
+              onClick={() => setPage(p => p + 1)}
+              disabled={rawCalls.length < PAGE_SIZE}
+              className="btn-ghost text-[12px] py-1 px-3 disabled:opacity-30 disabled:pointer-events-none"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Call detail drawer */}
+      <CallDetailDrawer
+        callId={detailId}
+        isOpen={isOpen}
+        onClose={close}
+        agents={agents}
+      />
     </div>
   )
-}
-
-function formatDate(ts) {
-  if (!ts) return '—'
-  return new Date(ts).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }

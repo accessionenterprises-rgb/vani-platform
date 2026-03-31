@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api/client'
 
 const STATUS_COLORS = {
-  draft:      'text-[#78716C] bg-slate-500/10',
-  scheduled:  'text-blue-400 bg-blue-500/10',
+  draft:      'text-[#a1a1aa] bg-slate-500/10',
+  scheduled:  'text-blue-400 bg-[rgba(139,92,246,0.08)]0/10',
   running:    'text-emerald-400 bg-emerald-500/10',
   paused:     'text-amber-400 bg-amber-500/10',
   completed:  'text-[#2563EB] bg-[#2563EB]/10',
@@ -12,14 +12,14 @@ const STATUS_COLORS = {
 }
 
 const CONTACT_STATUS_COLORS = {
-  pending:   'text-[#78716C]',
+  pending:   'text-[#a1a1aa]',
   calling:   'text-blue-400',
   completed: 'text-emerald-400',
   failed:    'text-red-400',
   retry:     'text-amber-400',
   dnc:       'text-red-500',
   voicemail: 'text-purple-400',
-  skipped:   'text-[#A8A29E]',
+  skipped:   'text-[#71717a]',
 }
 
 export default function CampaignDetailPage() {
@@ -88,7 +88,7 @@ export default function CampaignDetailPage() {
     }
   }
 
-  if (loading) return <div className="flex-1 flex items-center justify-center text-[#A8A29E]">Loading…</div>
+  if (loading) return <div className="flex-1 flex items-center justify-center text-[#71717a]">Loading…</div>
   if (!campaign) return null
 
   const pct = campaign.total_contacts
@@ -96,16 +96,16 @@ export default function CampaignDetailPage() {
     : 0
 
   return (
-    <div className="flex-1 overflow-auto">
-      <div className="px-8 py-7 max-w-5xl">
+    <div className="flex-1 overflow-auto bg-[#09090b]">
+      <div className="px-8 py-7 w-full">
         {/* Header */}
         <div className="flex items-center gap-3 mb-7">
-          <button onClick={() => navigate('/campaigns')} className="text-[#A8A29E] hover:text-[#44403C] text-base">
+          <button onClick={() => navigate('/campaigns')} className="text-[#71717a] hover:text-[#e4e4e7] text-base">
             ← Campaigns
           </button>
-          <span className="text-[#D6D3D1]">/</span>
-          <h1 className="text-2xl font-semibold text-[#1A1816]">{campaign.name}</h1>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[campaign.status] || 'text-[#78716C] bg-slate-500/10'}`}>
+          <span className="text-[rgba(255,255,255,0.12)]">/</span>
+          <h1 className="text-2xl font-semibold text-[#fafafa]">{campaign.name}</h1>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[campaign.status] || 'text-[#a1a1aa] bg-slate-500/10'}`}>
             {campaign.status}
           </span>
         </div>
@@ -120,12 +120,12 @@ export default function CampaignDetailPage() {
         </div>
 
         {/* Progress bar */}
-        <div className="bg-white rounded-xl border border-[#E8E5E2] p-5 mb-5">
+        <div className="bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] p-5 mb-5">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-base font-medium text-[#1A1816]">Dialing Progress</h2>
-            <span className="text-sm text-[#A8A29E]">{campaign.called} / {campaign.total_contacts} contacts called</span>
+            <h2 className="text-base font-medium text-[#fafafa]">Dialing Progress</h2>
+            <span className="text-sm text-[#71717a]">{campaign.called} / {campaign.total_contacts} contacts called</span>
           </div>
-          <div className="h-2 bg-[#F5F5F4] rounded-full overflow-hidden">
+          <div className="h-2 bg-[#1c1c1f] rounded-full overflow-hidden">
             <div
               style={{ width: `${pct}%` }}
               className="h-full bg-[#2563EB] rounded-full transition-all"
@@ -170,7 +170,7 @@ export default function CampaignDetailPage() {
 
           {/* Upload contacts */}
           {['draft', 'paused'].includes(campaign.status) && (
-            <label className="cursor-pointer flex items-center gap-2 bg-[#F5F5F4] hover:bg-[#E8E5E2] border border-[#E8E5E2] text-[#44403C] px-4 py-2 rounded-lg text-base transition-colors">
+            <label className="cursor-pointer flex items-center gap-2 bg-[#1c1c1f] hover:bg-[#E8E5E2] border border-[rgba(255,255,255,0.06)] text-[#e4e4e7] px-4 py-2 rounded-lg text-base transition-colors">
               <span>{uploading ? 'Uploading…' : '↑ Upload Contacts'}</span>
               <input
                 ref={fileRef}
@@ -193,24 +193,24 @@ export default function CampaignDetailPage() {
 
         {/* Upload hint */}
         {campaign.status === 'draft' && campaign.total_contacts === 0 && (
-          <div className="bg-white rounded-xl border border-[#E8E5E2] p-6 mb-5 text-center">
-            <p className="text-[#78716C] text-base mb-1">No contacts yet</p>
-            <p className="text-sm text-[#A8A29E]">
-              Upload a CSV with columns: <span className="text-[#A8A29E] font-mono">phone, name, [any_variable]</span>
-              <br />Extra columns become available as <span className="text-[#A8A29E] font-mono">{'{first_name}'}</span> variables in your agent prompt.
+          <div className="bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] p-6 mb-5 text-center">
+            <p className="text-[#a1a1aa] text-base mb-1">No contacts yet</p>
+            <p className="text-sm text-[#71717a]">
+              Upload a CSV with columns: <span className="text-[#71717a] font-mono">phone, name, [any_variable]</span>
+              <br />Extra columns become available as <span className="text-[#71717a] font-mono">{'{first_name}'}</span> variables in your agent prompt.
             </p>
           </div>
         )}
 
         {/* Contact list */}
         {campaign.total_contacts > 0 && (
-          <div className="bg-white rounded-xl border border-[#E8E5E2]">
-            <div className="px-5 py-4 border-b border-[#E8E5E2] flex items-center justify-between">
-              <h2 className="text-base font-medium text-[#1A1816]">Contacts</h2>
+          <div className="bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)]">
+            <div className="px-5 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+              <h2 className="text-base font-medium text-[#fafafa]">Contacts</h2>
               <select
                 value={statusFilter}
                 onChange={e => setStatusFilter(e.target.value)}
-                className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-2 py-1 text-sm text-[#78716C] focus:outline-none">
+                className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-2 py-1 text-sm text-[#a1a1aa] focus:outline-none">
                 <option value="">All statuses</option>
                 {['pending', 'calling', 'completed', 'failed', 'retry', 'dnc', 'voicemail', 'skipped'].map(s => (
                   <option key={s} value={s}>{s}</option>
@@ -219,26 +219,26 @@ export default function CampaignDetailPage() {
             </div>
 
             {contactsLoading ? (
-              <div className="py-8 text-center text-[#A8A29E] text-base">Loading…</div>
+              <div className="py-8 text-center text-[#71717a] text-base">Loading…</div>
             ) : contacts.length === 0 ? (
-              <div className="py-8 text-center text-[#A8A29E] text-base">No contacts match this filter</div>
+              <div className="py-8 text-center text-[#71717a] text-base">No contacts match this filter</div>
             ) : (
-              <div className="divide-y divide-[#F0EDEA]">
+              <div className="divide-y divide-[rgba(255,255,255,0.04)]">
                 {contacts.map(c => (
                   <div key={c.id} className="flex items-center gap-4 px-5 py-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-base text-[#1A1816] font-mono">{c.phone}</p>
-                      {c.name && <p className="text-sm text-[#A8A29E]">{c.name}</p>}
+                      <p className="text-base text-[#fafafa] font-mono">{c.phone}</p>
+                      {c.name && <p className="text-sm text-[#71717a]">{c.name}</p>}
                     </div>
                     <div className="flex items-center gap-4 text-sm">
-                      <span className={`font-medium capitalize ${CONTACT_STATUS_COLORS[c.status] || 'text-[#78716C]'}`}>
+                      <span className={`font-medium capitalize ${CONTACT_STATUS_COLORS[c.status] || 'text-[#a1a1aa]'}`}>
                         {c.status}
                       </span>
                       {c.attempts > 0 && (
-                        <span className="text-[#A8A29E]">{c.attempts}× tried</span>
+                        <span className="text-[#71717a]">{c.attempts}× tried</span>
                       )}
                       {c.last_outcome && (
-                        <span className="text-[#A8A29E] capitalize">{c.last_outcome.replace('-', ' ')}</span>
+                        <span className="text-[#71717a] capitalize">{c.last_outcome.replace('-', ' ')}</span>
                       )}
                       {c.status === 'retry' && c.next_retry_at && (
                         <span className="text-amber-400/70">
@@ -248,7 +248,7 @@ export default function CampaignDetailPage() {
                       {c.call_id && (
                         <button
                           onClick={() => navigate(`/calls/${c.call_id}`)}
-                          className="text-[#2563EB] hover:text-[#3B82F6]">
+                          className="text-[#2563EB] hover:text-[#8b5cf6]">
                           View call →
                         </button>
                       )}
@@ -270,17 +270,17 @@ function StatCard({ label, value, color }) {
     emerald: 'text-emerald-400',
   }
   return (
-    <div className="bg-white rounded-xl border border-[#E8E5E2] px-4 py-3.5">
-      <p className="text-sm text-[#A8A29E] mb-1">{label}</p>
-      <p className={`text-2xl font-semibold ${colorMap[color] || 'text-[#1A1816]'}`}>{value}</p>
+    <div className="bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] px-4 py-3.5">
+      <p className="text-sm text-[#71717a] mb-1">{label}</p>
+      <p className={`text-2xl font-semibold ${colorMap[color] || 'text-[#fafafa]'}`}>{value}</p>
     </div>
   )
 }
 
 function ConfigChip({ label, value }) {
   return (
-    <span className="text-sm text-[#A8A29E] bg-[#F5F5F4] border border-[#F0EDEA] px-2.5 py-0.5 rounded">
-      {label}: <span className="text-[#78716C]">{value}</span>
+    <span className="text-sm text-[#71717a] bg-[#1c1c1f] border border-[rgba(255,255,255,0.06)] px-2.5 py-0.5 rounded">
+      {label}: <span className="text-[#a1a1aa]">{value}</span>
     </span>
   )
 }

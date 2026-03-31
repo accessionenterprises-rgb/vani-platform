@@ -144,14 +144,14 @@ const COLOR_MAP = {
   amber:  'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/50',
   orange: 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/50',
   teal:   'border-teal-500/30 bg-teal-500/5 hover:border-teal-500/50',
-  blue:   'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/50',
+  blue:   'border-blue-500/30 bg-[rgba(139,92,246,0.08)]0/5 hover:border-blue-500/50',
   purple: 'border-purple-500/30 bg-purple-500/5 hover:border-purple-500/50',
 }
 const BADGE_MAP = {
   amber:  'text-amber-400 bg-amber-500/10',
   orange: 'text-orange-400 bg-orange-500/10',
   teal:   'text-teal-400 bg-teal-500/10',
-  blue:   'text-blue-400 bg-blue-500/10',
+  blue:   'text-blue-400 bg-[rgba(139,92,246,0.08)]0/10',
   purple: 'text-purple-400 bg-purple-500/10',
 }
 
@@ -190,10 +190,10 @@ export default function TemplatesPage() {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="px-8 py-7 max-w-5xl">
+      <div className="px-8 py-7 ">
         <div className="mb-7">
-          <h1 className="text-2xl font-semibold text-[#1A1816]">Templates</h1>
-          <p className="text-base text-[#A8A29E] mt-0.5">
+          <h1 className="text-2xl font-semibold text-[#fafafa]">Templates</h1>
+          <p className="text-base text-[#71717a] mt-0.5">
             Start with a pre-built agent — fully customisable after creation
           </p>
         </div>
@@ -208,16 +208,16 @@ export default function TemplatesPage() {
                   <span className="text-3xl">{t.icon}</span>
                   <div>
                     <div className="flex items-center gap-2.5 mb-1">
-                      <h3 className="text-lg font-semibold text-[#1A1816]">{t.title}</h3>
+                      <h3 className="text-lg font-semibold text-[#fafafa]">{t.title}</h3>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${BADGE_MAP[t.color]}`}>
                         {t.industry}
                       </span>
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium text-[#A8A29E] bg-slate-500/10">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium text-[#71717a] bg-slate-500/10">
                         {t.agent.objective}
                       </span>
                     </div>
-                    <p className="text-base text-[#78716C]">{t.description}</p>
-                    <p className="text-sm text-[#A8A29E] mt-2 italic">
+                    <p className="text-base text-[#a1a1aa]">{t.description}</p>
+                    <p className="text-sm text-[#71717a] mt-2 italic">
                       "{t.agent.greeting}"
                     </p>
                   </div>
@@ -239,7 +239,7 @@ export default function TemplatesPage() {
               {/* Stack chips */}
               <div className="flex flex-wrap gap-1.5 mt-4 ml-[52px]">
                 {[t.agent.stt_provider, t.agent.llm_provider, t.agent.tts_provider].map(p => (
-                  <span key={p} className="text-sm text-[#A8A29E] bg-[#F5F5F4] border border-[#F0EDEA] px-2 py-0.5 rounded">
+                  <span key={p} className="text-sm text-[#71717a] bg-[#1c1c1f] border border-[#F0EDEA] px-2 py-0.5 rounded">
                     {p}
                   </span>
                 ))}
@@ -248,9 +248,9 @@ export default function TemplatesPage() {
           ))}
         </div>
 
-        <div className="mt-8 bg-white rounded-xl border border-[#E8E5E2] p-5">
-          <h2 className="text-base font-medium text-[#1A1816] mb-2">More templates coming soon</h2>
-          <p className="text-sm text-[#A8A29E]">
+        <div className="mt-8 bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] p-5">
+          <h2 className="text-base font-medium text-[#fafafa] mb-2">More templates coming soon</h2>
+          <p className="text-sm text-[#71717a]">
             Healthcare Follow-up, Debt Collection, Lead Nurturing, Appointment Reminder,
             Travel Booking, Insurance Sales — in the next update.
           </p>

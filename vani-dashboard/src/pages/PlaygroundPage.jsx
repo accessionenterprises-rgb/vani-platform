@@ -62,20 +62,20 @@ export default function PlaygroundPage() {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="px-8 py-7 max-w-4xl">
+      <div className="px-8 py-7 ">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-[#1A1816]">Testing Playground</h1>
-          <p className="text-base text-[#A8A29E] mt-0.5">Test agents before going live</p>
+          <h1 className="text-2xl font-semibold text-[#fafafa]">Testing Playground</h1>
+          <p className="text-base text-[#71717a] mt-0.5">Test agents before going live</p>
         </div>
 
         {/* Agent selector + stack display */}
-        <div className="bg-white rounded-xl border border-[#E8E5E2] p-4 mb-5 space-y-3">
+        <div className="bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 mb-5 space-y-3">
           <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-[#78716C] shrink-0">Agent</label>
+            <label className="text-sm font-medium text-[#a1a1aa] shrink-0">Agent</label>
             <select
               value={selectedAgent}
               onChange={e => setSelectedAgent(e.target.value)}
-              className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-base text-[#1A1816] focus:outline-none focus:border-[#2563EB] min-w-[220px]">
+              className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-base text-[#fafafa] focus:outline-none focus:border-[#2563EB] min-w-[220px]">
               {agents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
             </select>
           </div>
@@ -83,16 +83,16 @@ export default function PlaygroundPage() {
             <div className="flex items-center gap-3 flex-wrap">
               {isGeminiLive(agent) ? (
                 /* Gemini Live badge */
-                <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-violet-50 border border-blue-200 rounded-lg px-3 py-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-violet-50 border border-[rgba(139,92,246,0.20)] rounded-lg px-3 py-2">
+                  <div className="w-2 h-2 rounded-full bg-[rgba(139,92,246,0.08)]0 animate-pulse" />
                   <span className="text-[13px] font-semibold text-blue-700">Gemini Live</span>
                   <span className="text-[11px] text-blue-500/80 font-medium">Speech-to-speech</span>
                   {agent.voice && (
-                    <span className="text-[11px] text-[#78716C] bg-white/60 rounded px-1.5 py-0.5">
+                    <span className="text-[11px] text-[#a1a1aa] bg-[#0f0f11]/60 rounded px-1.5 py-0.5">
                       Voice: {agent.voice}
                     </span>
                   )}
-                  <span className="text-[11px] text-[#78716C] bg-white/60 rounded px-1.5 py-0.5">
+                  <span className="text-[11px] text-[#a1a1aa] bg-[#0f0f11]/60 rounded px-1.5 py-0.5">
                     AI: ₹2.19/min
                   </span>
                 </div>
@@ -108,9 +108,9 @@ export default function PlaygroundPage() {
               {/* Cost estimator */}
               {costs && (
                 <div className="ml-auto text-right">
-                  <span className="text-[10px] text-[#A8A29E]">Est. total cost</span>
-                  <p className="text-base font-bold text-[#1A1816]">₹{costs.total.toFixed(1)}/min</p>
-                  <div className="text-[9px] text-[#A8A29E] font-mono mt-0.5 space-y-px">
+                  <span className="text-[10px] text-[#71717a]">Est. total cost</span>
+                  <p className="text-base font-bold text-[#fafafa]">₹{costs.total.toFixed(1)}/min</p>
+                  <div className="text-[9px] text-[#71717a] font-mono mt-0.5 space-y-px">
                     <p>AI: ₹{costs.ai.toFixed(2)} | Engine: ₹{costs.engine.toFixed(2)} | Tel: {costs.tel != null ? `₹${costs.tel.toFixed(2)}` : 'varies'}</p>
                   </div>
                 </div>
@@ -120,13 +120,13 @@ export default function PlaygroundPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-5 bg-[#FAFAF9] rounded-lg p-1 w-fit border border-[#E8E5E2]">
+        <div className="flex gap-1 mb-5 bg-[#09090b] rounded-lg p-1 w-fit border border-[rgba(255,255,255,0.06)]">
           {[['voice', 'Voice Call'], ['chat', 'Text Chat'], ['phone', 'Phone Test'], ['sim', 'Simulation']].map(([key, label]) => (
             <button
               key={key}
               onClick={() => setTab(key)}
               className={`px-4 py-2 rounded-md text-base font-medium transition-colors ${
-                tab === key ? 'bg-[#2563EB] text-white' : 'text-[#78716C] hover:text-[#44403C]'
+                tab === key ? 'bg-[#2563EB] text-white' : 'text-[#a1a1aa] hover:text-[#e4e4e7]'
               }`}>
               {label}
             </button>
@@ -148,10 +148,10 @@ export default function PlaygroundPage() {
 function StackBadge({ label, value, cost }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="text-[11px] font-bold text-[#A8A29E] uppercase tracking-wider">{label}</span>
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-md px-2 py-1 text-[13px] text-[#1A1816]">
+      <span className="text-[11px] font-bold text-[#71717a] uppercase tracking-wider">{label}</span>
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-md px-2 py-1 text-[13px] text-[#fafafa]">
         {value || '—'}
-        {cost != null && <span className="text-[#A8A29E] ml-1">(₹{cost.toFixed(2)}/min)</span>}
+        {cost != null && <span className="text-[#71717a] ml-1">(₹{cost.toFixed(2)}/min)</span>}
       </div>
     </div>
   )
@@ -249,19 +249,19 @@ function VoiceCallTab({ selectedAgent, agent }) {
   const gemini = isGeminiLive(agent)
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E8E5E2] p-8 flex flex-col items-center justify-center min-h-[400px] gap-6">
+    <div className="bg-[#0f0f11] rounded-2xl border border-[rgba(255,255,255,0.06)] p-8 flex flex-col items-center justify-center min-h-[400px] gap-6">
       {/* Waveform visualization */}
-      <div className="w-32 h-32 rounded-full border-2 border-[#E8E5E2] flex items-center justify-center relative">
+      <div className="w-32 h-32 rounded-full border-2 border-[rgba(255,255,255,0.06)] flex items-center justify-center relative">
         {status === 'connected' && (
           <div className="absolute inset-0 rounded-full border-2 border-indigo-500/30 animate-ping" />
         )}
         <div className={`w-24 h-24 rounded-full flex items-center justify-center transition-colors ${
           status === 'connected' ? 'bg-[#2563EB]/15' :
           status === 'connecting' ? 'bg-amber-500/15' :
-          'bg-[#FAFAF9]'
+          'bg-[#09090b]'
         }`}>
           {status === 'idle' || status === 'ended' ? (
-            <svg className="w-10 h-10 text-[#A8A29E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg className="w-10 h-10 text-[#71717a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
               <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
               <line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
@@ -281,13 +281,13 @@ function VoiceCallTab({ selectedAgent, agent }) {
 
       {/* Status text */}
       <div className="text-center">
-        <p className="text-xl font-semibold text-[#1A1816]">
+        <p className="text-xl font-semibold text-[#fafafa]">
           {status === 'idle' && 'Ready to test'}
           {status === 'connecting' && 'Connecting...'}
           {status === 'connected' && fmtTime(duration)}
           {status === 'ended' && 'Call ended'}
         </p>
-        <p className="text-sm text-[#A8A29E] mt-1">
+        <p className="text-sm text-[#71717a] mt-1">
           {status === 'idle' && (agent?.name || 'Select an agent')}
           {status === 'connecting' && 'Setting up voice channel...'}
           {status === 'connected' && `Speaking with ${agent?.name || 'Agent'}${gemini ? ' (Gemini Live)' : ''}`}
@@ -324,7 +324,7 @@ function VoiceCallTab({ selectedAgent, agent }) {
         <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2">{error}</p>
       )}
 
-      <p className="text-[12px] text-[#A8A29E] max-w-xs text-center">
+      <p className="text-[12px] text-[#71717a] max-w-xs text-center">
         Uses your browser microphone + WebRTC. No phone call needed. Zero telephony cost.
       </p>
     </div>
@@ -386,14 +386,14 @@ function TextChatTab({ selectedAgent, agent }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-[#E8E5E2] flex flex-col" style={{ minHeight: 520 }}>
-      <div className="px-5 py-4 border-b border-[#E8E5E2] flex items-center justify-between">
+    <div className="bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] flex flex-col" style={{ minHeight: 520 }}>
+      <div className="px-5 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
         <div>
-          <h2 className="text-base font-medium text-[#1A1816]">Text Chat</h2>
-          <p className="text-sm text-[#A8A29E] mt-0.5">No phone required — tests the LLM directly</p>
+          <h2 className="text-base font-medium text-[#fafafa]">Text Chat</h2>
+          <p className="text-sm text-[#71717a] mt-0.5">No phone required — tests the LLM directly</p>
         </div>
         {messages.length > 0 && (
-          <button onClick={clearChat} className="text-sm text-[#A8A29E] hover:text-[#44403C] transition-colors">Clear</button>
+          <button onClick={clearChat} className="text-sm text-[#71717a] hover:text-[#e4e4e7] transition-colors">Clear</button>
         )}
       </div>
 
@@ -405,7 +405,7 @@ function TextChatTab({ selectedAgent, agent }) {
                 <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
               </svg>
             </div>
-            <p className="text-base text-[#A8A29E]">
+            <p className="text-base text-[#71717a]">
               {selectedAgent ? 'Type a message to start chatting with the agent' : 'Select an agent to begin'}
             </p>
           </div>
@@ -413,13 +413,13 @@ function TextChatTab({ selectedAgent, agent }) {
           messages.map((msg, i) => (
             <div key={i} className={`flex gap-3 ${msg.role === 'assistant' ? 'flex-row-reverse' : ''}`}>
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm shrink-0 mt-0.5 ${
-                msg.role === 'user' ? 'bg-[#E8E5E2] text-[#44403C]' : 'bg-[#2563EB]/20 text-[#2563EB]'
+                msg.role === 'user' ? 'bg-[#E8E5E2] text-[#e4e4e7]' : 'bg-[#2563EB]/20 text-[#2563EB]'
               }`}>
                 {msg.role === 'user' ? 'U' : 'A'}
               </div>
               <div className={`flex-1 ${msg.role === 'assistant' ? 'text-right' : ''}`}>
                 <p className={`text-base rounded-xl px-3.5 py-2.5 inline-block max-w-sm ${
-                  msg.role === 'user' ? 'bg-[#F5F5F4] text-[#44403C]' : 'bg-[#2563EB]/15 text-[#60A5FA]'
+                  msg.role === 'user' ? 'bg-[#1c1c1f] text-[#e4e4e7]' : 'bg-[#2563EB]/15 text-[#60A5FA]'
                 }`}>
                   {msg.content}
                 </p>
@@ -449,13 +449,13 @@ function TextChatTab({ selectedAgent, agent }) {
         </div>
       )}
 
-      <form onSubmit={sendMessage} className="px-5 py-4 border-t border-[#E8E5E2] flex gap-3">
+      <form onSubmit={sendMessage} className="px-5 py-4 border-t border-[rgba(255,255,255,0.06)] flex gap-3">
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder={selectedAgent ? 'Type a message…' : 'Select an agent first'}
           disabled={!selectedAgent || loading}
-          className="flex-1 bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2.5 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB] disabled:opacity-50"
+          className="flex-1 bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2.5 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB] disabled:opacity-50"
         />
         <button type="submit" disabled={!selectedAgent || !input.trim() || loading}
           className="bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white px-4 py-2.5 rounded-lg text-base font-medium transition-colors">
@@ -525,14 +525,14 @@ function PhoneTestTab({ selectedAgent }) {
   return (
     <div className="grid grid-cols-5 gap-5">
       <div className="col-span-2">
-        <div className="bg-white rounded-xl border border-[#E8E5E2] p-5">
-          <h2 className="text-base font-semibold text-[#1A1816] mb-4">Test Configuration</h2>
+        <div className="bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] p-5">
+          <h2 className="text-base font-semibold text-[#fafafa] mb-4">Test Configuration</h2>
           <form onSubmit={startTest} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[#78716C] mb-1.5">Your Phone Number</label>
+              <label className="block text-sm font-medium text-[#a1a1aa] mb-1.5">Your Phone Number</label>
               <input value={testPhone} onChange={e => setTestPhone(e.target.value)} placeholder="+91XXXXXXXXXX"
-                className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2.5 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
-              <p className="text-sm text-[#A8A29E] mt-1">Agent will call this number via Twilio/Exotel.</p>
+                className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2.5 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+              <p className="text-sm text-[#71717a] mt-1">Agent will call this number via Twilio/Exotel.</p>
             </div>
             {error && <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
             <div className="flex gap-2">
@@ -550,27 +550,27 @@ function PhoneTestTab({ selectedAgent }) {
           </form>
         </div>
         {callStatus && (
-          <div className="mt-4 bg-white rounded-xl border border-[#E8E5E2] p-4">
+          <div className="mt-4 bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] p-4">
             <div className="flex items-center gap-2.5">
               <StatusDot status={callStatus} />
               <div>
-                <p className="text-base font-medium text-[#1A1816] capitalize">{callStatus}</p>
-                {callId && <p className="text-sm text-[#A8A29E] font-mono mt-0.5">{callId.slice(0, 12)}…</p>}
+                <p className="text-base font-medium text-[#fafafa] capitalize">{callStatus}</p>
+                {callId && <p className="text-sm text-[#71717a] font-mono mt-0.5">{callId.slice(0, 12)}…</p>}
               </div>
             </div>
           </div>
         )}
       </div>
 
-      <div className="col-span-3 bg-white rounded-xl border border-[#E8E5E2] flex flex-col">
-        <div className="px-5 py-4 border-b border-[#E8E5E2] flex items-center justify-between">
-          <h2 className="text-base font-medium text-[#1A1816]">Live Transcript</h2>
+      <div className="col-span-3 bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] flex flex-col">
+        <div className="px-5 py-4 border-b border-[rgba(255,255,255,0.06)] flex items-center justify-between">
+          <h2 className="text-base font-medium text-[#fafafa]">Live Transcript</h2>
           {running && <span className="flex items-center gap-1.5 text-sm text-emerald-400"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />Live</span>}
         </div>
         <div className="flex-1 p-5 space-y-3 min-h-[400px] max-h-[520px] overflow-y-auto">
           {transcript.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-base text-[#A8A29E]">{running ? 'Waiting for conversation…' : 'Start a test call to see the transcript'}</p>
+              <p className="text-base text-[#71717a]">{running ? 'Waiting for conversation…' : 'Start a test call to see the transcript'}</p>
             </div>
           ) : (
             transcript.map((line, i) => {
@@ -580,12 +580,12 @@ function PhoneTestTab({ selectedAgent }) {
               const time = line.match(/\[(\d+:\d+:\d+)\]/)?.[1]
               return (
                 <div key={i} className={`flex gap-3 ${isAgent ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm shrink-0 mt-0.5 ${isUser ? 'bg-[#E8E5E2] text-[#44403C]' : 'bg-[#2563EB]/20 text-[#2563EB]'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm shrink-0 mt-0.5 ${isUser ? 'bg-[#E8E5E2] text-[#e4e4e7]' : 'bg-[#2563EB]/20 text-[#2563EB]'}`}>
                     {isUser ? 'U' : 'A'}
                   </div>
                   <div className={`flex-1 ${isAgent ? 'text-right' : ''}`}>
-                    <p className={`text-base rounded-xl px-3.5 py-2.5 inline-block max-w-xs ${isUser ? 'bg-[#F5F5F4] text-[#44403C]' : 'bg-[#2563EB]/15 text-[#60A5FA]'}`}>{text}</p>
-                    {time && <p className="text-sm text-[#D6D3D1] mt-1 px-1">{time}</p>}
+                    <p className={`text-base rounded-xl px-3.5 py-2.5 inline-block max-w-xs ${isUser ? 'bg-[#1c1c1f] text-[#e4e4e7]' : 'bg-[#2563EB]/15 text-[#60A5FA]'}`}>{text}</p>
+                    {time && <p className="text-sm text-[rgba(255,255,255,0.15)] mt-1 px-1">{time}</p>}
                   </div>
                 </div>
               )
@@ -598,7 +598,7 @@ function PhoneTestTab({ selectedAgent }) {
 }
 
 function StatusDot({ status }) {
-  const map = { queued: 'bg-slate-500', routing: 'bg-blue-500 animate-pulse', connecting: 'bg-amber-500 animate-pulse', active: 'bg-emerald-500 animate-pulse', ending: 'bg-orange-500', completed: 'bg-emerald-500', failed: 'bg-red-500', cancelled: 'bg-slate-600' }
+  const map = { queued: 'bg-slate-500', routing: 'bg-[rgba(139,92,246,0.08)]0 animate-pulse', connecting: 'bg-amber-500 animate-pulse', active: 'bg-emerald-500 animate-pulse', ending: 'bg-orange-500', completed: 'bg-emerald-500', failed: 'bg-red-500', cancelled: 'bg-slate-600' }
   return <div className={`w-2.5 h-2.5 rounded-full ${map[status] || 'bg-slate-500'}`} />
 }
 
@@ -665,11 +665,11 @@ function SimulationTab({ selectedAgent, agent }) {
   return (
     <div className="space-y-5">
       {/* Controls */}
-      <div className="bg-white rounded-xl border border-[#E8E5E2] p-5">
+      <div className="bg-[#0f0f11] rounded-xl border border-[rgba(255,255,255,0.06)] p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-semibold text-[#1A1816]">Automated Simulation</h2>
-            <p className="text-sm text-[#A8A29E] mt-0.5">Run pre-built conversation scenarios through your agent and inspect responses.</p>
+            <h2 className="text-base font-semibold text-[#fafafa]">Automated Simulation</h2>
+            <p className="text-sm text-[#71717a] mt-0.5">Run pre-built conversation scenarios through your agent and inspect responses.</p>
           </div>
           <button onClick={runAllScenarios} disabled={!selectedAgent || runAll}
             className="flex items-center gap-2 bg-[#2563EB] hover:bg-[#1D4ED8] disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
@@ -688,10 +688,10 @@ function SimulationTab({ selectedAgent, agent }) {
             onChange={e => setCustom(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addCustomScenario()}
             placeholder="Add custom scenario: message1 | message2 | message3"
-            className="flex-1 bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]"
+            className="flex-1 bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]"
           />
           <button onClick={addCustomScenario}
-            className="text-sm text-[#2563EB] hover:text-[#3B82F6] bg-[#2563EB]/10 border border-indigo-500/20 px-3 py-2 rounded-lg transition-colors">
+            className="text-sm text-[#2563EB] hover:text-[#8b5cf6] bg-[#2563EB]/10 border border-indigo-500/20 px-3 py-2 rounded-lg transition-colors">
             Add
           </button>
         </div>
@@ -702,11 +702,11 @@ function SimulationTab({ selectedAgent, agent }) {
         {allScenarios.map(scenario => {
           const result = results[scenario.id]
           return (
-            <div key={scenario.id} className={`bg-white rounded-xl border p-4 transition-colors ${
+            <div key={scenario.id} className={`bg-[#0f0f11] rounded-xl border p-4 transition-colors ${
               result?.status === 'done' ? 'border-emerald-500/30' :
               result?.status === 'error' ? 'border-red-500/30' :
               result?.status === 'running' ? 'border-indigo-500/40' :
-              'border-[#E8E5E2]'
+              'border-[rgba(255,255,255,0.06)]'
             }`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -716,12 +716,12 @@ function SimulationTab({ selectedAgent, agent }) {
                     result?.status === 'running' ? 'bg-[#2563EB] animate-pulse' :
                     'bg-slate-600'
                   }`} />
-                  <p className="text-sm font-medium text-[#44403C]">{scenario.label}</p>
+                  <p className="text-sm font-medium text-[#e4e4e7]">{scenario.label}</p>
                 </div>
                 <button
                   onClick={() => runScenario(scenario)}
                   disabled={!selectedAgent || result?.status === 'running'}
-                  className="text-sm text-[#A8A29E] hover:text-[#44403C] disabled:opacity-40 transition-colors">
+                  className="text-sm text-[#71717a] hover:text-[#e4e4e7] disabled:opacity-40 transition-colors">
                   {result?.status === 'running' ? '…' : '▶'}
                 </button>
               </div>
@@ -729,7 +729,7 @@ function SimulationTab({ selectedAgent, agent }) {
               {!result && (
                 <div className="flex flex-wrap gap-1">
                   {scenario.messages.map((m, i) => (
-                    <span key={i} className="text-[10px] text-[#A8A29E] bg-[#FAFAF9] px-1.5 py-0.5 rounded">
+                    <span key={i} className="text-[10px] text-[#71717a] bg-[#09090b] px-1.5 py-0.5 rounded">
                       "{m.slice(0, 25)}{m.length > 25 ? '…' : ''}"
                     </span>
                   ))}
@@ -744,8 +744,8 @@ function SimulationTab({ selectedAgent, agent }) {
                 <div className="space-y-2 mt-1">
                   {result.responses.map((r, i) => (
                     <div key={i} className="text-[13px] space-y-0.5">
-                      <p className="text-[#A8A29E]">U: <span className="text-[#78716C]">{r.user}</span></p>
-                      <p className="text-[#2563EB]/80">A: <span className="text-[#3B82F6]">{r.agent?.slice(0, 80)}{r.agent?.length > 80 ? '…' : ''}</span></p>
+                      <p className="text-[#71717a]">U: <span className="text-[#a1a1aa]">{r.user}</span></p>
+                      <p className="text-[#2563EB]/80">A: <span className="text-[#8b5cf6]">{r.agent?.slice(0, 80)}{r.agent?.length > 80 ? '…' : ''}</span></p>
                     </div>
                   ))}
                 </div>
@@ -756,7 +756,7 @@ function SimulationTab({ selectedAgent, agent }) {
       </div>
 
       {!selectedAgent && (
-        <p className="text-center text-base text-[#A8A29E] py-4">Select an agent above to run simulations.</p>
+        <p className="text-center text-base text-[#71717a] py-4">Select an agent above to run simulations.</p>
       )}
     </div>
   )

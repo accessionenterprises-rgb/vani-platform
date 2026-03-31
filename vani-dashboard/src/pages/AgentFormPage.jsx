@@ -271,7 +271,7 @@ export default function AgentFormPage() {
     }
   }
 
-  if (loading) return <div className="flex-1 flex items-center justify-center text-[#A8A29E] text-base">Loading…</div>
+  if (loading) return <div className="flex-1 flex items-center justify-center text-[#71717a] text-base">Loading…</div>
 
   const sttMeta = STT_PROVIDERS.find(p => p.id === form.stt_provider)
   const llmMeta = LLM_PROVIDERS.find(p => p.id === form.llm_provider)
@@ -282,17 +282,17 @@ export default function AgentFormPage() {
     <div className="flex-1 flex flex-col overflow-hidden">
 
       {/* ── Top bar ── */}
-      <div className="flex items-center justify-between px-6 py-3.5 border-b border-[#E8E5E2] shrink-0 bg-[#FAFAF9]">
+      <div className="flex items-center justify-between px-6 py-3.5 border-b border-[rgba(255,255,255,0.06)] shrink-0 bg-[#09090b]">
         <div className="flex items-center gap-2.5">
           <button onClick={() => navigate('/agents')}
-            className="text-[#A8A29E] hover:text-[#44403C] text-base transition-colors flex items-center gap-1.5">
+            className="text-[#71717a] hover:text-[#e4e4e7] text-base transition-colors flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="15 18 9 12 15 6" />
             </svg>
             Agents
           </button>
           <span className="text-[#D6D3D1]">/</span>
-          <span className="text-base text-[#1A1816] font-medium">
+          <span className="text-base text-[#fafafa] font-medium">
             {isNew ? 'New Agent' : (form.name || 'Edit Agent')}
           </span>
         </div>
@@ -306,12 +306,12 @@ export default function AgentFormPage() {
           )}
           {!isNew && (
             <button type="button" onClick={() => setShowVersions(v => !v)}
-              className="text-sm text-[#78716C] hover:text-[#44403C] px-3 py-1.5 rounded-lg border border-[#E8E5E2] hover:border-slate-500 transition-colors">
+              className="text-sm text-[#a1a1aa] hover:text-[#e4e4e7] px-3 py-1.5 rounded-lg border border-[rgba(255,255,255,0.06)] hover:border-slate-500 transition-colors">
               {showVersions ? 'Hide History' : 'Version History'}
             </button>
           )}
           <button onClick={() => navigate('/agents')}
-            className="text-base text-[#78716C] hover:text-[#44403C] px-3 py-1.5 rounded-lg hover:bg-[#F5F5F4] transition-colors">
+            className="text-base text-[#a1a1aa] hover:text-[#e4e4e7] px-3 py-1.5 rounded-lg hover:bg-[#1c1c1f] transition-colors">
             Cancel
           </button>
           <button
@@ -327,7 +327,7 @@ export default function AgentFormPage() {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── Left sidebar ── */}
-        <div className="w-52 shrink-0 border-r border-[#E8E5E2] flex flex-col overflow-y-auto bg-[#FAFAF9]">
+        <div className="w-52 shrink-0 border-r border-[rgba(255,255,255,0.06)] flex flex-col overflow-y-auto bg-[#09090b]">
           <nav className="p-3 space-y-0.5 mt-2">
             {STEPS.map((s, i) => {
               const isActive = step === s.id
@@ -337,13 +337,13 @@ export default function AgentFormPage() {
                   className={`w-full text-left px-3 py-3 rounded-xl transition-all group ${
                     isActive
                       ? 'bg-[#2563EB]/10 border border-indigo-500/20'
-                      : 'border border-transparent hover:bg-[#F5F5F4]'
+                      : 'border border-transparent hover:bg-[#1c1c1f]'
                   }`}>
                   <div className="flex items-center gap-2.5">
                     <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold transition-colors ${
                       isActive  ? 'bg-[#2563EB] text-white' :
                       isBefore  ? 'bg-[#2563EB]/20 text-[#2563EB]' :
-                                  'bg-[#F5F5F4] text-[#A8A29E]'
+                                  'bg-[#1c1c1f] text-[#71717a]'
                     }`}>
                       {isBefore ? (
                         <svg className="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -352,10 +352,10 @@ export default function AgentFormPage() {
                       ) : i + 1}
                     </div>
                     <div className="min-w-0">
-                      <p className={`text-sm font-medium leading-tight ${isActive ? 'text-[#3B82F6]' : 'text-[#44403C] group-hover:text-[#44403C]'}`}>
+                      <p className={`text-sm font-medium leading-tight ${isActive ? 'text-[#8b5cf6]' : 'text-[#e4e4e7] group-hover:text-[#e4e4e7]'}`}>
                         {s.label}
                       </p>
-                      <p className="text-[12px] text-[#A8A29E] mt-0.5 leading-tight">{s.desc}</p>
+                      <p className="text-[12px] text-[#71717a] mt-0.5 leading-tight">{s.desc}</p>
                     </div>
                   </div>
                 </button>
@@ -364,8 +364,8 @@ export default function AgentFormPage() {
           </nav>
 
           {/* ── Pipeline mini preview ── */}
-          <div className="mt-auto p-4 border-t border-[#E8E5E2] mx-3 mb-3">
-            <p className="text-[9px] font-semibold text-[#A8A29E] uppercase tracking-widest mb-3">
+          <div className="mt-auto p-4 border-t border-[rgba(255,255,255,0.06)] mx-3 mb-3">
+            <p className="text-[9px] font-semibold text-[#71717a] uppercase tracking-widest mb-3">
               {form.agent_type === 'chatbot' ? 'Chat Pipeline' : 'Voice Pipeline'}
             </p>
             <div className="space-y-2">
@@ -379,18 +379,18 @@ export default function AgentFormPage() {
               ).map((item, i, arr) => (
                 <div key={i}>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-mono text-[#A8A29E] w-6 shrink-0">{item.label}</span>
-                    <div className="flex-1 min-w-0 bg-white rounded-lg px-2 py-1.5">
-                      <p className="text-[12px] text-[#78716C] font-medium truncate leading-tight">
+                    <span className="text-[9px] font-mono text-[#71717a] w-6 shrink-0">{item.label}</span>
+                    <div className="flex-1 min-w-0 bg-[#0f0f11] rounded-lg px-2 py-1.5">
+                      <p className="text-[12px] text-[#a1a1aa] font-medium truncate leading-tight">
                         {item.meta?.name || item.raw}
                       </p>
                       {item.meta?.vendor && (
-                        <p className="text-[9px] text-[#A8A29E] leading-tight">{item.meta.vendor}</p>
+                        <p className="text-[9px] text-[#71717a] leading-tight">{item.meta.vendor}</p>
                       )}
                     </div>
                   </div>
                   {i < arr.length - 1 && (
-                    <div className="ml-3 w-px h-2 bg-[#F5F5F4] mt-1" />
+                    <div className="ml-3 w-px h-2 bg-[#1c1c1f] mt-1" />
                   )}
                 </div>
               ))}
@@ -400,7 +400,7 @@ export default function AgentFormPage() {
 
         {/* ── Main content ── */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-8 py-8">
+          <div className="px-8 py-8">
 
             {step === 'identity'  && <IdentityStep  form={form} set={set} isNew={isNew} />}
             {step === 'stack'     && <StackStep     form={form} set={set} />}
@@ -422,17 +422,17 @@ export default function AgentFormPage() {
             )}
 
             {/* ── Step nav ── */}
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[#E8E5E2]">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-[rgba(255,255,255,0.06)]">
               <button type="button"
                 onClick={() => stepIdx > 0 && setStep(STEPS[stepIdx - 1].id)}
                 disabled={stepIdx === 0}
-                className="text-base text-[#78716C] hover:text-[#44403C] disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-4 py-2 rounded-lg hover:bg-[#F5F5F4]">
+                className="text-base text-[#a1a1aa] hover:text-[#e4e4e7] disabled:opacity-30 disabled:cursor-not-allowed transition-colors px-4 py-2 rounded-lg hover:bg-[#1c1c1f]">
                 ← Back
               </button>
               {stepIdx < STEPS.length - 1 ? (
                 <button type="button"
                   onClick={() => setStep(STEPS[stepIdx + 1].id)}
-                  className="flex items-center gap-2 bg-white hover:bg-[#F5F5F4] border border-[#E8E5E2] text-[#44403C] text-base font-medium px-5 py-2 rounded-lg transition-colors">
+                  className="flex items-center gap-2 bg-[#0f0f11] hover:bg-[#1c1c1f] border border-[rgba(255,255,255,0.06)] text-[#e4e4e7] text-base font-medium px-5 py-2 rounded-lg transition-colors">
                   Next
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="9 18 15 12 9 6" />
@@ -452,21 +452,21 @@ export default function AgentFormPage() {
 
       {/* ── Version history drawer ── */}
       {showVersions && !isNew && (
-        <div className="absolute inset-y-0 right-0 w-80 bg-[#FAFAF9] border-l border-[#E8E5E2] flex flex-col z-20 shadow-2xl">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8E5E2]">
-            <h2 className="text-base font-semibold text-[#1A1816]">Version History</h2>
+        <div className="absolute inset-y-0 right-0 w-80 bg-[#09090b] border-l border-[rgba(255,255,255,0.06)] flex flex-col z-20 shadow-2xl">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[rgba(255,255,255,0.06)]">
+            <h2 className="text-base font-semibold text-[#fafafa]">Version History</h2>
             <button onClick={() => setShowVersions(false)}
-              className="text-[#A8A29E] hover:text-[#44403C] w-6 h-6 flex items-center justify-center rounded hover:bg-[#F5F5F4]">✕</button>
+              className="text-[#71717a] hover:text-[#e4e4e7] w-6 h-6 flex items-center justify-center rounded hover:bg-[#1c1c1f]">✕</button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {versions.length === 0 ? (
-              <p className="text-sm text-[#A8A29E] text-center py-8">No versions saved yet.</p>
+              <p className="text-sm text-[#71717a] text-center py-8">No versions saved yet.</p>
             ) : versions.map(v => (
-              <div key={v.id} className="flex items-center justify-between p-3 bg-[#FAFAF9] rounded-xl border border-[#E8E5E2]">
+              <div key={v.id} className="flex items-center justify-between p-3 bg-[#09090b] rounded-xl border border-[rgba(255,255,255,0.06)]">
                 <div>
-                  <span className="text-sm text-[#44403C] font-medium">v{v.version_num}</span>
-                  {v.note && <span className="text-sm text-[#A8A29E] ml-2">— {v.note}</span>}
-                  <p className="text-[12px] text-[#A8A29E] mt-0.5">{new Date(v.created_at).toLocaleString()}</p>
+                  <span className="text-sm text-[#e4e4e7] font-medium">v{v.version_num}</span>
+                  {v.note && <span className="text-sm text-[#71717a] ml-2">— {v.note}</span>}
+                  <p className="text-[12px] text-[#71717a] mt-0.5">{new Date(v.created_at).toLocaleString()}</p>
                 </div>
                 <button
                   disabled={restoring}
@@ -488,7 +488,7 @@ export default function AgentFormPage() {
                     } catch (err) { setError(err.message) }
                     finally { setRestoring(false) }
                   }}
-                  className="text-sm text-[#2563EB] hover:text-[#3B82F6] px-2.5 py-1 rounded-lg border border-indigo-500/20 hover:border-indigo-500/40 transition-colors disabled:opacity-50">
+                  className="text-sm text-[#2563EB] hover:text-[#8b5cf6] px-2.5 py-1 rounded-lg border border-indigo-500/20 hover:border-indigo-500/40 transition-colors disabled:opacity-50">
                   Restore
                 </button>
               </div>
@@ -523,14 +523,14 @@ function IdentityStep({ form, set, isNew }) {
                   className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all ${
                     form.agent_type === t.id
                       ? 'bg-[#2563EB]/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
-                      : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
+                      : 'bg-[#09090b] border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1]'
                   }`}>
                   <span className="text-3xl">{t.icon}</span>
                   <div>
-                    <p className={`text-base font-semibold ${form.agent_type === t.id ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>
+                    <p className={`text-base font-semibold ${form.agent_type === t.id ? 'text-[#8b5cf6]' : 'text-[#e4e4e7]'}`}>
                       {t.label}
                     </p>
-                    <p className="text-[13px] text-[#A8A29E] mt-0.5">{t.desc}</p>
+                    <p className="text-[13px] text-[#71717a] mt-0.5">{t.desc}</p>
                   </div>
                 </button>
               ))}
@@ -542,20 +542,20 @@ function IdentityStep({ form, set, isNew }) {
           <input value={form.name} onChange={e => set('name', e.target.value)}
             placeholder="e.g. Hotel Receptionist, Sales Assistant"
             autoFocus
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none transition-colors" />
         </FormField>
 
         <FormField label="Greeting" hint="First thing the agent says when a call connects">
           <input value={form.greeting} onChange={e => set('greeting', e.target.value)}
             placeholder="Welcome! How can I help you today?"
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none transition-colors" />
         </FormField>
 
         <FormField label="System Prompt" hint="Full instructions for the agent's persona and behavior">
           <textarea value={form.prompt} onChange={e => set('prompt', e.target.value)}
             rows={8}
             placeholder={"You are a helpful hotel receptionist for The Grand Hotel.\n\nBe polite, professional, and assist guests with:\n- Check-in and check-out queries\n- Room availability and upgrades\n- Restaurant reservations\n- Directions and local recommendations\n\nIf a caller needs maintenance, transfer them to the facilities team."}
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none leading-relaxed" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none leading-relaxed" />
         </FormField>
 
         <FormField label="Language">
@@ -569,12 +569,12 @@ function IdentityStep({ form, set, isNew }) {
                 className={`flex-1 py-3 px-4 rounded-xl border text-left transition-all ${
                   form.language === lang.id
                     ? 'bg-[#2563EB]/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
-                    : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
+                    : 'bg-[#09090b] border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1]'
                 }`}>
-                <p className={`text-sm font-semibold ${form.language === lang.id ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>
+                <p className={`text-sm font-semibold ${form.language === lang.id ? 'text-[#8b5cf6]' : 'text-[#e4e4e7]'}`}>
                   {lang.label}
                 </p>
-                <p className="text-[12px] text-[#A8A29E] mt-0.5">{lang.sub}</p>
+                <p className="text-[12px] text-[#71717a] mt-0.5">{lang.sub}</p>
               </button>
             ))}
           </div>
@@ -615,7 +615,7 @@ function StackStep({ form, set }) {
           className={`relative flex flex-col items-start gap-1.5 p-4 rounded-xl border-2 transition-all text-left ${
             isRealtime
               ? 'border-violet-500 bg-violet-500/5'
-              : 'border-[#E8E5E2] bg-white hover:border-[#D6D3D1]'
+              : 'border-[rgba(255,255,255,0.06)] bg-[#0f0f11] hover:border-[#D6D3D1]'
           }`}
         >
           {isRealtime && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-violet-500" />}
@@ -624,7 +624,7 @@ function StackStep({ form, set }) {
             <span className="font-semibold text-[#1C1917]">Realtime</span>
             <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-violet-100 text-violet-700">Speech-to-Speech</span>
           </div>
-          <p className="text-[13px] text-[#78716C]">Single model handles listening + thinking + speaking. Lowest latency, no pipeline.</p>
+          <p className="text-[13px] text-[#a1a1aa]">Single model handles listening + thinking + speaking. Lowest latency, no pipeline.</p>
         </button>
         <button
           type="button"
@@ -632,7 +632,7 @@ function StackStep({ form, set }) {
           className={`relative flex flex-col items-start gap-1.5 p-4 rounded-xl border-2 transition-all text-left ${
             !isRealtime
               ? 'border-emerald-500 bg-emerald-500/5'
-              : 'border-[#E8E5E2] bg-white hover:border-[#D6D3D1]'
+              : 'border-[rgba(255,255,255,0.06)] bg-[#0f0f11] hover:border-[#D6D3D1]'
           }`}
         >
           {!isRealtime && <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-emerald-500" />}
@@ -641,7 +641,7 @@ function StackStep({ form, set }) {
             <span className="font-semibold text-[#1C1917]">Traditional</span>
             <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">STT + LLM + TTS</span>
           </div>
-          <p className="text-[13px] text-[#78716C]">Pick each provider separately. More control over quality, cost, and voice selection.</p>
+          <p className="text-[13px] text-[#a1a1aa]">Pick each provider separately. More control over quality, cost, and voice selection.</p>
         </button>
       </div>
 
@@ -650,11 +650,11 @@ function StackStep({ form, set }) {
         <>
           {/* Pipeline diagram — simplified */}
           <div className="flex items-center gap-2 bg-violet-50/50 border border-violet-200/50 rounded-2xl p-4">
-            <div className="text-[12px] text-[#A8A29E] font-medium">Audio In</div>
+            <div className="text-[12px] text-[#71717a] font-medium">Audio In</div>
             <svg className="w-4 h-4 text-[#D6D3D1] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
             <div className="text-[12px] font-medium px-2.5 py-1 rounded-lg border bg-violet-500/10 border-violet-500/20 text-violet-500">Realtime Model</div>
             <svg className="w-4 h-4 text-[#D6D3D1] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
-            <div className="text-[12px] text-[#A8A29E] font-medium">Audio Out</div>
+            <div className="text-[12px] text-[#71717a] font-medium">Audio Out</div>
           </div>
 
           <ProviderSection
@@ -697,7 +697,7 @@ function StackStep({ form, set }) {
       {!isRealtime && (
         <>
           {/* Pipeline diagram */}
-          <div className="flex items-center gap-2 bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-4">
+          <div className="flex items-center gap-2 bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-4">
             {[
               { label: 'Audio In',        type: 'io' },
               { label: null,              type: 'arrow' },
@@ -715,10 +715,10 @@ function StackStep({ form, set }) {
                 </svg>
               )
               if (item.type === 'io') return (
-                <div key={i} className="text-[12px] text-[#A8A29E] font-medium shrink-0">{item.label}</div>
+                <div key={i} className="text-[12px] text-[#71717a] font-medium shrink-0">{item.label}</div>
               )
               const colors = {
-                blue:    'bg-blue-500/10 border-blue-500/20 text-blue-400',
+                blue:    'bg-[rgba(139,92,246,0.08)]0/10 border-blue-500/20 text-blue-400',
                 purple:  'bg-purple-500/10 border-purple-500/20 text-purple-400',
                 emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
               }
@@ -837,14 +837,14 @@ function StackStep({ form, set }) {
 function PipelineConnector({ label }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-px bg-[#F5F5F4]" />
-      <div className="flex items-center gap-1.5 text-[12px] text-[#A8A29E] shrink-0">
+      <div className="flex-1 h-px bg-[#1c1c1f]" />
+      <div className="flex items-center gap-1.5 text-[12px] text-[#71717a] shrink-0">
         <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="6 9 12 15 18 9" />
         </svg>
         {label}
       </div>
-      <div className="flex-1 h-px bg-[#F5F5F4]" />
+      <div className="flex-1 h-px bg-[#1c1c1f]" />
     </div>
   )
 }
@@ -853,12 +853,12 @@ function ProviderSection({ title, stepTag, subtitle, providers, selected, onSele
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-8 h-8 rounded-lg bg-[#F5F5F4] border border-[#E8E5E2] flex items-center justify-center shrink-0">
-          <span className="text-[9px] font-bold text-[#78716C] tracking-wider">{stepTag}</span>
+        <div className="w-8 h-8 rounded-lg bg-[#1c1c1f] border border-[rgba(255,255,255,0.06)] flex items-center justify-center shrink-0">
+          <span className="text-[9px] font-bold text-[#a1a1aa] tracking-wider">{stepTag}</span>
         </div>
         <div>
-          <p className="text-base font-semibold text-[#1A1816]">{title}</p>
-          <p className="text-sm text-[#A8A29E]">{subtitle}</p>
+          <p className="text-base font-semibold text-[#fafafa]">{title}</p>
+          <p className="text-sm text-[#71717a]">{subtitle}</p>
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2.5">
@@ -919,9 +919,9 @@ function LatencyEstimator({ stt, llm, tts }) {
   }
 
   return (
-    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
+    <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-[13px] font-semibold text-[#44403C]">Estimated Response Latency</p>
+        <p className="text-[13px] font-semibold text-[#e4e4e7]">Estimated Response Latency</p>
         <div className="flex items-center gap-2">
           <span className={`text-base font-bold font-mono ${ratingColor}`}>~{total}ms</span>
           <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
@@ -929,33 +929,33 @@ function LatencyEstimator({ stt, llm, tts }) {
           }`}>{rating}</span>
         </div>
       </div>
-      <div className="w-full h-1.5 bg-[#F5F5F4] rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-[#1c1c1f] rounded-full overflow-hidden">
         <div className={`h-full rounded-full transition-all duration-300 ${barColor}`} style={{ width: `${barWidth}%` }} />
       </div>
-      <div className="flex items-center justify-between text-[9px] text-[#A8A29E] font-mono">
+      <div className="flex items-center justify-between text-[9px] text-[#71717a] font-mono">
         <span>STT {sttMs}ms + LLM {llmMs}ms + TTS {ttsMs}ms</span>
         <span>Target: &lt;800ms</span>
       </div>
 
       {totalCostMin > 0 && (
-        <div className="flex items-center justify-between pt-2 border-t border-[#E8E5E2]">
+        <div className="flex items-center justify-between pt-2 border-t border-[rgba(255,255,255,0.06)]">
           <div className="flex items-center gap-2">
-            <p className="text-[13px] font-semibold text-[#44403C]">Estimated AI Cost</p>
-            <div className="flex rounded-md border border-[#E8E5E2] overflow-hidden">
+            <p className="text-[13px] font-semibold text-[#e4e4e7]">Estimated AI Cost</p>
+            <div className="flex rounded-md border border-[rgba(255,255,255,0.06)] overflow-hidden">
               <button type="button" onClick={() => setCurrency('USD')}
-                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'USD' ? 'bg-[#2563EB]/20 text-[#3B82F6]' : 'text-[#A8A29E] hover:text-[#44403C]'}`}>USD</button>
+                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'USD' ? 'bg-[#2563EB]/20 text-[#8b5cf6]' : 'text-[#71717a] hover:text-[#e4e4e7]'}`}>USD</button>
               <button type="button" onClick={() => setCurrency('INR')}
-                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'INR' ? 'bg-[#2563EB]/20 text-[#3B82F6]' : 'text-[#A8A29E] hover:text-[#44403C]'}`}>INR</button>
+                className={`px-1.5 py-0.5 text-[9px] font-medium transition-colors ${currency === 'INR' ? 'bg-[#2563EB]/20 text-[#8b5cf6]' : 'text-[#71717a] hover:text-[#e4e4e7]'}`}>INR</button>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <span className="text-base font-bold font-mono text-[#1A1816]">{sym}{fmtCost(totalCostMin)}</span>
-              <span className="text-[9px] text-[#A8A29E] ml-1">/min</span>
+              <span className="text-base font-bold font-mono text-[#fafafa]">{sym}{fmtCost(totalCostMin)}</span>
+              <span className="text-[9px] text-[#71717a] ml-1">/min</span>
             </div>
             <div className="text-right">
-              <span className="text-sm font-semibold font-mono text-[#78716C]">{sym}{fmtCost(totalCostHr)}</span>
-              <span className="text-[9px] text-[#A8A29E] ml-1">/hr</span>
+              <span className="text-sm font-semibold font-mono text-[#a1a1aa]">{sym}{fmtCost(totalCostHr)}</span>
+              <span className="text-[9px] text-[#71717a] ml-1">/hr</span>
             </div>
           </div>
         </div>
@@ -970,27 +970,27 @@ function ProviderCard({ provider, isSelected, onSelect }) {
       className={`relative text-left p-4 rounded-xl border transition-all ${
         isSelected
           ? 'bg-[#2563EB]/8 border-indigo-500/35 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
-          : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1] hover:bg-[#F5F5F4]'
+          : 'bg-[#09090b] border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1] hover:bg-[#1c1c1f]'
       }`}>
 
       {provider.badge && (
         <span className={`absolute top-2.5 right-2.5 text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
           isSelected
-            ? 'bg-[#2563EB]/20 text-[#3B82F6]'
-            : 'bg-[#F5F5F4] text-[#A8A29E]'
+            ? 'bg-[#2563EB]/20 text-[#8b5cf6]'
+            : 'bg-[#1c1c1f] text-[#71717a]'
         }`}>
           {provider.badge}
         </span>
       )}
 
-      <p className={`text-sm font-semibold leading-tight mb-0.5 ${isSelected ? 'text-[#3B82F6]' : 'text-[#1A1816]'}`}>
+      <p className={`text-sm font-semibold leading-tight mb-0.5 ${isSelected ? 'text-[#8b5cf6]' : 'text-[#fafafa]'}`}>
         {provider.name}
       </p>
-      <p className="text-[12px] text-[#A8A29E] mb-1.5">{provider.vendor}</p>
-      <p className="text-[12px] text-[#A8A29E] leading-relaxed">{provider.desc}</p>
+      <p className="text-[12px] text-[#71717a] mb-1.5">{provider.vendor}</p>
+      <p className="text-[12px] text-[#71717a] leading-relaxed">{provider.desc}</p>
 
       {(provider.latency || provider.cost) && (
-        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[#E8E5E2]">
+        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-[rgba(255,255,255,0.06)]">
           {provider.latency && (
             <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${
               provider.latency.includes('100') || provider.latency.includes('150')
@@ -1003,7 +1003,7 @@ function ProviderCard({ provider, isSelected, onSelect }) {
             </span>
           )}
           {provider.cost && (
-            <span className="text-[9px] font-mono text-[#A8A29E]">
+            <span className="text-[9px] font-mono text-[#71717a]">
               {provider.cost}
             </span>
           )}
@@ -1012,7 +1012,7 @@ function ProviderCard({ provider, isSelected, onSelect }) {
 
       {isSelected && (
         <div className="absolute bottom-2.5 right-2.5 w-4 h-4 rounded-full bg-[#2563EB] flex items-center justify-center">
-          <svg className="w-2.5 h-2.5 text-[#1A1816]" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <svg className="w-2.5 h-2.5 text-[#fafafa]" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <polyline points="2 6.5 4.5 9 10 3" />
           </svg>
         </div>
@@ -1027,16 +1027,16 @@ function SliderField({ label, hint, value, onChange, min, max, step, unit = '' }
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label className="text-sm font-medium text-[#78716C]">
+        <label className="text-sm font-medium text-[#a1a1aa]">
           {label}
-          {hint && <span className="text-[#A8A29E] font-normal ml-1.5">— {hint}</span>}
+          {hint && <span className="text-[#71717a] font-normal ml-1.5">— {hint}</span>}
         </label>
         <span className="text-sm font-mono text-[#2563EB] bg-[#2563EB]/8 px-2 py-0.5 rounded-md">{value}{unit}</span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value}
         onChange={e => onChange(parseFloat(e.target.value))}
         className="w-full h-1.5 rounded-full appearance-none bg-[#E8E5E2] accent-[#2563EB] cursor-pointer" />
-      <div className="flex justify-between text-[10px] text-[#A8A29E] mt-1">
+      <div className="flex justify-between text-[10px] text-[#71717a] mt-1">
         <span>{min}{unit}</span><span>{max}{unit}</span>
       </div>
     </div>
@@ -1058,10 +1058,10 @@ function TuningStep({ form, setTun }) {
       <StepHeader title="Agent Tuning" desc="Fine-tune response behavior, turn-taking, call settings, and post-call processing." />
 
       {/* ── Response Settings ── */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-5">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 space-y-5">
         <div>
-          <p className="text-base font-semibold text-[#1A1816]">Response Settings</p>
-          <p className="text-sm text-[#A8A29E] mt-0.5">Control how creative and verbose the agent is.</p>
+          <p className="text-base font-semibold text-[#fafafa]">Response Settings</p>
+          <p className="text-sm text-[#71717a] mt-0.5">Control how creative and verbose the agent is.</p>
         </div>
 
         <SliderField label="Temperature" hint="Higher = more creative, lower = more deterministic"
@@ -1074,7 +1074,7 @@ function TuningStep({ form, setTun }) {
 
         {/* Response mode toggle */}
         <div>
-          <label className="text-sm font-medium text-[#78716C] mb-2 block">Response Mode</label>
+          <label className="text-sm font-medium text-[#a1a1aa] mb-2 block">Response Mode</label>
           <div className="grid grid-cols-2 gap-3">
             {[
               { id: 'rapid', label: 'Rapid', desc: '100ms endpointing + 100ms delay', ep: 100, ld: 100 },
@@ -1085,12 +1085,12 @@ function TuningStep({ form, setTun }) {
                 className={`p-3 rounded-xl border text-left transition-all ${
                   (mode.id === 'rapid' ? isRapid : !isRapid)
                     ? 'bg-[#2563EB]/10 border-indigo-500/40 shadow-[0_0_0_1px_rgba(99,102,241,0.15)]'
-                    : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
+                    : 'bg-[#09090b] border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1]'
                 }`}>
-                <p className={`text-sm font-semibold ${(mode.id === 'rapid' ? isRapid : !isRapid) ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>
+                <p className={`text-sm font-semibold ${(mode.id === 'rapid' ? isRapid : !isRapid) ? 'text-[#8b5cf6]' : 'text-[#e4e4e7]'}`}>
                   {mode.label}
                 </p>
-                <p className="text-[12px] text-[#A8A29E] mt-0.5">{mode.desc}</p>
+                <p className="text-[12px] text-[#71717a] mt-0.5">{mode.desc}</p>
               </button>
             ))}
           </div>
@@ -1098,10 +1098,10 @@ function TuningStep({ form, setTun }) {
       </div>
 
       {/* ── Interruption & Turn-Taking ── */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-5">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 space-y-5">
         <div>
-          <p className="text-base font-semibold text-[#1A1816]">Interruption & Turn-Taking</p>
-          <p className="text-sm text-[#A8A29E] mt-0.5">Control how the agent handles pauses and interruptions.</p>
+          <p className="text-base font-semibold text-[#fafafa]">Interruption & Turn-Taking</p>
+          <p className="text-sm text-[#71717a] mt-0.5">Control how the agent handles pauses and interruptions.</p>
         </div>
 
         <SliderField label="Endpointing" hint="How quickly agent responds after silence"
@@ -1122,15 +1122,15 @@ function TuningStep({ form, setTun }) {
             onChange={e => setTun('keywords_boost', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
             rows={2}
             placeholder="e.g. Vani, appointment, booking, upgrade"
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none" />
         </FormField>
       </div>
 
       {/* ── Call Settings ── */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-5">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 space-y-5">
         <div>
-          <p className="text-base font-semibold text-[#1A1816]">Call Settings</p>
-          <p className="text-sm text-[#A8A29E] mt-0.5">Timeouts, detection, and call-end behavior.</p>
+          <p className="text-base font-semibold text-[#fafafa]">Call Settings</p>
+          <p className="text-sm text-[#71717a] mt-0.5">Timeouts, detection, and call-end behavior.</p>
         </div>
 
         <SliderField label="Silence Timeout" hint="Hang up after this many seconds of silence"
@@ -1144,24 +1144,24 @@ function TuningStep({ form, setTun }) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="pr-4">
-              <p className="text-sm font-medium text-[#78716C]">Voicemail Detection</p>
-              <p className="text-[12px] text-[#A8A29E] mt-0.5">Detect voicemail and hang up automatically</p>
+              <p className="text-sm font-medium text-[#a1a1aa]">Voicemail Detection</p>
+              <p className="text-[12px] text-[#71717a] mt-0.5">Detect voicemail and hang up automatically</p>
             </div>
             <Toggle value={t.voicemail_detection} onChange={v => setTun('voicemail_detection', v)} />
           </div>
 
           <div className="flex items-center justify-between">
             <div className="pr-4">
-              <p className="text-sm font-medium text-[#78716C]">DTMF Keypad Input</p>
-              <p className="text-[12px] text-[#A8A29E] mt-0.5">Accept touch-tone keypad inputs from caller</p>
+              <p className="text-sm font-medium text-[#a1a1aa]">DTMF Keypad Input</p>
+              <p className="text-[12px] text-[#71717a] mt-0.5">Accept touch-tone keypad inputs from caller</p>
             </div>
             <Toggle value={t.dtmf_enabled} onChange={v => setTun('dtmf_enabled', v)} />
           </div>
 
           <div className="flex items-center justify-between">
             <div className="pr-4">
-              <p className="text-sm font-medium text-[#78716C]">Noise Cancellation</p>
-              <p className="text-[12px] text-[#A8A29E] mt-0.5">Filter background noise from caller audio</p>
+              <p className="text-sm font-medium text-[#a1a1aa]">Noise Cancellation</p>
+              <p className="text-[12px] text-[#71717a] mt-0.5">Filter background noise from caller audio</p>
             </div>
             <Toggle value={t.noise_cancellation} onChange={v => setTun('noise_cancellation', v)} />
           </div>
@@ -1171,7 +1171,7 @@ function TuningStep({ form, setTun }) {
           <select
             value={t.ambient_noise}
             onChange={e => setTun('ambient_noise', e.target.value)}
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] focus:outline-none transition-colors">
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#fafafa] focus:outline-none transition-colors">
             <option value="none">None</option>
             <option value="office">Office</option>
             <option value="cafe">Cafe</option>
@@ -1185,47 +1185,47 @@ function TuningStep({ form, setTun }) {
             onChange={e => setTun('final_message', e.target.value)}
             rows={2}
             placeholder="Thank you for calling. Goodbye!"
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none" />
         </FormField>
       </div>
 
       {/* ── Post-Call Processing ── */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-4">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 space-y-4">
         <div>
-          <p className="text-base font-semibold text-[#1A1816]">Post-Call Processing</p>
-          <p className="text-sm text-[#A8A29E] mt-0.5">Automatic summarization and data extraction after each call.</p>
+          <p className="text-base font-semibold text-[#fafafa]">Post-Call Processing</p>
+          <p className="text-sm text-[#71717a] mt-0.5">Automatic summarization and data extraction after each call.</p>
         </div>
 
         <div className="flex items-center justify-between">
           <div className="pr-4">
-            <p className="text-sm font-medium text-[#78716C]">Summarization</p>
-            <p className="text-[12px] text-[#A8A29E] mt-0.5">Generate a brief summary after each call</p>
+            <p className="text-sm font-medium text-[#a1a1aa]">Summarization</p>
+            <p className="text-[12px] text-[#71717a] mt-0.5">Generate a brief summary after each call</p>
           </div>
           <Toggle value={t.summarization_enabled} onChange={v => setTun('summarization_enabled', v)} />
         </div>
 
         <div className="flex items-center justify-between">
           <div className="pr-4">
-            <p className="text-sm font-medium text-[#78716C]">Extraction</p>
-            <p className="text-[12px] text-[#A8A29E] mt-0.5">Extract structured data from call transcript</p>
+            <p className="text-sm font-medium text-[#a1a1aa]">Extraction</p>
+            <p className="text-[12px] text-[#71717a] mt-0.5">Extract structured data from call transcript</p>
           </div>
           <Toggle value={t.extraction_enabled} onChange={v => setTun('extraction_enabled', v)} />
         </div>
 
         {t.extraction_enabled && (
-          <div className="space-y-2 pt-2 border-t border-[#E8E5E2]">
-            <p className="text-sm font-medium text-[#78716C]">Extraction Categories</p>
+          <div className="space-y-2 pt-2 border-t border-[rgba(255,255,255,0.06)]">
+            <p className="text-sm font-medium text-[#a1a1aa]">Extraction Categories</p>
             {(t.extraction_categories || []).map((cat, i) => (
               <div key={i} className="grid grid-cols-12 gap-2">
                 <div className="col-span-4">
                   <input value={cat.name} onChange={e => setCategory(i, 'name', e.target.value)}
                     placeholder="Category name"
-                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+                    className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
                 </div>
                 <div className="col-span-7">
                   <input value={cat.description} onChange={e => setCategory(i, 'description', e.target.value)}
                     placeholder="Description of what to extract"
-                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+                    className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
                 </div>
                 <div className="col-span-1 flex items-center justify-center">
                   <button type="button" onClick={() => removeCategory(i)}
@@ -1234,7 +1234,7 @@ function TuningStep({ form, setTun }) {
               </div>
             ))}
             <button type="button" onClick={addCategory}
-              className="flex items-center gap-1.5 text-sm text-[#2563EB] hover:text-[#3B82F6] transition-colors">
+              className="flex items-center gap-1.5 text-sm text-[#2563EB] hover:text-[#8b5cf6] transition-colors">
               <span className="text-lg leading-none">+</span> Add category
             </button>
           </div>
@@ -1242,17 +1242,17 @@ function TuningStep({ form, setTun }) {
       </div>
 
       {/* ── Spam Prevention ── */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-3">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 space-y-3">
         <div>
-          <p className="text-base font-semibold text-[#1A1816]">Spam Prevention</p>
-          <p className="text-sm text-[#A8A29E] mt-0.5">Limit repeat calls from the same number.</p>
+          <p className="text-base font-semibold text-[#fafafa]">Spam Prevention</p>
+          <p className="text-sm text-[#71717a] mt-0.5">Limit repeat calls from the same number.</p>
         </div>
         <FormField label="Max Calls Per Number" hint="-1 = unlimited">
           <input type="number"
             value={t.spam_max_calls}
             onChange={e => setTun('spam_max_calls', parseInt(e.target.value) || -1)}
             min={-1}
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1] focus:border-[#2563EB] rounded-xl px-4 py-3 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none transition-colors" />
         </FormField>
       </div>
     </div>
@@ -1267,10 +1267,10 @@ function BehaviorStep({ form, setBeh, setEsc }) {
       <StepHeader title="Behavior" desc="Control how your agent acts, responds, and handles escalations." />
 
       {/* Tone + Objective */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-5">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 space-y-5">
         <div className="grid grid-cols-2 gap-5">
           <div>
-            <p className="text-sm font-semibold text-[#78716C] mb-3">Tone</p>
+            <p className="text-sm font-semibold text-[#a1a1aa] mb-3">Tone</p>
             <div className="space-y-2">
               {[
                 { id: 'friendly', label: 'Friendly',   sub: 'Warm, approachable' },
@@ -1280,17 +1280,17 @@ function BehaviorStep({ form, setBeh, setEsc }) {
                 <button key={t.id} type="button" onClick={() => setBeh('tone', t.id)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
                     form.behavior.tone === t.id
-                      ? 'bg-[#2563EB]/8 border-indigo-500/30 text-[#3B82F6]'
-                      : 'bg-[#FAFAF9] border-[#E8E5E2] text-[#78716C] hover:border-[#D6D3D1] hover:text-[#44403C]'
+                      ? 'bg-[#2563EB]/8 border-indigo-500/30 text-[#8b5cf6]'
+                      : 'bg-[#09090b] border-[rgba(255,255,255,0.06)] text-[#a1a1aa] hover:border-[#D6D3D1] hover:text-[#e4e4e7]'
                   }`}>
                   <p className="text-sm font-medium">{t.label}</p>
-                  <p className="text-[12px] text-[#A8A29E] mt-0.5">{t.sub}</p>
+                  <p className="text-[12px] text-[#71717a] mt-0.5">{t.sub}</p>
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#78716C] mb-3">Objective</p>
+            <p className="text-sm font-semibold text-[#a1a1aa] mb-3">Objective</p>
             <div className="space-y-2">
               {[
                 { id: 'support',  label: 'Support',    sub: 'Resolve issues' },
@@ -1301,11 +1301,11 @@ function BehaviorStep({ form, setBeh, setEsc }) {
                 <button key={o.id} type="button" onClick={() => setBeh('objective', o.id)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
                     form.behavior.objective === o.id
-                      ? 'bg-[#2563EB]/8 border-indigo-500/30 text-[#3B82F6]'
-                      : 'bg-[#FAFAF9] border-[#E8E5E2] text-[#78716C] hover:border-[#D6D3D1] hover:text-[#44403C]'
+                      ? 'bg-[#2563EB]/8 border-indigo-500/30 text-[#8b5cf6]'
+                      : 'bg-[#09090b] border-[rgba(255,255,255,0.06)] text-[#a1a1aa] hover:border-[#D6D3D1] hover:text-[#e4e4e7]'
                   }`}>
                   <p className="text-sm font-medium">{o.label}</p>
-                  <p className="text-[12px] text-[#A8A29E] mt-0.5">{o.sub}</p>
+                  <p className="text-[12px] text-[#71717a] mt-0.5">{o.sub}</p>
                 </button>
               ))}
             </div>
@@ -1313,28 +1313,28 @@ function BehaviorStep({ form, setBeh, setEsc }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#78716C] mb-2">
+          <label className="block text-sm font-medium text-[#a1a1aa] mb-2">
             Fallback Message
-            <span className="text-[#A8A29E] font-normal ml-1.5">— said when the agent can't help</span>
+            <span className="text-[#71717a] font-normal ml-1.5">— said when the agent can't help</span>
           </label>
           <input value={form.behavior.fallback || ''} onChange={e => setBeh('fallback', e.target.value)}
             placeholder="Let me transfer you to our team."
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] focus:border-[#2563EB] rounded-lg px-3 py-2.5 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] focus:border-[#2563EB] rounded-lg px-3 py-2.5 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none transition-colors" />
         </div>
       </div>
 
       {/* Warm Transfer */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-base font-semibold text-[#1A1816]">Warm Transfer</p>
-            <p className="text-sm text-[#A8A29E] mt-0.5">Escalate to a human agent on trigger</p>
+            <p className="text-base font-semibold text-[#fafafa]">Warm Transfer</p>
+            <p className="text-sm text-[#71717a] mt-0.5">Escalate to a human agent on trigger</p>
           </div>
           <Toggle value={form.escalation_config.enabled} onChange={v => setEsc('enabled', v)} />
         </div>
 
         {form.escalation_config.enabled && (
-          <div className="mt-5 pt-5 border-t border-[#E8E5E2] space-y-4">
+          <div className="mt-5 pt-5 border-t border-[rgba(255,255,255,0.06)] space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Transfer Number" hint="E.164 format">
                 <input value={form.escalation_config.transfer_number}
@@ -1361,10 +1361,10 @@ function BehaviorStep({ form, setBeh, setEsc }) {
                 placeholder="Incoming AI transfer. Caller needs human support."
                 className={inputCls} />
             </FormField>
-            <div className="flex items-center justify-between p-3 bg-[#FAFAF9] rounded-lg border border-[#E8E5E2]">
+            <div className="flex items-center justify-between p-3 bg-[#09090b] rounded-lg border border-[rgba(255,255,255,0.06)]">
               <div>
-                <p className="text-sm font-medium text-[#44403C]">Announce Transfer</p>
-                <p className="text-[12px] text-[#A8A29E] mt-0.5">Tell caller they're being transferred</p>
+                <p className="text-sm font-medium text-[#e4e4e7]">Announce Transfer</p>
+                <p className="text-[12px] text-[#71717a] mt-0.5">Tell caller they're being transferred</p>
               </div>
               <Toggle value={form.escalation_config.announce_transfer} onChange={v => setEsc('announce_transfer', v)} />
             </div>
@@ -1380,13 +1380,13 @@ function BehaviorStep({ form, setBeh, setEsc }) {
 function KnowledgeLocked() {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-white border border-[#E8E5E2] flex items-center justify-center mb-5">
-        <svg className="w-7 h-7 text-[#A8A29E]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+      <div className="w-14 h-14 rounded-2xl bg-[#0f0f11] border border-[rgba(255,255,255,0.06)] flex items-center justify-center mb-5">
+        <svg className="w-7 h-7 text-[#71717a]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25"/>
         </svg>
       </div>
-      <p className="text-base font-medium text-[#1A1816]">Create the agent first</p>
-      <p className="text-sm text-[#A8A29E] mt-2 max-w-xs">
+      <p className="text-base font-medium text-[#fafafa]">Create the agent first</p>
+      <p className="text-sm text-[#71717a] mt-2 max-w-xs">
         Upload documents, PDFs, and web pages after the agent is saved — they'll be available to the agent on every call.
       </p>
     </div>
@@ -1447,7 +1447,7 @@ function KnowledgeStep({ agentId }) {
 
       <div className="flex gap-2">
         <button type="button" onClick={() => setShowUrlForm(v => !v)}
-          className="flex items-center gap-1.5 text-sm font-medium text-[#78716C] hover:text-[#44403C] bg-[#F5F5F4] hover:bg-[#F0EDEA] border border-[#E8E5E2] px-3 py-2 rounded-lg transition-colors">
+          className="flex items-center gap-1.5 text-sm font-medium text-[#a1a1aa] hover:text-[#e4e4e7] bg-[#1c1c1f] hover:bg-[#F0EDEA] border border-[rgba(255,255,255,0.06)] px-3 py-2 rounded-lg transition-colors">
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
@@ -1455,7 +1455,7 @@ function KnowledgeStep({ agentId }) {
           Add URL
         </button>
         <button type="button" onClick={() => inputRef.current?.click()}
-          className="flex items-center gap-1.5 text-sm font-medium text-[#2563EB] hover:text-[#3B82F6] bg-[#2563EB]/8 hover:bg-[#2563EB]/15 border border-indigo-500/20 px-3 py-2 rounded-lg transition-colors">
+          className="flex items-center gap-1.5 text-sm font-medium text-[#2563EB] hover:text-[#8b5cf6] bg-[#2563EB]/8 hover:bg-[#2563EB]/15 border border-indigo-500/20 px-3 py-2 rounded-lg transition-colors">
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="17 8 12 3 7 8"/>
@@ -1468,12 +1468,12 @@ function KnowledgeStep({ agentId }) {
       </div>
 
       {showUrlForm && (
-        <form onSubmit={scrapeUrl} className="bg-[#FAFAF9] rounded-xl border border-[#E8E5E2] p-4 space-y-3">
-          <p className="text-sm font-semibold text-[#44403C]">Scrape a web page</p>
+        <form onSubmit={scrapeUrl} className="bg-[#09090b] rounded-xl border border-[rgba(255,255,255,0.06)] p-4 space-y-3">
+          <p className="text-sm font-semibold text-[#e4e4e7]">Scrape a web page</p>
           <input value={urlInput} onChange={e => setUrlInput(e.target.value)} placeholder="https://example.com/faq"
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
           <input value={urlTitle} onChange={e => setUrlTitle(e.target.value)} placeholder="Title (optional)"
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
           <div className="flex gap-2">
             <button type="submit" disabled={!urlInput.trim() || scrapingUrl}
               className="flex items-center gap-1.5 text-sm bg-[#2563EB]/10 hover:bg-[#2563EB]/20 text-[#2563EB] border border-indigo-500/20 px-3 py-1.5 rounded-lg disabled:opacity-50 transition-colors">
@@ -1482,7 +1482,7 @@ function KnowledgeStep({ agentId }) {
                 : 'Scrape & Add'}
             </button>
             <button type="button" onClick={() => setShowUrlForm(false)}
-              className="text-sm text-[#A8A29E] hover:text-[#44403C] px-3 py-1.5 transition-colors">Cancel</button>
+              className="text-sm text-[#71717a] hover:text-[#e4e4e7] px-3 py-1.5 transition-colors">Cancel</button>
           </div>
         </form>
       )}
@@ -1493,16 +1493,16 @@ function KnowledgeStep({ agentId }) {
         onDrop={e => { e.preventDefault(); setDragOver(false); upload(e.dataTransfer.files[0]) }}
         onClick={() => inputRef.current?.click()}
         className={`border-2 border-dashed rounded-xl px-4 py-10 text-center cursor-pointer transition-colors ${
-          dragOver ? 'border-indigo-500 bg-[#2563EB]/5' : 'border-[#E8E5E2] hover:border-[#D6D3D1]'
+          dragOver ? 'border-indigo-500 bg-[#2563EB]/5' : 'border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1]'
         }`}>
         {uploading ? (
-          <div className="flex items-center justify-center gap-2 text-[#78716C] text-sm">
+          <div className="flex items-center justify-center gap-2 text-[#a1a1aa] text-sm">
             <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
             Uploading…
           </div>
         ) : (
           <>
-            <p className="text-sm text-[#A8A29E]">Drop files here or <span className="text-[#2563EB]">browse</span></p>
+            <p className="text-sm text-[#71717a]">Drop files here or <span className="text-[#2563EB]">browse</span></p>
             <p className="text-[12px] text-[#D6D3D1] mt-1">txt · pdf · md · csv · max 5 MB each</p>
           </>
         )}
@@ -1511,19 +1511,19 @@ function KnowledgeStep({ agentId }) {
       {error && <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
 
       {loading ? (
-        <p className="text-sm text-[#A8A29E] text-center py-6">Loading…</p>
+        <p className="text-sm text-[#71717a] text-center py-6">Loading…</p>
       ) : docs.length === 0 ? (
-        <p className="text-sm text-[#A8A29E] text-center py-6">No documents yet.</p>
+        <p className="text-sm text-[#71717a] text-center py-6">No documents yet.</p>
       ) : (
         <div className="space-y-2">
           {docs.map(doc => (
-            <div key={doc.id} className="flex items-start gap-3 bg-[#FAFAF9] rounded-xl border border-[#E8E5E2] px-4 py-3">
-              <svg className="w-4 h-4 text-[#A8A29E] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div key={doc.id} className="flex items-start gap-3 bg-[#09090b] rounded-xl border border-[rgba(255,255,255,0.06)] px-4 py-3">
+              <svg className="w-4 h-4 text-[#71717a] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
               </svg>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[#44403C] truncate">{doc.filename}</p>
-                <p className="text-[12px] text-[#A8A29E] mt-0.5 line-clamp-2">{doc.content_preview}</p>
+                <p className="text-sm font-medium text-[#e4e4e7] truncate">{doc.filename}</p>
+                <p className="text-[12px] text-[#71717a] mt-0.5 line-clamp-2">{doc.content_preview}</p>
               </div>
               <button type="button"
                 onClick={async () => {
@@ -1556,10 +1556,10 @@ function AdvancedStep({ form, set }) {
       <StepHeader title="Advanced" desc="Data extraction, call goals, privacy, and custom LLM endpoints." />
 
       {/* Custom LLM */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-4">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 space-y-4">
         <div>
-          <p className="text-base font-semibold text-[#1A1816]">Custom LLM Endpoint</p>
-          <p className="text-sm text-[#A8A29E] mt-0.5">Override with any OpenAI-compatible endpoint (Ollama, vLLM, Together AI, etc.)</p>
+          <p className="text-base font-semibold text-[#fafafa]">Custom LLM Endpoint</p>
+          <p className="text-sm text-[#71717a] mt-0.5">Override with any OpenAI-compatible endpoint (Ollama, vLLM, Together AI, etc.)</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <FormField label="Base URL" hint="e.g. http://localhost:11434/v1">
@@ -1581,11 +1581,11 @@ function AdvancedStep({ form, set }) {
       </div>
 
       {/* PII */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5">
         <div className="flex items-center justify-between">
           <div className="pr-4">
-            <p className="text-base font-semibold text-[#1A1816]">PII Redaction</p>
-            <p className="text-sm text-[#A8A29E] mt-0.5">
+            <p className="text-base font-semibold text-[#fafafa]">PII Redaction</p>
+            <p className="text-sm text-[#71717a] mt-0.5">
               Automatically redact phone numbers, emails, and card numbers from transcripts.
             </p>
           </div>
@@ -1594,10 +1594,10 @@ function AdvancedStep({ form, set }) {
       </div>
 
       {/* Extraction Schema */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-4">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 space-y-4">
         <div>
-          <p className="text-base font-semibold text-[#1A1816]">Data Extraction Schema</p>
-          <p className="text-sm text-[#A8A29E] mt-0.5">
+          <p className="text-base font-semibold text-[#fafafa]">Data Extraction Schema</p>
+          <p className="text-sm text-[#71717a] mt-0.5">
             Fields extracted from each call by LLM post-processing. Saved to call metadata.
           </p>
         </div>
@@ -1608,18 +1608,18 @@ function AdvancedStep({ form, set }) {
                 <div className="col-span-4">
                   <input value={fld.field} onChange={e => setField(i, 'field', e.target.value)}
                     placeholder="field_name"
-                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+                    className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
                 </div>
                 <div className="col-span-3">
                   <select value={fld.type} onChange={e => setField(i, 'type', e.target.value)}
-                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] focus:outline-none focus:border-[#2563EB]">
+                    className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-[#fafafa] focus:outline-none focus:border-[#2563EB]">
                     {['text', 'boolean', 'number', 'enum'].map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div className="col-span-4">
                   <input value={fld.description} onChange={e => setField(i, 'description', e.target.value)}
                     placeholder="description (optional)"
-                    className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-sm text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+                    className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-sm text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
                 </div>
                 <div className="col-span-1 flex items-center justify-center">
                   <button type="button" onClick={() => removeField(i)}
@@ -1630,23 +1630,23 @@ function AdvancedStep({ form, set }) {
           </div>
         )}
         <button type="button" onClick={addField}
-          className="flex items-center gap-1.5 text-sm text-[#2563EB] hover:text-[#3B82F6] transition-colors">
+          className="flex items-center gap-1.5 text-sm text-[#2563EB] hover:text-[#8b5cf6] transition-colors">
           <span className="text-lg leading-none">+</span> Add field
         </button>
       </div>
 
       {/* Call Goal */}
-      <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-2xl p-5 space-y-3">
+      <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-2xl p-5 space-y-3">
         <div>
-          <p className="text-base font-semibold text-[#1A1816]">Call Goal</p>
-          <p className="text-sm text-[#A8A29E] mt-0.5">
+          <p className="text-base font-semibold text-[#fafafa]">Call Goal</p>
+          <p className="text-sm text-[#71717a] mt-0.5">
             LLM evaluates this after each call — result saved as <code className="text-[#2563EB] text-[12px]">goal_achieved</code>.
           </p>
         </div>
         <textarea value={form.success_criteria} onChange={e => set('success_criteria', e.target.value)}
           rows={3}
           placeholder="The call is successful if the caller confirmed an appointment, agreed to a callback, or their issue was resolved."
-          className="w-full bg-[#FAFAF9] border border-[#E8E5E2] focus:border-[#2563EB] rounded-xl px-3 py-2.5 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none" />
+          className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] focus:border-[#2563EB] rounded-xl px-3 py-2.5 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none transition-colors resize-none" />
       </div>
     </div>
   )
@@ -1654,7 +1654,7 @@ function AdvancedStep({ form, set }) {
 
 // ─── Shared Primitives ─────────────────────────────────────────────────────
 
-const inputCls = 'w-full bg-[#FAFAF9] border border-[#E8E5E2] focus:border-[#2563EB] rounded-lg px-3 py-2.5 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none transition-colors'
+const inputCls = 'w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] focus:border-[#2563EB] rounded-lg px-3 py-2.5 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none transition-colors'
 
 // ─── Step: LLM Only (Chatbot) ──────────────────────────────────────────────
 
@@ -1705,7 +1705,7 @@ function VoicePreview({ voice, lang }) {
     : voice.replace('openai-', '').replace(/^\w/, c => c.toUpperCase())
 
   return (
-    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 flex items-center gap-4">
+    <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 flex items-center gap-4">
       <button onClick={handlePlay} disabled={loading}
         className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
           playing
@@ -1721,8 +1721,8 @@ function VoicePreview({ voice, lang }) {
         )}
       </button>
       <div>
-        <p className="text-sm font-medium text-[#44403C]">Preview {voiceName} voice</p>
-        <p className="text-[12px] text-[#A8A29E] mt-0.5">Hear how your agent will sound on calls</p>
+        <p className="text-sm font-medium text-[#e4e4e7]">Preview {voiceName} voice</p>
+        <p className="text-[12px] text-[#71717a] mt-0.5">Hear how your agent will sound on calls</p>
       </div>
     </div>
   )
@@ -1733,18 +1733,18 @@ function VoicePreview({ voice, lang }) {
 
 function OpenAIVoicePicker({ selected, onSelect }) {
   return (
-    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
-      <p className="text-sm font-semibold text-[#78716C]">Choose OpenAI Voice</p>
+    <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 space-y-3">
+      <p className="text-sm font-semibold text-[#a1a1aa]">Choose OpenAI Voice</p>
       <div className="grid grid-cols-4 gap-2">
         {OPENAI_VOICES.map(v => (
           <button key={v.id} type="button" onClick={() => onSelect(v.id)}
             className={`p-2.5 rounded-xl border text-left transition-all ${
               selected === v.id
                 ? 'bg-[#2563EB]/10 border-indigo-500/40'
-                : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
+                : 'bg-[#09090b] border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1]'
             }`}>
-            <p className={`text-sm font-semibold ${selected === v.id ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>{v.name}</p>
-            <p className="text-[12px] text-[#A8A29E] mt-0.5">{v.accent} · {v.age}</p>
+            <p className={`text-sm font-semibold ${selected === v.id ? 'text-[#8b5cf6]' : 'text-[#e4e4e7]'}`}>{v.name}</p>
+            <p className="text-[12px] text-[#71717a] mt-0.5">{v.accent} · {v.age}</p>
           </button>
         ))}
       </div>
@@ -1884,17 +1884,17 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
   }
 
   return (
-    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
+    <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-[#44403C]">{title}</p>
-          <p className="text-[12px] text-[#A8A29E]">{subtitle}</p>
+          <p className="text-sm font-semibold text-[#e4e4e7]">{title}</p>
+          <p className="text-[12px] text-[#71717a]">{subtitle}</p>
         </div>
         <div className="flex gap-1">
           {['All', 'F', 'M'].map(g => (
             <button key={g} type="button" onClick={() => setGenderFilter(g)}
               className={`px-2 py-0.5 text-[9px] font-medium rounded transition-colors ${
-                genderFilter === g ? 'bg-[#2563EB]/20 text-[#3B82F6]' : 'text-[#A8A29E] hover:text-[#44403C]'
+                genderFilter === g ? 'bg-[#2563EB]/20 text-[#8b5cf6]' : 'text-[#71717a] hover:text-[#e4e4e7]'
               }`}>{g === 'All' ? 'All' : g === 'F' ? 'Female' : 'Male'}</button>
           ))}
         </div>
@@ -1906,20 +1906,20 @@ function VoiceGrid({ title, subtitle, voices, selected, onSelect, previewPrefix 
             className={`relative text-left p-3 rounded-lg border transition-all ${
               selected === v.id
                 ? 'bg-[#2563EB]/10 border-indigo-500/40'
-                : 'bg-white border-[#E8E5E2] hover:border-[#D6D3D1]'
+                : 'bg-[#0f0f11] border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1]'
             }`}>
-            <p className={`text-[13px] font-semibold ${selected === v.id ? 'text-[#3B82F6]' : 'text-[#1A1816]'}`}>{v.name}</p>
-            <p className="text-[9px] text-[#A8A29E]">{v.desc}</p>
-            <p className="text-[9px] text-[#A8A29E]">{v.accent} {v.gender === 'F' || v.gender === 'Female' || v.gender === 'Neutral' ? '♀' : '♂'}</p>
+            <p className={`text-[13px] font-semibold ${selected === v.id ? 'text-[#8b5cf6]' : 'text-[#fafafa]'}`}>{v.name}</p>
+            <p className="text-[9px] text-[#71717a]">{v.desc}</p>
+            <p className="text-[9px] text-[#71717a]">{v.accent} {v.gender === 'F' || v.gender === 'Female' || v.gender === 'Neutral' ? '♀' : '♂'}</p>
             <button type="button" onClick={(e) => { e.stopPropagation(); playPreview(v) }}
               disabled={loadingVoice === v.id}
-              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#F5F5F4] hover:bg-[#E8E5E2] flex items-center justify-center transition-colors disabled:opacity-60">
+              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1c1c1f] hover:bg-[#E8E5E2] flex items-center justify-center transition-colors disabled:opacity-60">
               {loadingVoice === v.id ? (
                 <div className="w-3 h-3 border-[1.5px] border-indigo-400 border-t-transparent rounded-full animate-spin" />
               ) : playing === v.id ? (
                 <div className="w-2 h-2 rounded-sm bg-indigo-400" />
               ) : (
-                <svg className="w-2.5 h-2.5 text-[#78716C] ml-0.5" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,0 12,6 2,12" /></svg>
+                <svg className="w-2.5 h-2.5 text-[#a1a1aa] ml-0.5" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,0 12,6 2,12" /></svg>
               )}
             </button>
           </button>
@@ -1935,27 +1935,27 @@ function SarvamVoicePicker({ selected, onSelect, voices = SARVAM_VOICES, title =
   const [genderFilter, setGenderFilter] = useState('All')
   const filtered = genderFilter === 'All' ? voices : voices.filter(v => v.gender === genderFilter || v.gender?.charAt(0) === genderFilter)
   return (
-    <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-4 space-y-3">
+    <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-[#78716C]">{title}</p>
+        <p className="text-sm font-semibold text-[#a1a1aa]">{title}</p>
         <div className="flex gap-2">
-          <div className="flex rounded-lg border border-[#E8E5E2] overflow-hidden">
+          <div className="flex rounded-lg border border-[rgba(255,255,255,0.06)] overflow-hidden">
             {['All', 'Female', 'Male'].map(g => (
               <button key={g} type="button" onClick={() => setGenderFilter(g)}
                 className={`px-2.5 py-1.5 text-[12px] font-medium transition-colors ${
                   genderFilter === g
-                    ? 'bg-[#2563EB]/15 text-[#3B82F6]'
-                    : 'bg-[#FAFAF9] text-[#A8A29E] hover:text-[#44403C]'
+                    ? 'bg-[#2563EB]/15 text-[#8b5cf6]'
+                    : 'bg-[#09090b] text-[#71717a] hover:text-[#e4e4e7]'
                 }`}>{g}</button>
             ))}
           </div>
-          <div className="flex rounded-lg border border-[#E8E5E2] overflow-hidden">
+          <div className="flex rounded-lg border border-[rgba(255,255,255,0.06)] overflow-hidden">
             {[{ id: 'en', label: 'EN' }, { id: 'hi', label: 'हि' }].map(l => (
               <button key={l.id} type="button" onClick={() => setPreviewLang(l.id)}
                 className={`px-2.5 py-1.5 text-[12px] font-medium transition-colors ${
                   previewLang === l.id
-                    ? 'bg-[#2563EB]/15 text-[#3B82F6]'
-                    : 'bg-[#FAFAF9] text-[#A8A29E] hover:text-[#44403C]'
+                    ? 'bg-[#2563EB]/15 text-[#8b5cf6]'
+                    : 'bg-[#09090b] text-[#71717a] hover:text-[#e4e4e7]'
                 }`}>{l.label}</button>
             ))}
           </div>
@@ -1967,10 +1967,10 @@ function SarvamVoicePicker({ selected, onSelect, voices = SARVAM_VOICES, title =
             className={`p-2.5 rounded-xl border text-left transition-all ${
               selected === v.id
                 ? 'bg-[#2563EB]/10 border-indigo-500/40'
-                : 'bg-[#FAFAF9] border-[#E8E5E2] hover:border-[#D6D3D1]'
+                : 'bg-[#09090b] border-[rgba(255,255,255,0.06)] hover:border-[#D6D3D1]'
             }`}>
-            <p className={`text-sm font-semibold ${selected === v.id ? 'text-[#3B82F6]' : 'text-[#44403C]'}`}>{v.name}</p>
-            <p className="text-[12px] text-[#A8A29E] mt-0.5">{v.gender === 'Female' ? '♀' : '♂'}</p>
+            <p className={`text-sm font-semibold ${selected === v.id ? 'text-[#8b5cf6]' : 'text-[#e4e4e7]'}`}>{v.name}</p>
+            <p className="text-[12px] text-[#71717a] mt-0.5">{v.gender === 'Female' ? '♀' : '♂'}</p>
           </button>
         ))}
       </div>
@@ -2036,10 +2036,10 @@ function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
           <div className="flex items-center gap-3">
             <input type="color" value={wc.theme_color || '#6366f1'}
               onChange={e => setWc('theme_color', e.target.value)}
-              className="w-10 h-10 rounded-lg border border-[#E8E5E2] bg-transparent cursor-pointer" />
+              className="w-10 h-10 rounded-lg border border-[rgba(255,255,255,0.06)] bg-transparent cursor-pointer" />
             <input value={wc.theme_color || '#6366f1'}
               onChange={e => setWc('theme_color', e.target.value)}
-              className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-lg px-3 py-2 text-base text-[#1A1816] font-mono w-28 focus:outline-none focus:border-[#2563EB]" />
+              className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-lg px-3 py-2 text-base text-[#fafafa] font-mono w-28 focus:outline-none focus:border-[#2563EB]" />
           </div>
         </FormField>
 
@@ -2049,8 +2049,8 @@ function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
               <button key={pos} type="button" onClick={() => setWc('position', pos)}
                 className={`flex-1 py-3 px-4 rounded-xl border text-center text-sm font-medium transition-all ${
                   (wc.position || 'bottom-right') === pos
-                    ? 'bg-[#2563EB]/10 border-indigo-500/40 text-[#3B82F6]'
-                    : 'bg-[#FAFAF9] border-[#E8E5E2] text-[#78716C] hover:border-[#D6D3D1]'
+                    ? 'bg-[#2563EB]/10 border-indigo-500/40 text-[#8b5cf6]'
+                    : 'bg-[#09090b] border-[rgba(255,255,255,0.06)] text-[#a1a1aa] hover:border-[#D6D3D1]'
                 }`}>
                 {pos === 'bottom-right' ? 'Bottom Right' : 'Bottom Left'}
               </button>
@@ -2061,21 +2061,21 @@ function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
         <FormField label="Input Placeholder">
           <input value={wc.placeholder || 'Type a message...'}
             onChange={e => setWc('placeholder', e.target.value)}
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-xl px-4 py-3 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
         </FormField>
 
         <FormField label="Avatar URL" hint="Optional — shown in chat header">
           <input value={wc.avatar_url || ''}
             onChange={e => setWc('avatar_url', e.target.value)}
             placeholder="https://..."
-            className="w-full bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl px-4 py-3 text-base text-[#1A1816] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
+            className="w-full bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-xl px-4 py-3 text-base text-[#fafafa] placeholder-[#A8A29E] focus:outline-none focus:border-[#2563EB]" />
         </FormField>
 
         {/* Embed Code */}
         {!isNew && (
-          <div className="bg-[#FAFAF9] border border-[#E8E5E2] rounded-xl p-5 space-y-3">
+          <div className="bg-[#09090b] border border-[rgba(255,255,255,0.06)] rounded-xl p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-[#44403C]">Embed Code</p>
+              <p className="text-sm font-semibold text-[#e4e4e7]">Embed Code</p>
               {!widgetKey && (
                 <button onClick={handleGenerate} disabled={generating}
                   className="text-sm bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-3 py-1.5 rounded-lg disabled:opacity-50">
@@ -2085,21 +2085,21 @@ function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
             </div>
             {widgetKey ? (
               <>
-                <div className="bg-[#FAFAF9] rounded-lg p-3 font-mono text-[13px] text-emerald-400 break-all select-all leading-relaxed">
+                <div className="bg-[#09090b] rounded-lg p-3 font-mono text-[13px] text-emerald-400 break-all select-all leading-relaxed">
                   {embedCode}
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => { navigator.clipboard.writeText(embedCode); setCopying(true); setTimeout(() => setCopying(false), 2000) }}
-                    className="text-sm text-[#78716C] hover:text-[#1A1816] bg-[#F5F5F4] border border-[#E8E5E2] px-3 py-1.5 rounded-lg transition-colors">
+                    className="text-sm text-[#a1a1aa] hover:text-[#fafafa] bg-[#1c1c1f] border border-[rgba(255,255,255,0.06)] px-3 py-1.5 rounded-lg transition-colors">
                     {copying ? 'Copied!' : 'Copy Code'}
                   </button>
-                  <span className="text-[12px] text-[#A8A29E]">
+                  <span className="text-[12px] text-[#71717a]">
                     Key: {widgetKey.slice(0, 16)}...
                   </span>
                 </div>
               </>
             ) : (
-              <p className="text-sm text-[#A8A29E]">
+              <p className="text-sm text-[#71717a]">
                 Save the agent first, then generate a widget key to get the embed code.
               </p>
             )}
@@ -2120,8 +2120,8 @@ function WidgetStep({ form, setWc, widgetKey, agentId, isNew, setWidgetKey }) {
 function StepHeader({ title, desc }) {
   return (
     <div className="mb-2">
-      <h2 className="text-xl font-semibold text-[#1A1816]">{title}</h2>
-      {desc && <p className="text-sm text-[#A8A29E] mt-1">{desc}</p>}
+      <h2 className="text-xl font-semibold text-[#fafafa]">{title}</h2>
+      {desc && <p className="text-sm text-[#71717a] mt-1">{desc}</p>}
     </div>
   )
 }
@@ -2129,10 +2129,10 @@ function StepHeader({ title, desc }) {
 function FormField({ label, hint, required, children }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-[#78716C] mb-2">
+      <label className="block text-sm font-medium text-[#a1a1aa] mb-2">
         {label}
         {required && <span className="text-red-400 ml-0.5">*</span>}
-        {hint && <span className="text-[#A8A29E] font-normal ml-1.5">— {hint}</span>}
+        {hint && <span className="text-[#71717a] font-normal ml-1.5">— {hint}</span>}
       </label>
       {children}
     </div>
@@ -2142,8 +2142,8 @@ function FormField({ label, hint, required, children }) {
 function Toggle({ value, onChange }) {
   return (
     <button type="button" onClick={() => onChange(!value)}
-      className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${value ? 'bg-[#2563EB]' : 'bg-[#F5F5F4]'}`}>
-      <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${value ? 'translate-x-5' : ''}`} />
+      className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${value ? 'bg-[#2563EB]' : 'bg-[#1c1c1f]'}`}>
+      <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-[#0f0f11] transition-transform ${value ? 'translate-x-5' : ''}`} />
     </button>
   )
 }
