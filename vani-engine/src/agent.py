@@ -15,6 +15,7 @@ import json
 import os
 import time
 from datetime import datetime, timezone
+from uuid import uuid4
 
 import httpx
 from dotenv import load_dotenv
@@ -53,7 +54,7 @@ _DEFAULT_INSTRUCTIONS = (
     "No markdown, no emojis, no bullet points, no asterisks."
 )
 
-ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_URL", "http://localhost:8001")
+ORCHESTRATOR_URL = os.getenv("ORCHESTRATOR_URL", "http://localhost:8000")
 MAX_CALL_DURATION = 900
 
 
@@ -118,7 +119,7 @@ def _parse_metadata(raw):
 
 
 async def _notify_orchestrator(call_id, event_type, data=None):
-    if not call_id or call_id == "unknown":
+    if not call_id:
         return
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -525,7 +526,7 @@ async def vani_agent(ctx: JobContext):
             print(">>> NO AGENT FOUND — using defaults", flush=True)
 
     cfg       = metadata.get("agent_config", {})
-    call_id   = metadata.get("call_id", "unknown")
+    call_id   = metadata.get("call_id") or str(uuid4())
     agent_id  = metadata.get("agent_id", "")
     tenant_id = metadata.get("tenant_id", "")
     direction = metadata.get("direction", "inbound")
@@ -812,7 +813,13 @@ async def vani_agent(ctx: JobContext):
               f" | tools={len(tools_config)} | products={len(products)} | kb={'yes' if kb_context else 'no'}"
               f" | memory={'yes' if memory_context else 'no'}"
               f" | escalation={'yes' if escalation_enabled else 'no'}", flush=True)
-        await _notify_orchestrator(call_id, "CALL_STARTED")
+        await _notify_orchestrator(call_id, "CALL_STARTED", {
+            "tenant_id": tenant_id,
+            "agent_id":  agent_id,
+            "phone":     metadata.get("phone", ""),
+            "direction": direction,
+            "room":      ctx.room.name,
+        })
     except Exception as exc:
         # Circuit breaker: record provider failures on session start error
         circuit_breaker.record_failure(llm_model)

@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from app.config import settings
-from app.routers import admin, agent_builder, agents, analytics, api_keys, auth, billing, calls, campaigns, dialer, dnc, kb, latency, number_hunter, numbers, outbound, playground_chat, playground_voice, products, qa_tester, qa_reports, team, telephony, tools, tts_preview, webhook_config, webhooks, widget
+from app.routers import admin, agent_builder, agents, analytics, api_keys, auth, billing, calls, campaigns, dialer, dnc, internal_events, kb, latency, number_hunter, numbers, outbound, playground_chat, playground_voice, products, qa_tester, qa_reports, team, telephony, tools, tts_preview, webhook_config, webhooks, widget
 from app.middleware.usage import UsageMeteringMiddleware, periodic_flush
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.errors import install_error_handlers
@@ -310,7 +310,8 @@ app.include_router(billing.router,          include_in_schema=False)
 # ── Internal routes (no versioning) — hidden from docs ────────────────────────
 app.include_router(admin.router,      include_in_schema=False)
 app.include_router(widget.router,     include_in_schema=False)
-app.include_router(telephony.router,  include_in_schema=False)
+app.include_router(telephony.router,       include_in_schema=False)
+app.include_router(internal_events.router, include_in_schema=False)
 
 STATIC_DIR = Path(__file__).parent / "static"
 
